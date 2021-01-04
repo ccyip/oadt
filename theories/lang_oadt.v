@@ -15,7 +15,7 @@ Section lang.
 
   (** * Syntax *)
 
-  (** ** Expressions *)
+  (** ** Expressions (e, τ) *)
   Inductive expr :=
   | EUnitT
   | EBool
@@ -33,7 +33,7 @@ Section lang.
   | EIte (e0 e1 e2 : expr)
   | EMux (e0 e1 e2 : expr)
   | EPair (e1 e2 : expr)
-  | ELetP (x y : name) (e1 e2 : expr)
+  | ELetP (x1 x2 : name) (e1 e2 : expr)
   | EInj (b : bool) (τ e : expr)
   | ECase (e0 : expr) (x1 : name) (e1 : expr) (x2 : name) (e2 : expr)
   | EOInj (b : bool) (τ e : expr)
@@ -47,7 +47,7 @@ Section lang.
   | EBoxedOInj (b : bool) (τ e : expr)
   .
 
-  (** ** GLobal named definitions *)
+  (** ** GLobal named definitions (D) *)
   Variant gdef :=
   | DADT (X : name) (e : expr)
   | DOADT (Y : name) (x : name) (τ e : expr)
@@ -193,6 +193,69 @@ Section lang.
                                                   t custom oadt at level 0,
                                                   e custom oadt at level 0).
 
+  (** * Dynamic semantics *)
+
+  (** ** OADT Values (α) *)
+  Inductive tval : expr -> Prop :=
+  | VUnitT : tval <{ 𝟙 }>
+  | VOBool : tval <{ ~𝔹 }>
+  | VProd α1 α2 : tval α1 -> tval α2 -> tval <{ α1 * α2 }>
+  | VOSum α1 α2 : tval α1 -> tval α2 -> tval <{ α1 ~+ α2 }>
+  .
+
+  (** ** Values (v) *)
+  Inductive val : expr -> Prop :=
+  | VUnitV : val <{ () }>
+  | VLit (b : bool) : val <{ b }>
+  | VBoxedLit (b : bool) : val <{ [b] }>
+  | VPair v1 v2 : val v1 -> val v2 -> val <{ (v1, v2) }>
+  | VAbs x τ e : val <{ \x:τ => e }>
+  | VInj b τ v : val v -> val <{ inj@b<τ> v }>
+  | VFold X v : val v -> val <{ fold<X> v }>
+  | VBoxedOInj b α v : tval α -> val v -> val <{ [~inj@b<α> v] }>
+  .
+
+  (** ** Polynomial algebraic data type (β) *)
+  Inductive padt : expr -> Prop :=
+  | PUnitT : padt <{ 𝟙 }>
+  | PBool : padt <{ 𝔹 }>
+  | PProd β1 β2 : padt β1 -> padt β2 -> padt <{ β1 * β2 }>
+  | PSum β1 β2 : padt β1 -> padt β2 -> padt <{ β1 + β2 }>
+  | PName (X : name) : padt X
+  .
+
+  (** ** Evaluation context (ℇ) *)
+  (* This style is inspired by Iron Lambda. *)
+  (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
+  the hole in [ℇ] with [e]. [ectx ℇ] asserts that [ℇ] is a well-formed
+  context. *)
+  Inductive ectx : (expr -> expr) -> Prop :=
+  (* | CtxTop : ectx (fun e => e) *)
+  | CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 * τ2 }>)
+  | CtxProd2 α1 : tval α1 -> ectx (fun τ2 => <{ α1 * τ2 }>)
+  | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
+  | CtxOSum2 α1 : tval α1 -> ectx (fun τ2 => <{ α1 ~+ τ2 }>)
+  | CtxApp1 e2 : ectx (fun e1 => <{ e1 e2 }>)
+  | CtxApp2 v1 : val v1 -> ectx (fun e2 => <{ v1 e2 }>)
+  | CtxApp3 (x1 : name) : ectx (fun e2 => <{ x1 e2 }>)
+  | CtxSec : ectx (fun e => <{ s𝔹 e }>)
+  | CtxRet : ectx (fun e => <{ r𝔹 e }>)
+  | CtxIte e1 e2 : ectx (fun e0 => <{ if e0 then e1 else e2 }>)
+  | CtxMux1 e1 e2 : ectx (fun e0 => <{ mux e0 e1 e2 }>)
+  | CtxMux2 v0 e2 : val v0 -> ectx (fun e1 => <{ mux v0 e1 e2 }>)
+  | CtxMux3 v0 v1 : val v0 -> val v1 -> ectx (fun e2 => <{ mux v0 v1 e2 }>)
+  | CtxPair1 e2 : ectx (fun e1 => <{ (e1, e2) }>)
+  | CtxPair2 v1 : val v1 -> ectx (fun e2 => <{ (v1, e2) }>)
+  | CtxLetP x1 x2 e2 : ectx (fun e1 => <{ let (x1, x2) = e1 in e2 }>)
+  | CtxInj b τ : ectx (fun e => <{ inj@b<τ> e }>)
+  | CtxCase x1 e1 x2 e2: ectx (fun e0 => <{ case e0 of x1 => e1 | x2 => e2 }>)
+  | CtxOInj1 b e : ectx (fun τ => <{ ~inj@b<τ> e }>)
+  | CtxOInj2 b α : tval α -> ectx (fun e => <{ ~inj@b<α> e }>)
+  | CtxOCase x1 e1 x2 e2: ectx (fun e0 => <{ ~case e0 of x1 => e1 | x2 => e2 }>)
+  | CtxLet x e2 : ectx (fun e1 => <{ let x = e1 in e2 }>)
+  | CtxFold X : ectx (fun e => <{ fold<X> e }>)
+  | CtxUnfold X : ectx (fun e => <{ unfold<X> e }>)
+  .
 
 End lang.
 
