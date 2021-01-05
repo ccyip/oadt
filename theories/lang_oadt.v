@@ -54,9 +54,13 @@ Section lang.
   | DFun (x : name) (τ e : expr)
   .
 
-  (** ** Programs *)
+  (** ** Programs (P) *)
   (* TODO: may define [program] as [list gdef * expr]. *)
   Definition program := list gdef.
+
+  (** ** Global context (Σ) *)
+  (** It is used in operational semantics and typing. *)
+  Definition gctx := nmap gdef.
 
   (** ** Notations *)
   (* Adapted from Software Foundations. *)
@@ -70,6 +74,8 @@ Section lang.
   Notation "<{ e }>" := e (e custom oadt at level 99).
   Notation "( x )" := x (in custom oadt, x at level 99).
   Notation "x" := x (in custom oadt at level 0, x constr at level 0).
+  Notation "! x" := (EVar x) (in custom oadt at level 0).
+  Notation "' b" := (ELit b) (in custom oadt at level 0).
   Notation "'𝟙'" := EUnitT (in custom oadt at level 0).
   Notation "'Unit'" := EUnitT (in custom oadt at level 0).
   Notation "'𝔹'" := EBool (in custom oadt at level 0).
@@ -195,12 +201,21 @@ Section lang.
 
   (** * Dynamic semantics *)
 
-  (** ** OADT Values (α) *)
+  (** ** Polynomial algebraic data type (α) *)
+  Inductive padt : expr -> Prop :=
+  | PUnitT : padt <{ 𝟙 }>
+  | PBool : padt <{ 𝔹 }>
+  | PProd α1 α2 : padt α1 -> padt α2 -> padt <{ α1 * α2 }>
+  | PSum α1 α2 : padt α1 -> padt α2 -> padt <{ α1 + α2 }>
+  | PName (X : name) : padt X
+  .
+
+  (** ** OADT values (ω) *)
   Inductive tval : expr -> Prop :=
   | VUnitT : tval <{ 𝟙 }>
   | VOBool : tval <{ ~𝔹 }>
-  | VProd α1 α2 : tval α1 -> tval α2 -> tval <{ α1 * α2 }>
-  | VOSum α1 α2 : tval α1 -> tval α2 -> tval <{ α1 ~+ α2 }>
+  | VProd ω1 ω2 : tval ω1 -> tval ω2 -> tval <{ ω1 * ω2 }>
+  | VOSum ω1 ω2 : tval ω1 -> tval ω2 -> tval <{ ω1 ~+ ω2 }>
   .
 
   (** ** Values (v) *)
@@ -212,16 +227,7 @@ Section lang.
   | VAbs x τ e : val <{ \x:τ => e }>
   | VInj b τ v : val v -> val <{ inj@b<τ> v }>
   | VFold X v : val v -> val <{ fold<X> v }>
-  | VBoxedOInj b α v : tval α -> val v -> val <{ [~inj@b<α> v] }>
-  .
-
-  (** ** Polynomial algebraic data type (β) *)
-  Inductive padt : expr -> Prop :=
-  | PUnitT : padt <{ 𝟙 }>
-  | PBool : padt <{ 𝔹 }>
-  | PProd β1 β2 : padt β1 -> padt β2 -> padt <{ β1 * β2 }>
-  | PSum β1 β2 : padt β1 -> padt β2 -> padt <{ β1 + β2 }>
-  | PName (X : name) : padt X
+  | VBoxedOInj b ω v : tval ω -> val v -> val <{ [~inj@b<ω> v] }>
   .
 
   (** ** Evaluation context (ℇ) *)
@@ -232,9 +238,9 @@ Section lang.
   Inductive ectx : (expr -> expr) -> Prop :=
   (* | CtxTop : ectx (fun e => e) *)
   | CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 * τ2 }>)
-  | CtxProd2 α1 : tval α1 -> ectx (fun τ2 => <{ α1 * τ2 }>)
+  | CtxProd2 ω1 : tval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
   | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
-  | CtxOSum2 α1 : tval α1 -> ectx (fun τ2 => <{ α1 ~+ τ2 }>)
+  | CtxOSum2 ω1 : tval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
   | CtxApp1 e2 : ectx (fun e1 => <{ e1 e2 }>)
   | CtxApp2 v1 : val v1 -> ectx (fun e2 => <{ v1 e2 }>)
   | CtxApp3 (x1 : name) : ectx (fun e2 => <{ x1 e2 }>)
@@ -250,7 +256,7 @@ Section lang.
   | CtxInj b τ : ectx (fun e => <{ inj@b<τ> e }>)
   | CtxCase x1 e1 x2 e2: ectx (fun e0 => <{ case e0 of x1 => e1 | x2 => e2 }>)
   | CtxOInj1 b e : ectx (fun τ => <{ ~inj@b<τ> e }>)
-  | CtxOInj2 b α : tval α -> ectx (fun e => <{ ~inj@b<α> e }>)
+  | CtxOInj2 b ω : tval ω -> ectx (fun e => <{ ~inj@b<ω> e }>)
   | CtxOCase x1 e1 x2 e2: ectx (fun e0 => <{ ~case e0 of x1 => e1 | x2 => e2 }>)
   | CtxLet x e2 : ectx (fun e1 => <{ let x = e1 in e2 }>)
   | CtxFold X : ectx (fun e => <{ fold<X> e }>)
