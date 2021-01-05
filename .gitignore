@@ -33,3 +33,5 @@ nlia.cache
 nra.cache
 Makefile.coq
 Makefile.coq.conf
+.dir-locals.el
+/snippets
