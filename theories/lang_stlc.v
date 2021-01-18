@@ -4,7 +4,7 @@ From oadt Require Import prelude.
 automation, through simply typed lambda calculus. This development is adapted
 from _Software Foundations_. The name binding approach mostly follows the paper
 _The Locally Nameless Representation_, and is inspired by the Coq development
-_formalmetacoq_ by the same author *)
+_formalmetacoq_ by the same author. *)
 
 Module stlc.
 
@@ -111,8 +111,6 @@ Inductive value : tm -> Prop :=
   | v_false :
       value <{false}>.
 
-Hint Constructors value : core.
-
 Reserved Notation "'[' x ':=' s ']' t" (in custom stlc at level 20, x constr).
 
 Fixpoint subst (x : atom) (s : tm) (t : tm) : tm :=
@@ -153,8 +151,6 @@ Inductive step : tm -> tm -> Prop :=
       <{if t1 then t2 else t3}> -->! <{if t1' then t2 else t3}>
 
 where "t '-->!' t'" := (step t t').
-
-Hint Constructors step : core.
 
 Notation multistep := (clos_refl_trans_1n _ step).
 Notation "t1 '-->*' t2" := (multistep t1 t2) (at level 40).
@@ -224,6 +220,11 @@ Proof.
   induction t; hauto.
 Qed.
 
+(* NOTE: reordering the assumptions of [open_lc_] actually helps [sauto] to
+work. [sauto] seems to struggle on the [i <> j] subgoal, where [i] is an
+existential variable. If it solves the other subgoal first, [i] is instantiated
+with a concrete value, then [sauto] has no problem with that. However, [eauto]
+works pretty well in this case. *)
 Lemma open_lc : forall t s,
   lc t -> forall k, <{ [k~>s] t }> = t.
 Proof.
@@ -283,7 +284,9 @@ Theorem progress : forall t T,
   value t \/ exists t', t -->! t'.
 Proof.
   remember empty as Gamma.
-  induction 1; hauto solve: simplify_map_eq inv: value, has_type.
+  induction 1; try hauto solve: simplify_map_eq
+                         ctrs: value, step
+                         inv: value, has_type.
 Qed.
 
 (** ** Preservation *)
@@ -331,9 +334,9 @@ Theorem preservation : forall Gamma t t' T,
 Proof.
   intros Gamma t t' T HT. generalize dependent t'.
   induction HT;
-       intros t' HE; inversion HE; subst; try qauto ctrs: has_type.
+       intros t' HE; sinvert HE; try qauto ctrs: has_type.
   - (* T_App *)
-    inversion HT1; subst.
+    sinvert HT1.
     simpl_cofin.
     erewrite subst_intro by eauto.
     eauto using subst_preversation.

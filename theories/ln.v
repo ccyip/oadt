@@ -1,6 +1,11 @@
 From oadt Require Import base.
 
-(* Having type class constraints inside the structure to avoid polluting the
+(** This file contains common definitions for locally nameless representation
+and tactics for automation. *)
+
+(** * Atom  *)
+
+(** Having type class constraints inside the structure to avoid polluting the
 proof contexts. *)
 Class Atom A M D := {
   (* Constraints. *)
@@ -35,11 +40,14 @@ Proof.
   destruct is_atom. split; first [typeclasses eauto | auto].
 Defined.
 
+(** * Tactics for cofinite quantifiers  *)
+
+(** [stale] returns a finite set [D] that a sufficiently fresh atom of type [A]
+should not belong to. *)
 Class Stale {D} A := stale : A -> D.
 
-
 (** If [e] has Stale instance, add it into [acc]. *)
-(* TODO: quite hacky. Is there a better way to handle exception? *)
+(* [acc] could be [tt] for empty set. Quite hacky indeed. *)
 Ltac collect_one_stale e acc :=
   match goal with
   | _ => lazymatch acc with
@@ -67,6 +75,12 @@ Ltac prettify_stales :=
            change H' in H
          end.
 
+(** Simplify the freshness assumptions. *)
+Ltac simpl_fresh H :=
+  rewrite ?not_elem_of_union in H;
+  destruct_and? H;
+  prettify_stales.
+
 (** Instantiate cofinite quantifiers with atom [x] and discharge the freshness
 condition. *)
 Ltac inst_atom x :=
@@ -75,9 +89,8 @@ Ltac inst_atom x :=
            try specialize (H x ltac:(set_solver))
          end.
 
-(** Introduce a sufficiently fresh atom. [S] is an extra set that the atom does
-not belong to. Continue with [tac] on the proof asserting the freshness of this
-atom. *)
+(** Introduce a sufficiently fresh atom. [S] is an extra set that this atom does
+not belong to. Continue with [tac] on the freshness proof. *)
 Tactic Notation "sufficiently_fresh" constr(S) tactic3(tac) :=
   change (?x ∈ ?v -> False) with (x ∉ v) in *;
   repeat lazymatch goal with
@@ -90,16 +103,11 @@ Tactic Notation "sufficiently_fresh" constr(S) tactic3(tac) :=
   | _ => destruct (exist_fresh S) as [? H]; tac H
   end.
 
-Ltac simpl_fresh H :=
-  rewrite ?not_elem_of_union in H;
-  destruct_and? H;
-  prettify_stales.
-
 (** [simpl_cofin] introduces a sufficiently fresh atom and instantiates the
 cofinite quantifiers. It may optionally accept an extra set [S] that the
 introduced atom should not belong to. The [simpl_cofin*] variants do not
-instantiate the cofinite quantifiers, only simplify the freshness hypotheses, so
-they are not destructive. *)
+instantiate the cofinite quantifiers, but only simplify the freshness
+hypotheses, so they are not destructive. *)
 Tactic Notation "simpl_cofin" "*" constr(S) :=
   sufficiently_fresh S (fun H => simpl_fresh H).
 
