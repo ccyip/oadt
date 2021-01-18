@@ -1,0 +1,114 @@
+From oadt Require Import base.
+
+(* Having type class constraints inside the structure to avoid polluting the
+proof contexts. *)
+Class Atom A M D := {
+  (* Constraints. *)
+  atom_finmap_dom :> ∀ C, Dom (M C) D;
+  atom_finmap_fmap :> FMap M;
+  atom_finmap_lookup :> ∀ C, Lookup A C (M C);
+  atom_finmap_empty :> ∀ C, Empty (M C);
+  atom_finmap_partial_alter :> ∀ C, PartialAlter A C (M C);
+  atom_finmap_omap :> OMap M;
+  atom_finmap_merge :> Merge M;
+  atom_finmap_to_list :> ∀ C, FinMapToList A C (M C);
+  atom_finset_elem_of :> ElemOf A D;
+  atom_finset_empty :> Empty D;
+  atom_finset_singleton :> Singleton A D;
+  atom_finset_union :> Union D;
+  atom_finset_intersection :> Intersection D;
+  atom_finset_difference :> Difference D;
+  atom_finset_elements :> Elements A D;
+
+  (* Properties that we care about. *)
+  atom_eq_decision :> EqDecision A;
+  atom_infinite :> Infinite A;
+  atom_finset :> FinSet A D;
+  atom_finmap :> FinMap A M;
+
+  (* Property about FinMapCom; we do it this way to avoid duplicates. *)
+  atom_elem_of_dom {C} (m : M C) i : i ∈ dom D m <-> is_Some (m !! i)
+}.
+
+Instance atom_dom_spec `{is_atom : Atom A M D} : FinMapDom A M D.
+Proof.
+  destruct is_atom. split; first [typeclasses eauto | auto].
+Defined.
+
+Class Stale {D} A := stale : A -> D.
+
+
+(** If [e] has Stale instance, add it into [acc]. *)
+(* TODO: quite hacky. Is there a better way to handle exception? *)
+Ltac collect_one_stale e acc :=
+  match goal with
+  | _ => lazymatch acc with
+         | tt => constr:(stale e)
+         | _ => constr:(acc ∪ (stale e))
+         end
+  | _ => acc
+  end.
+
+(** Return all stales in the context. *)
+Ltac collect_stales S :=
+  let stales := fold_hyps S collect_one_stale in
+  lazymatch stales with
+  | tt => fail "no stale available"
+  | _ => stales
+  end.
+
+Ltac prettify_stales :=
+  repeat match goal with
+         (* | H : ?x ∉ ∅ |- _ => clear H *)
+         | H : context C [stale ?v] |- _ =>
+           let S := eval unfold stale in (stale v) in
+           let S := eval simpl in S in
+           let H' := context C [S] in
+           change H' in H
+         end.
+
+(** Instantiate cofinite quantifiers with atom [x] and discharge the freshness
+condition. *)
+Ltac inst_atom x :=
+  repeat match goal with
+         | H : forall _, _ ∉ ?L -> _ |- _ =>
+           try specialize (H x ltac:(set_solver))
+         end.
+
+(** Introduce a sufficiently fresh atom. [S] is an extra set that the atom does
+not belong to. Continue with [tac] on the proof asserting the freshness of this
+atom. *)
+Tactic Notation "sufficiently_fresh" constr(S) tactic3(tac) :=
+  change (?x ∈ ?v -> False) with (x ∉ v) in *;
+  repeat lazymatch goal with
+         | H : ?x ∉ ?L |- _ => is_evar L; revert x H
+         end;
+  let H := fresh "Hfresh" in
+  let S := collect_stales S in
+  match goal with
+  | |- forall _, _ ∉ ?L -> _ => is_evar L; unify L S; intros ? H; tac H
+  | _ => destruct (exist_fresh S) as [? H]; tac H
+  end.
+
+Ltac simpl_fresh H :=
+  rewrite ?not_elem_of_union in H;
+  destruct_and? H;
+  prettify_stales.
+
+(** [simpl_cofin] introduces a sufficiently fresh atom and instantiates the
+cofinite quantifiers. It may optionally accept an extra set [S] that the
+introduced atom should not belong to. The [simpl_cofin*] variants do not
+instantiate the cofinite quantifiers, only simplify the freshness hypotheses, so
+they are not destructive. *)
+Tactic Notation "simpl_cofin" "*" constr(S) :=
+  sufficiently_fresh S (fun H => simpl_fresh H).
+
+Tactic Notation "simpl_cofin" constr(S) :=
+  sufficiently_fresh S (fun H => match type of H with
+                               | ?x ∉ _ =>
+                                 simpl_fresh H; inst_atom x
+                               end).
+
+Tactic Notation "simpl_cofin" "*" := simpl_cofin* tt.
+
+Tactic Notation "simpl_cofin" := simpl_cofin tt.
