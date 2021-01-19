@@ -31,7 +31,7 @@ Class Atom A M D := {
   atom_finset :> FinSet A D;
   atom_finmap :> FinMap A M;
 
-  (* Property about FinMapCom; we do it this way to avoid duplicates. *)
+  (* Property about FinMapDom; we do it this way to avoid duplicates. *)
   atom_elem_of_dom {C} (m : M C) i : i ∈ dom D m <-> is_Some (m !! i)
 }.
 

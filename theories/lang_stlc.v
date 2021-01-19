@@ -324,7 +324,8 @@ Proof.
     simpl_cofin.
     rewrite <- subst_open_comm
       by eauto using has_type_lc with set_solver.
-    apply H0; eauto using insert_commute, weakening_insert with set_solver.
+    use* insert_commute.
+    qauto simp: set_unfold use: weakening_insert.
 Qed.
 
 Theorem preservation : forall Gamma t t' T,
