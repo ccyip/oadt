@@ -284,9 +284,9 @@ Theorem progress : forall t T,
   value t \/ exists t', t -->! t'.
 Proof.
   remember empty as Gamma.
-  induction 1; try hauto solve: simplify_map_eq
-                         ctrs: value, step
-                         inv: value, has_type.
+  induction 1; hauto solve: simplify_map_eq
+                     ctrs: value, step
+                     inv: value, has_type.
 Qed.
 
 (** ** Preservation *)
