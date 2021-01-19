@@ -1,5 +1,4 @@
 From oadt Require Import base.
-From stdpp Require Import stringmap mapset.
 
 (** This file contains common definitions for locally nameless representation
 and tactics for automation. *)
@@ -41,17 +40,18 @@ Proof.
   destruct is_atom. split; first [typeclasses eauto | auto].
 Defined.
 
-(** An Atom instance, showing Atom can be inhabited. This instance is not
-intended to be used in the acutal implementation. *)
-Module atom_instance.
+(* From stdpp Require Import stringmap mapset. *)
+(* (** An Atom instance, showing Atom can be inhabited. This instance is not *)
+(* intended to be used in the acutal implementation. *) *)
+(* Module atom_instance. *)
 
-  Instance atom_string : Atom string stringmap (mapset stringmap).
-  Proof.
-    econstructor; try typeclasses eauto.
-    apply mapset_dom_spec.
-  Defined.
+(*   Instance atom_string : Atom string stringmap (mapset stringmap). *)
+(*   Proof. *)
+(*     econstructor; try typeclasses eauto. *)
+(*     apply mapset_dom_spec. *)
+(*   Defined. *)
 
-End atom_instance.
+(* End atom_instance. *)
 
 (** * Tactics for cofinite quantifiers  *)
 
