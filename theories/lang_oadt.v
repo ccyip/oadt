@@ -84,11 +84,11 @@ Notation "<{ e }>" := e (e custom oadt at level 99).
 Notation "( x )" := x (in custom oadt, x at level 99).
 Notation "x" := x (in custom oadt at level 0, x constr at level 0).
 Notation "'𝟙'" := EUnitT (in custom oadt at level 0).
-Notation "'Unit'" := EUnitT (in custom oadt at level 0).
+Notation "'Unit'" := EUnitT (in custom oadt at level 0, only parsing).
 Notation "'𝔹'" := EBool (in custom oadt at level 0).
-Notation "'Bool'" := EBool (in custom oadt at level 0).
+Notation "'Bool'" := EBool (in custom oadt at level 0, only parsing).
 Notation "'~𝔹'" := EOBool (in custom oadt at level 0).
-Notation "'~Bool'" := EOBool (in custom oadt at level 0).
+Notation "'~Bool'" := EOBool (in custom oadt at level 0, only parsing).
 Notation "τ1 * τ2" := (EProd τ1 τ2) (in custom oadt at level 2,
                                         τ1 custom oadt,
                                         τ2 custom oadt at level 0).
@@ -97,11 +97,13 @@ Notation "τ1 + τ2" := (ESum τ1 τ2) (in custom oadt at level 3,
 Notation "τ1 ~+ τ2" := (EOSum τ1 τ2) (in custom oadt at level 3,
                                          left associativity).
 Notation "'Π' : τ1 , τ2" := (EPi τ1 τ2) (in custom oadt at level 50,
-                                            right associativity).
+                                            right associativity,
+                                            format "Π : τ1 ,  τ2").
 Notation "\ : τ '=>' e" := (EAbs τ e) (in custom oadt at level 90,
                                           τ custom oadt at level 99,
                                           e custom oadt at level 99,
-                                          left associativity).
+                                          left associativity,
+                                          format "\ : τ  =>  e").
 Notation "e1 e2" := (EApp e1 e2) (in custom oadt at level 1, left associativity).
 Notation "()" := EUnitV (in custom oadt at level 0).
 Notation "( x , y , .. , z )" := (EPair .. (EPair x y) .. z)
@@ -111,7 +113,8 @@ Notation "( x , y , .. , z )" := (EPair .. (EPair x y) .. z)
                                        z custom oadt at level 99).
 Notation "'π@' b e" := (EProj b e) (in custom oadt at level 0,
                                        b constr at level 0,
-                                       e custom oadt at level 0).
+                                       e custom oadt at level 0,
+                                       format "π@ b  e").
 Notation "'π1' e" := (EProj true e) (in custom oadt at level 0,
                                         e custom oadt at level 0).
 Notation "'π2' e" := (EProj false e) (in custom oadt at level 0,
@@ -137,23 +140,29 @@ Notation "'let' e1 'in' e2" := (ELet e1 e2)
 Notation "'inj@' b < τ > e" := (EInj b τ e) (in custom oadt at level 0,
                                                 b constr at level 0,
                                                 τ custom oadt at level 0,
-                                                e custom oadt at level 0).
+                                                e custom oadt at level 0,
+                                                format "inj@ b < τ >  e").
 Notation "'inl' < τ > e" := (EInj true τ e) (in custom oadt at level 0,
                                                 τ custom oadt at level 0,
-                                                e custom oadt at level 0).
+                                                e custom oadt at level 0,
+                                                format "inl < τ >  e").
 Notation "'inr' < τ > e" := (EInj false τ e) (in custom oadt at level 0,
                                                  τ custom oadt at level 0,
-                                                 e custom oadt at level 0).
+                                                 e custom oadt at level 0,
+                                                 format "inr < τ >  e").
 Notation "'~inj@' b < τ > e" := (EOInj b τ e) (in custom oadt at level 0,
                                                   b constr at level 0,
                                                   τ custom oadt at level 0,
-                                                  e custom oadt at level 0).
+                                                  e custom oadt at level 0,
+                                                  format "~inj@ b < τ >  e").
 Notation "'~inl' < τ > e" := (EOInj true τ e) (in custom oadt at level 0,
                                                   τ custom oadt at level 0,
-                                                  e custom oadt at level 0).
+                                                  e custom oadt at level 0,
+                                                  format "~inl < τ >  e").
 Notation "'~inr' < τ > e" := (EOInj false τ e) (in custom oadt at level 0,
                                                    τ custom oadt at level 0,
-                                                   e custom oadt at level 0).
+                                                   e custom oadt at level 0,
+                                                   format "~inr < τ >  e").
 Notation "'case' e0 'of' e1 '|' e2" :=
   (ECase e0 e1 e2) (in custom oadt at level 89,
                        e0 custom oadt at level 99,
@@ -168,25 +177,30 @@ Notation "'~case' e0 'of' e1 '|' e2" :=
                         left associativity).
 Notation "'fold' < X > e" := (EFold X e) (in custom oadt at level 0,
                                              X custom oadt at level 0,
-                                             e custom oadt at level 0).
+                                             e custom oadt at level 0,
+                                             format "fold < X >  e").
 Notation "'unfold' < X > e" := (EUnfold X e) (in custom oadt at level 0,
                                                  X custom oadt at level 0,
-                                                 e custom oadt at level 0).
+                                                 e custom oadt at level 0,
+                                                 format "unfold < X >  e").
 Notation "[ b ]" := (EBoxedLit b) (in custom oadt at level 0,
                                       b constr at level 0).
 Notation "[ 'inj@' b < τ > e ]" := (EBoxedOInj b τ e)
                                       (in custom oadt at level 0,
                                           b constr at level 0,
                                           τ custom oadt at level 0,
-                                          e custom oadt at level 0).
+                                          e custom oadt at level 0,
+                                          format "[ inj@ b < τ >  e ]").
 Notation "[ 'inl' < τ > e ]" := (EBoxedOInj true τ e)
                                    (in custom oadt at level 0,
                                        τ custom oadt at level 0,
-                                       e custom oadt at level 0).
+                                       e custom oadt at level 0,
+                                       format "[ inl < τ >  e ]").
 Notation "[ 'inr' < τ > e ]" := (EBoxedOInj false τ e)
                                    (in custom oadt at level 0,
                                        τ custom oadt at level 0,
-                                       e custom oadt at level 0).
+                                       e custom oadt at level 0,
+                                       format "[ inr < τ >  e ]").
 
 Declare Custom Entry oadt_def.
 Notation "'data' X := e" := (X, DADT e) (in custom oadt_def at level 0,
@@ -196,7 +210,8 @@ Notation "'obliv' X ( : τ ) := e" := (X, DOADT τ e)
                                        (in custom oadt_def at level 0,
                                            X constr at level 0,
                                            τ custom oadt at level 99,
-                                           e custom oadt at level 99).
+                                           e custom oadt at level 99,
+                                           format "obliv  X  ( : τ )  :=  e").
 Notation "'def' x : τ := e" := (x, DFun τ e) (in custom oadt_def at level 0,
                                                  x constr at level 0,
                                                  τ custom oadt at level 99,
@@ -206,7 +221,8 @@ Notation "[{ x }]" := (cons x nil)
 Notation "[{ x ; y ; .. ; z }]" := (cons x (cons y .. (cons z nil) ..))
                                      (x custom oadt_def at level 99,
                                       y custom oadt_def at level 99,
-                                      z custom oadt_def at level 99).
+                                      z custom oadt_def at level 99,
+                                      format "[{ '[v  ' '/' x ; '/' y ; '/' .. ; '/' z ']' '//' }]").
 
 (** * Examples *)
 (* Axiom ℕ : atom. *)
