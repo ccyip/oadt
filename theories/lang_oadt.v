@@ -409,6 +409,39 @@ where "e '-->!' e'" := (step e e').
 Notation "Σ '⊢' e '-->!' e'" := (@step Σ e e') (at level 40).
 Hint Constructors step : step.
 
+(** * Typing *)
+
+(** ** Security level labels (l) *)
+Variant label :=
+| LAny
+| LPublic
+| LSecure
+| LMixed
+.
+
+Declare Custom Entry oadt_label.
+Notation "'A'" := (LAny) (in custom oadt_label at level 0).
+Notation "'P'" := (LPublic) (in custom oadt_label at level 0).
+Notation "'S'" := (LSecure) (in custom oadt_label at level 0).
+Notation "'M'" := (LMixed) (in custom oadt_label at level 0).
+
+(** ** Kinds (κ) *)
+Variant kind :=
+| KProper (l : label)
+| KOADT (τ : expr)
+.
+Declare Custom Entry oadt_kind.
+Notation "* @ l" := (KProper l) (in custom oadt_kind at level 0,
+                                    l custom oadt_label at level 0,
+                                    format "* @ l").
+Notation "τ '=>' *" := (KOADT τ) (in custom oadt_kind at level 0,
+                                     τ custom oadt at level 99).
+
+(** ** Typing context (Γ) *)
+Notation tctx := (amap expr).
+
+(** ** Expression typing *)
+
 
 (** * Infrastructure *)
 
