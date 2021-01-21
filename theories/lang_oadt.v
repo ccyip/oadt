@@ -302,10 +302,9 @@ Inductive ectx : (expr -> expr) -> Prop :=
 | CtxProd2 ω1 : tval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
 | CtxOSum2 ω1 : tval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
-| CtxApp1 e2 : ectx (fun e1 => <{ e1 e2 }>)
-| CtxApp2 v1 : val v1 -> ectx (fun e2 => <{ v1 e2 }>)
-(* TODO: Problematic! *)
-| CtxApp3 (x1 : atom) : ectx (fun e2 => <{ x1 e2 }>)
+(** We reduce applications from right to left for some subtle reason. *)
+| CtxApp1 e1 : ectx (fun e2 => <{ e1 e2 }>)
+| CtxApp2 v2 : val v2 -> ectx (fun e1 => <{ e1 v2 }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
 | CtxSec : ectx (fun e => <{ s𝔹 e }>)
 | CtxRet : ectx (fun e => <{ r𝔹 e }>)
@@ -351,10 +350,9 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
 | SAppOADT X τ e v :
     Σ !! X = Some (DOADT τ e) ->
     <{ X v }> -->! <{ e^v }>
-(* TODO: Problematic! *)
-| SAppFun x τ e v :
+| SAppFun x τ e :
     Σ !! x = Some (DFun τ e) ->
-    <{ x v }> -->! <{ e v }>
+    <{ x }> -->! <{ e }>
 | SOInj b ω v :
     tval ω -> val v ->
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
