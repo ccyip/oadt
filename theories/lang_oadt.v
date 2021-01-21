@@ -270,13 +270,13 @@ Inductive padt : expr -> Prop :=
 Hint Constructors padt : padt.
 
 (** ** OADT values (ω) *)
-Inductive tval : expr -> Prop :=
-| VUnitT : tval <{ 𝟙 }>
-| VOBool : tval <{ ~𝔹 }>
-| VProd ω1 ω2 : tval ω1 -> tval ω2 -> tval <{ ω1 * ω2 }>
-| VOSum ω1 ω2 : tval ω1 -> tval ω2 -> tval <{ ω1 ~+ ω2 }>
+Inductive otval : expr -> Prop :=
+| VUnitT : otval <{ 𝟙 }>
+| VOBool : otval <{ ~𝔹 }>
+| VProd ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 * ω2 }>
+| VOSum ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 ~+ ω2 }>
 .
-Hint Constructors tval : tval.
+Hint Constructors otval : otval.
 
 (** ** Values (v) *)
 Inductive val : expr -> Prop :=
@@ -287,9 +287,25 @@ Inductive val : expr -> Prop :=
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
 | VFold X v : val v -> val <{ fold<X> v }>
 | VBoxedLit (b : bool) : val <{ [b] }>
-| VBoxedOInj b ω v : tval ω -> val v -> val <{ [inj@b<ω> v] }>
+| VBoxedOInj b ω v : otval ω -> val v -> val <{ [inj@b<ω> v] }>
 .
 Hint Constructors val : val.
+
+(** ** OADT value typing *)
+(** [oval v ω] means [v] is an oblivious value of oblivious type value [ω]. This
+is essentially a subset of [typing], but we have it so that the dynamic
+semantics does not depend on typing. *)
+Inductive oval : expr -> expr -> Prop :=
+| OVUnitV : oval <{ () }> <{ 𝟙 }>
+| OVOBool b : oval <{ [b] }> <{ ~𝔹 }>
+| OVPair v1 v2 ω1 ω2 :
+    oval v1 ω1 -> oval v2 ω2 ->
+    oval <{ (v1, v2) }> <{ ω1 * ω2 }>
+| OVOSum (b : bool) v ω1 ω2 :
+    oval v (if b then ω1 else ω2) ->
+    oval <{ [inj@b<ω1 ~+ ω2> v] }> <{ ω1 ~+ ω2 }>
+.
+Hint Constructors oval : oval.
 
 (** ** Evaluation context (ℇ) *)
 (* This style is inspired by Iron Lambda. *)
@@ -299,9 +315,9 @@ context. *)
 Inductive ectx : (expr -> expr) -> Prop :=
 (* | CtxTop : ectx (fun e => e) *)
 | CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 * τ2 }>)
-| CtxProd2 ω1 : tval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
+| CtxProd2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
-| CtxOSum2 ω1 : tval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
+| CtxOSum2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
 (** We reduce applications from right to left for some subtle reason. *)
 | CtxApp1 e1 : ectx (fun e2 => <{ e1 e2 }>)
 | CtxApp2 v2 : val v2 -> ectx (fun e1 => <{ e1 v2 }>)
@@ -318,7 +334,7 @@ Inductive ectx : (expr -> expr) -> Prop :=
 | CtxInj b τ : ectx (fun e => <{ inj@b<τ> e }>)
 | CtxCase e1 e2: ectx (fun e0 => <{ case e0 of e1 | e2 }>)
 | CtxOInj1 b e : ectx (fun τ => <{ ~inj@b<τ> e }>)
-| CtxOInj2 b ω : tval ω -> ectx (fun e => <{ ~inj@b<ω> e }>)
+| CtxOInj2 b ω : otval ω -> ectx (fun e => <{ ~inj@b<ω> e }>)
 | CtxOCase e1 e2: ectx (fun e0 => <{ ~case e0 of e1 | e2 }>)
 | CtxFold X : ectx (fun e => <{ fold<X> e }>)
 | CtxUnfold X : ectx (fun e => <{ unfold<X> e }>)
@@ -341,9 +357,9 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
 | SCase b τ v e1 e2 :
     val v ->
     <{ case inj@b<τ> v of e1 | e2 }> -->! if b then <{ e1^v }> else <{ e2^v }>
-(* TODO: [v1 : ω1] and [v2 : ω2]. *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
-    tval ω1 -> tval ω2 -> val v ->
+    otval ω1 -> otval ω2 -> val v ->
+    oval v1 ω1 -> oval v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
       EMux <{ [b] }> (if b then <{ e1^v }> else <{ e1^v1 }>)
                      (if b then <{ e2^v2 }> else <{ e2^v }>)
@@ -354,7 +370,7 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
     Σ !! x = Some (DFun τ e) ->
     <{ x }> -->! <{ e }>
 | SOInj b ω v :
-    tval ω -> val v ->
+    otval ω -> val v ->
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
 | SIte (b : bool) e1 e2 :
     <{ if b then e1 else e2 }> -->! if b then e1 else e2
