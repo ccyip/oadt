@@ -41,7 +41,7 @@ Tactic Notation "fold_hyps_cont" constr(acc) tactic3(tac) tactic3(ktac) :=
   let x := fold_hyps acc tac in
   ktac x.
 
-(** * General Lemmas *)
+(** * General lemmas *)
 
 Lemma insert_fresh_subseteq `{FinMapDom K M D} {A} : forall k (m : M A) v,
   k ∉ dom D m ->

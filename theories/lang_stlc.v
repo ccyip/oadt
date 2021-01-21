@@ -69,7 +69,7 @@ Notation k := <{\:Bool, \:Bool, 1}>.
 
 Notation notB := <{\:Bool, if 0 then false else true}>.
 
-(** * Locally nameless constructs *)
+(** * Small-step semantics *)
 
 (** Variable opening *)
 Reserved Notation "'[' k '~>' s ']' t" (in custom stlc at level 20, k constr).
@@ -91,18 +91,7 @@ Definition open s t := open_ 0 s t.
 
 Notation "t ^ s" := (open s t) (in custom stlc at level 20).
 
-(* Locally closed. *)
-Inductive lc : tm -> Prop :=
-  | lc_var x : lc (tm_fvar x)
-  | lc_true : lc <{ true }>
-  | lc_false : lc <{ false }>
-  | lc_if t1 t2 t3 : lc t1 -> lc t2 -> lc t3 -> lc <{ if t1 then t2 else t3 }>
-  | lc_app t1 t2 : lc t1 -> lc t2 -> lc <{ t1 t2 }>
-  | lc_abs T t L : (forall x, x ∉ L -> lc <{ t ^ x }>) -> lc <{ \:T, t }>
-.
-
-(** * Small-step semantics *)
-
+(** Values *)
 Inductive value : tm -> Prop :=
   | v_abs : forall T2 t1,
       value <{\:T2, t1}>
@@ -110,23 +99,6 @@ Inductive value : tm -> Prop :=
       value <{true}>
   | v_false :
       value <{false}>.
-
-Reserved Notation "'[' x ':=' s ']' t" (in custom stlc at level 20, x constr).
-
-Fixpoint subst (x : atom) (s : tm) (t : tm) : tm :=
-  match t with
-  | tm_fvar y =>
-      if decide (x = y) then s else t
-  | <{\:T, t1}> =>
-      <{\:T, [x:=s] t1}>
-  | <{t1 t2}> =>
-      <{([x:=s] t1) ([x:=s] t2)}>
-  | <{if t1 then t2 else t3}> =>
-      <{if ([x:=s] t1) then ([x:=s] t2) else ([x:=s] t3)}>
-  | _ => t
-  end
-
-where "'[' x ':=' s ']' t" := (subst x s t) (in custom stlc).
 
 (** Unfortunately the notation --> is used in the standard library. *)
 Reserved Notation "t '-->!' t'" (at level 40).
@@ -185,6 +157,34 @@ where "Gamma '⊢' t '\in' T" := (has_type Gamma t T).
 
 
 (** * Infrastructure *)
+
+(** Locally closed *)
+Inductive lc : tm -> Prop :=
+  | lc_var x : lc (tm_fvar x)
+  | lc_true : lc <{ true }>
+  | lc_false : lc <{ false }>
+  | lc_if t1 t2 t3 : lc t1 -> lc t2 -> lc t3 -> lc <{ if t1 then t2 else t3 }>
+  | lc_app t1 t2 : lc t1 -> lc t2 -> lc <{ t1 t2 }>
+  | lc_abs T t L : (forall x, x ∉ L -> lc <{ t ^ x }>) -> lc <{ \:T, t }>
+.
+
+(** Substitution *)
+Reserved Notation "'[' x ':=' s ']' t" (in custom stlc at level 20, x constr).
+
+Fixpoint subst (x : atom) (s : tm) (t : tm) : tm :=
+  match t with
+  | tm_fvar y =>
+      if decide (x = y) then s else t
+  | <{\:T, t1}> =>
+      <{\:T, [x:=s] t1}>
+  | <{t1 t2}> =>
+      <{([x:=s] t1) ([x:=s] t2)}>
+  | <{if t1 then t2 else t3}> =>
+      <{if ([x:=s] t1) then ([x:=s] t2) else ([x:=s] t3)}>
+  | _ => t
+  end
+
+where "'[' x ':=' s ']' t" := (subst x s t) (in custom stlc).
 
 (** Free variables *)
 Fixpoint fv (t : tm) : aset :=

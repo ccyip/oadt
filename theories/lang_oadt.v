@@ -220,6 +220,45 @@ Notation "[{ x ; y ; .. ; z }]" := (cons x (cons y .. (cons z nil) ..))
 
 (** * Dynamic semantics *)
 
+(** ** Variable opening  *)
+Reserved Notation "'{' k '~>' s '}' e" (in custom oadt at level 20, k constr).
+(* NOTE: recursively opening the types is probably not needed for [+] and [inj],
+since their type arguments are always public, meaning that no bound variable is
+possibly inside them. But I do it anyway for consistency, and possibly in the
+future we allow oblivious types inside them. Let's see how this goes. I will
+change it if it turns out to be too annoying for proofs. *)
+Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
+  match e with
+  | EBVar n => if decide (k = n) then s else e
+  | <{ Π:τ1, τ2 }> => <{ Π:{k~>s}τ1, {S k~>s}τ2 }>
+  | <{ \:τ => e }> => <{ \:{k~>s}τ => {S k~>s}e }>
+  | <{ let e1 in e2 }> => <{ let {k~>s}e1 in {S k~>s}e2 }>
+  | <{ case e0 of e1 | e2 }> => <{ case {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
+  | <{ ~case e0 of e1 | e2 }> => <{ ~case {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
+  (** Congruence rules *)
+  | <{ τ1 * τ2 }> => <{ ({k~>s}τ1) * ({k~>s}τ2) }>
+  | <{ τ1 + τ2 }> => <{ ({k~>s}τ1) + ({k~>s}τ2) }>
+  | <{ τ1 ~+ τ2 }> => <{ ({k~>s}τ1) ~+ ({k~>s}τ2) }>
+  | <{ e1 e2 }> => <{ ({k~>s}e1) ({k~>s}e2) }>
+  | <{ s𝔹 e }> => <{ s𝔹 ({k~>s}e) }>
+  | <{ r𝔹 e }> => <{ r𝔹 ({k~>s}e) }>
+  | <{ if e0 then e1 else e2 }> => <{ if {k~>s}e0 then {k~>s}e1 else {k~>s}e2 }>
+  | <{ mux e0 e1 e2 }> => <{ mux ({k~>s}e0) ({k~>s}e1) ({k~>s}e2) }>
+  | <{ (e1, e2) }> => <{ ({k~>s}e1, {k~>s}e2) }>
+  | <{ π@b e }> => <{ π@b ({k~>s}e) }>
+  | <{ inj@b<τ> e }> => <{ inj@b<({k~>s}τ)> ({k~>s}e) }>
+  | <{ ~inj@b<τ> e }> => <{ ~inj@b<({k~>s}τ)> ({k~>s}e) }>
+  | <{ fold<X> e }> => <{ fold<X> ({k~>s}e) }>
+  | <{ unfold<X> e }> => <{ unfold<X> ({k~>s}e) }>
+  | _ => e
+  end
+
+where "'{' k '~>' s '}' e" := (open_ k s e) (in custom oadt).
+
+Definition open s t := open_ 0 s t.
+
+Notation "t ^ s" := (open s t) (in custom oadt at level 20).
+
 (** ** Polynomial algebraic data type (α) *)
 Inductive padt : expr -> Prop :=
 | PUnitT : padt <{ 𝟙 }>
@@ -287,45 +326,7 @@ Inductive ectx : (expr -> expr) -> Prop :=
 .
 Hint Constructors ectx : ectx.
 
-(** ** Variable opening  *)
-Reserved Notation "'{' k '~>' s '}' e" (in custom oadt at level 20, k constr).
-(* NOTE: recursively opening the types is probably not needed for [+] and [inj],
-since their type arguments are always public, meaning that no bound variable is
-possibly inside them. But I do it anyway for consistency, and possibly in the
-future we allow oblivious types inside them. Let's see how this goes. I will
-change it if it turns out to be too annoying for proofs. *)
-Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
-  match e with
-  | EBVar n => if decide (k = n) then s else e
-  | <{ Π:τ1, τ2 }> => <{ Π:{k~>s}τ1, {S k~>s}τ2 }>
-  | <{ \:τ => e }> => <{ \:{k~>s}τ => {S k~>s}e }>
-  | <{ let e1 in e2 }> => <{ let {k~>s}e1 in {S k~>s}e2 }>
-  | <{ case e0 of e1 | e2 }> => <{ case {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
-  | <{ ~case e0 of e1 | e2 }> => <{ ~case {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
-  (** Congruence rules *)
-  | <{ τ1 * τ2 }> => <{ ({k~>s}τ1) * ({k~>s}τ2) }>
-  | <{ τ1 + τ2 }> => <{ ({k~>s}τ1) + ({k~>s}τ2) }>
-  | <{ τ1 ~+ τ2 }> => <{ ({k~>s}τ1) ~+ ({k~>s}τ2) }>
-  | <{ e1 e2 }> => <{ ({k~>s}e1) ({k~>s}e2) }>
-  | <{ s𝔹 e }> => <{ s𝔹 ({k~>s}e) }>
-  | <{ r𝔹 e }> => <{ r𝔹 ({k~>s}e) }>
-  | <{ if e0 then e1 else e2 }> => <{ if {k~>s}e0 then {k~>s}e1 else {k~>s}e2 }>
-  | <{ mux e0 e1 e2 }> => <{ mux ({k~>s}e0) ({k~>s}e1) ({k~>s}e2) }>
-  | <{ (e1, e2) }> => <{ ({k~>s}e1, {k~>s}e2) }>
-  | <{ π@b e }> => <{ π@b ({k~>s}e) }>
-  | <{ inj@b<τ> e }> => <{ inj@b<({k~>s}τ)> ({k~>s}e) }>
-  | <{ ~inj@b<τ> e }> => <{ ~inj@b<({k~>s}τ)> ({k~>s}e) }>
-  | <{ fold<X> e }> => <{ fold<X> ({k~>s}e) }>
-  | <{ unfold<X> e }> => <{ unfold<X> ({k~>s}e) }>
-  | _ => e
-  end
-
-where "'{' k '~>' s '}' e" := (open_ k s e) (in custom oadt).
-
-Definition open s t := open_ 0 s t.
-
-Notation "t ^ s" := (open s t) (in custom oadt at level 20).
-
+(** ** Small-step relation *)
 Reserved Notation "e '-->!' e'" (at level 40).
 Inductive step {Σ : gctx} : expr -> expr -> Prop :=
 | SCtx ℇ e e' :
@@ -458,6 +459,8 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   end
 
 where "'{' s '/' x '}' e" := (subst x s e) (in custom oadt).
+
+(** * Metatheories *)
 
 End lang.
 
