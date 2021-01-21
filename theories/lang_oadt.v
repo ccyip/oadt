@@ -174,18 +174,18 @@ Notation "'fold' < X > e" := (EFold X e) (in custom oadt at level 0,
 Notation "'unfold' < X > e" := (EUnfold X e) (in custom oadt at level 0,
                                                  X custom oadt at level 0,
                                                  e custom oadt at level 0).
-Notation "[ ~ b ]" := (EBoxedLit b) (in custom oadt at level 0,
+Notation "[ b ]" := (EBoxedLit b) (in custom oadt at level 0,
                                       b constr at level 0).
-Notation "[ '~inj@' b < τ > e ]" := (EBoxedOInj b τ e)
+Notation "[ 'inj@' b < τ > e ]" := (EBoxedOInj b τ e)
                                       (in custom oadt at level 0,
                                           b constr at level 0,
                                           τ custom oadt at level 0,
                                           e custom oadt at level 0).
-Notation "[ '~inl' < τ > e ]" := (EBoxedOInj true τ e)
+Notation "[ 'inl' < τ > e ]" := (EBoxedOInj true τ e)
                                    (in custom oadt at level 0,
                                        τ custom oadt at level 0,
                                        e custom oadt at level 0).
-Notation "[ '~inr' < τ > e ]" := (EBoxedOInj false τ e)
+Notation "[ 'inr' < τ > e ]" := (EBoxedOInj false τ e)
                                    (in custom oadt at level 0,
                                        τ custom oadt at level 0,
                                        e custom oadt at level 0).
@@ -286,8 +286,8 @@ Inductive val : expr -> Prop :=
 | VAbs τ e : val <{ \:τ => e }>
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
 | VFold X v : val v -> val <{ fold<X> v }>
-| VBoxedLit (b : bool) : val <{ [~b] }>
-| VBoxedOInj b ω v : tval ω -> val v -> val <{ [~inj@b<ω> v] }>
+| VBoxedLit (b : bool) : val <{ [b] }>
+| VBoxedOInj b ω v : tval ω -> val v -> val <{ [inj@b<ω> v] }>
 .
 Hint Constructors val : val.
 
@@ -345,9 +345,9 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
 (* TODO: [v1 : ω1] and [v2 : ω2]. *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
     tval ω1 -> tval ω2 -> val v ->
-    <{ ~case [~inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
-      EMux <{ [~b] }> (if b then <{ e1^v }> else <{ e1^v1 }>)
-                      (if b then <{ e2^v2 }> else <{ e2^v }>)
+    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
+      EMux <{ [b] }> (if b then <{ e1^v }> else <{ e1^v1 }>)
+                     (if b then <{ e2^v2 }> else <{ e2^v }>)
 | SAppOADT X τ e v :
     Σ !! X = Some (DOADT τ e) ->
     <{ X v }> -->! <{ e^v }>
@@ -357,14 +357,14 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
     <{ x v }> -->! <{ e v }>
 | SOInj b ω v :
     tval ω -> val v ->
-    <{ ~inj@b<ω> v }> -->! <{ [~inj@b<ω> v] }>
+    <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
 | SIte (b : bool) e1 e2 :
     <{ if b then e1 else e2 }> -->! if b then e1 else e2
 (** If we also want runtime obliviousness (e.g., against malicious adversaries),
 we can check [v1] and [v2] are oblivious values in this rule. *)
 | SMux b v1 v2 :
     val v1 -> val v2 ->
-    <{ mux [~b] v1 v2 }> -->! if b then v1 else v2
+    <{ mux [b] v1 v2 }> -->! if b then v1 else v2
 | SProj b v1 v2 :
     val v1 -> val v2 ->
     <{ π@b (v1, v2) }> -->! if b then v1 else v2
@@ -372,10 +372,10 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
     val v ->
     <{ unfold<X> (fold <X'> v) }> -->! v
 | SSec (b : bool) :
-    <{ s𝔹 b }> -->! <{ [~b] }>
+    <{ s𝔹 b }> -->! <{ [b] }>
 (** Delimited release [b] *)
 | SRet (b : bool) :
-    <{ r𝔹 [~b] }> -->! b
+    <{ r𝔹 [b] }> -->! b
 
 where "e '-->!' e'" := (step e e').
 Notation "Σ '⊢' e '-->!' e'" := (@step Σ e e') (at level 40).
@@ -425,8 +425,8 @@ Inductive lc : expr -> Prop :=
 | LCOInj b τ e : lc τ -> lc e -> lc <{ ~inj@b<τ> e }>
 | LCFold X e : lc e -> lc <{ fold<X> e }>
 | LCUnfold X e : lc e -> lc <{ unfold<X> e }>
-| LCBoxedLit b : lc <{ [~b] }>
-| LCBoxedOInj b τ e : lc τ -> lc e -> lc <{ [~inj@b<τ> e] }>
+| LCBoxedLit b : lc <{ [b] }>
+| LCBoxedOInj b τ e : lc τ -> lc e -> lc <{ [inj@b<τ> e] }>
 .
 Hint Constructors lc : lc.
 
