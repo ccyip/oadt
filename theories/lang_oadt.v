@@ -50,7 +50,6 @@ Inductive expr :=
 | EBoxedLit (b : bool)
 | EBoxedOInj (b : bool) (τ e : expr)
 .
-Hint Constructors expr : expr.
 
 (** ** GLobal definitions (D) *)
 Variant gdef :=
@@ -58,7 +57,6 @@ Variant gdef :=
 | DOADT (τ e : expr)
 | DFun (τ e : expr)
 .
-Hint Constructors gdef : gdef.
 
 (** ** Global named definitions (Ds) *)
 Definition gdefs := list (atom * gdef).
