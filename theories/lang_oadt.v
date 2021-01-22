@@ -224,6 +224,12 @@ Notation "[{ x ; y ; .. ; z }]" := (cons x (cons y .. (cons z nil) ..))
                                       z custom oadt_def at level 99,
                                       format "[{ '[v  ' '/' x ; '/' y ; '/' .. ; '/' z ']' '//' }]").
 
+Notation "'ite' e0 e1 e2" := (if e0 then e1 else e2)
+                               (in custom oadt at level 0,
+                                    e0 constr at level 0,
+                                    e1 custom oadt at level 0,
+                                    e2 custom oadt at level 0).
+
 (** * Examples *)
 (* Axiom ℕ : atom. *)
 (* Axiom pred : atom. *)
@@ -372,14 +378,13 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
     <{ let v in e }> -->! <{ e^v }>
 | SCase b τ v e1 e2 :
     val v ->
-    <{ case inj@b<τ> v of e1 | e2 }> -->! if b then <{ e1^v }> else <{ e2^v }>
+    <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
 (** The most interesting rule *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
     otval ω1 -> otval ω2 -> val v ->
     oval v1 ω1 -> oval v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
-      EMux <{ [b] }> (if b then <{ e1^v }> else <{ e1^v1 }>)
-                     (if b then <{ e2^v2 }> else <{ e2^v }>)
+      <{ mux [b] (ite b (e1^v) (e1^v1)) (ite b (e2^v2) (e2^v)) }>
 | SAppOADT X τ e v :
     Σ !! X = Some (DOADT τ e) ->
     <{ X v }> -->! <{ e^v }>
@@ -390,15 +395,15 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
     otval ω -> val v ->
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
 | SIte (b : bool) e1 e2 :
-    <{ if b then e1 else e2 }> -->! if b then e1 else e2
+    <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>
 (** If we also want runtime obliviousness (e.g., against malicious adversaries),
 we can check [v1] and [v2] are oblivious values in this rule. *)
 | SMux b v1 v2 :
     val v1 -> val v2 ->
-    <{ mux [b] v1 v2 }> -->! if b then v1 else v2
+    <{ mux [b] v1 v2 }> -->! <{ ite b v1 v2 }>
 | SProj b v1 v2 :
     val v1 -> val v2 ->
-    <{ π@b (v1, v2) }> -->! if b then v1 else v2
+    <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
 | SFold X X' v :
     val v ->
     <{ unfold<X> (fold <X'> v) }> -->! v
