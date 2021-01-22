@@ -83,6 +83,10 @@ Declare Custom Entry oadt.
 Notation "<{ e }>" := e (e custom oadt at level 99).
 Notation "( x )" := x (in custom oadt, x at level 99).
 Notation "x" := x (in custom oadt at level 0, x constr at level 0).
+Notation "'bvar' x" := (EBVar x) (in custom oadt at level 0, x constr at level 0).
+Notation "'fvar' x" := (EFVar x) (in custom oadt at level 0, x constr at level 0).
+Notation "'gvar' x" := (EGVar x) (in custom oadt at level 0, x constr at level 0).
+Notation "'lit' b" := (ELit b) (in custom oadt at level 0, b constr at level 0).
 Notation "'𝟙'" := EUnitT (in custom oadt at level 0).
 Notation "'Unit'" := EUnitT (in custom oadt at level 0, only parsing).
 Notation "'𝔹'" := EBool (in custom oadt at level 0).
@@ -250,7 +254,7 @@ future we allow oblivious types inside them. Let's see how this goes. I will
 change it if it turns out to be too annoying for proofs. *)
 Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   match e with
-  | EBVar n => if decide (k = n) then s else e
+  | <{ bvar n }> => if decide (k = n) then s else e
   | <{ Π:τ1, τ2 }> => <{ Π:{k~>s}τ1, {S k~>s}τ2 }>
   | <{ \:τ => e }> => <{ \:{k~>s}τ => {S k~>s}e }>
   | <{ let e1 in e2 }> => <{ let {k~>s}e1 in {S k~>s}e2 }>
@@ -529,8 +533,8 @@ Notation "Σ ; Γ '⊢' τ '::' κ" := (@expr_kinding Σ Γ τ κ)
 
 (** ** Locally closed *)
 Inductive lc : expr -> Prop :=
-| LCFVar x : lc (EFVar x)
-| LCGVar x : lc (EGVar x)
+| LCFVar x : lc <{ fvar x }>
+| LCGVar x : lc <{ gvar x }>
 | LCPi τ1 τ2 L :
     (forall x, x ∉ L -> lc <{ τ2^x }>) ->
     lc τ1 -> lc <{ Π:τ1, τ2 }>
@@ -577,7 +581,7 @@ Hint Constructors lc : lc.
 Reserved Notation "'{' s '/' x '}' e" (in custom oadt at level 20, x constr).
 Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   match e with
-  | EFVar y => if decide (x = y) then s else e
+  | <{ fvar y }> => if decide (x = y) then s else e
   (** Congruence rules *)
   | <{ Π:τ1, τ2 }> => <{ Π:{s/x}τ1, {s/x}τ2 }>
   | <{ \:τ => e }> => <{ \:{s/x}τ => {s/x}e }>
