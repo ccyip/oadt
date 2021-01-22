@@ -8,6 +8,7 @@ Section lang.
 
 Context `{is_atom : Atom atom amap aset}.
 Implicit Types (x X : atom) (L : aset).
+Implicit Types (b : bool).
 
 Open Scope type_scope.
 
@@ -306,12 +307,12 @@ Hint Constructors otval : otval.
 (** ** Values (v) *)
 Inductive val : expr -> Prop :=
 | VUnitV : val <{ () }>
-| VLit (b : bool) : val <{ b }>
+| VLit b : val <{ lit b }>
 | VPair v1 v2 : val v1 -> val v2 -> val <{ (v1, v2) }>
 | VAbs τ e : val <{ \:τ => e }>
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
 | VFold X v : val v -> val <{ fold<X> v }>
-| VBoxedLit (b : bool) : val <{ [b] }>
+| VBoxedLit b : val <{ [b] }>
 | VBoxedOInj b ω v : otval ω -> val v -> val <{ [inj@b<ω> v] }>
 .
 Hint Constructors val : val.
@@ -326,8 +327,8 @@ Inductive oval : expr -> expr -> Prop :=
 | OVPair v1 v2 ω1 ω2 :
     oval v1 ω1 -> oval v2 ω2 ->
     oval <{ (v1, v2) }> <{ ω1 * ω2 }>
-| OVOSum (b : bool) v ω1 ω2 :
-    oval v (if b then ω1 else ω2) ->
+| OVOSum b v ω1 ω2 :
+    oval v <{ ite b ω1 ω2 }> ->
     oval <{ [inj@b<ω1 ~+ ω2> v] }> <{ ω1 ~+ ω2 }>
 .
 Hint Constructors oval : oval.
@@ -398,7 +399,7 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
 | SOInj b ω v :
     otval ω -> val v ->
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
-| SIte (b : bool) e1 e2 :
+| SIte b e1 e2 :
     <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>
 (** If we also want runtime obliviousness (e.g., against malicious adversaries),
 we can check [v1] and [v2] are oblivious values in this rule. *)
@@ -411,11 +412,11 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
 | SFold X X' v :
     val v ->
     <{ unfold<X> (fold <X'> v) }> -->! v
-| SSec (b : bool) :
+| SSec b :
     <{ s𝔹 b }> -->! <{ [b] }>
 (** Delimited release [b] *)
-| SRet (b : bool) :
-    <{ r𝔹 [b] }> -->! b
+| SRet b :
+    <{ r𝔹 [b] }> -->! <{ b }>
 
 where "e '-->!' e'" := (step e e').
 Hint Constructors step : step.
