@@ -415,15 +415,48 @@ Hint Constructors step : step.
 Variant label :=
 | LAny
 | LPublic
-| LSecure
+| LObliv
 | LMixed
 .
 
 Declare Custom Entry oadt_label.
 Notation "'A'" := (LAny) (in custom oadt_label at level 0).
 Notation "'P'" := (LPublic) (in custom oadt_label at level 0).
-Notation "'S'" := (LSecure) (in custom oadt_label at level 0).
+Notation "'O'" := (LObliv) (in custom oadt_label at level 0).
 Notation "'M'" := (LMixed) (in custom oadt_label at level 0).
+
+(** [label] has (semi-)lattice operators. *)
+
+(** We define the partial order [⊑] on [label] directly as a computable
+function. Alternatively, we may define an "immediate" relation as the kernel,
+and then take its reflexive-transitive closure. But [label] is simple enough, so
+let's do it in a simple way.
+
+[l1 ⊑ l2] means [l2] is stricter than or as strict as [l1]. The relation can be
+visualized as follow.
+
+    M
+   / \
+  P   O
+   \ /
+    A
+*)
+Instance label_le : SqSubsetEq label :=
+  fun l1 l2 =>
+    match l1, l2 with
+    | LAny, _ | _, LMixed => true
+    | LPublic, LPublic | LObliv, LObliv => true
+    | _, _ => false
+    end.
+
+Instance label_join : Join label :=
+  fun l1 l2 =>
+    match l1, l2 with
+    | LAny, l | l, LAny => l
+    | LPublic, LObliv | LObliv, LPublic => LMixed
+    | LMixed, _ | _, LMixed => LMixed
+    | l, _ => l
+    end.
 
 (** ** Kinds (κ) *)
 Variant kind :=
