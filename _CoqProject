@@ -1,6 +1,7 @@
 -Q theories oadt
 
 theories/base.v
+theories/tactics.v
 theories/ln.v
 theories/prelude.v
 theories/lang_stlc.v

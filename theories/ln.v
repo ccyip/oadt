@@ -1,4 +1,5 @@
 From oadt Require Import base.
+From oadt Require Import tactics.
 
 (** This file contains common definitions for locally nameless representation
 and tactics for automation. *)
