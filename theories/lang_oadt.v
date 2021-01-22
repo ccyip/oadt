@@ -236,6 +236,7 @@ Notation "[{ x ; y ; .. ; z }]" := (cons x (cons y .. (cons z nil) ..))
 
 (** ** Variable opening  *)
 Reserved Notation "'{' k '~>' s '}' e" (in custom oadt at level 20, k constr).
+
 (* NOTE: recursively opening the types is probably not needed for [+] and [inj],
 since their type arguments are always public, meaning that no bound variable is
 possibly inside them. But I do it anyway for consistency, and possibly in the
@@ -357,6 +358,7 @@ Hint Constructors ectx : ectx.
 
 (** ** Small-step relation *)
 Reserved Notation "e '-->!' e'" (at level 40).
+
 Inductive step {Σ : gctx} : expr -> expr -> Prop :=
 | SCtx ℇ e e' :
     ectx ℇ ->
@@ -371,6 +373,7 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
 | SCase b τ v e1 e2 :
     val v ->
     <{ case inj@b<τ> v of e1 | e2 }> -->! if b then <{ e1^v }> else <{ e2^v }>
+(** The most interesting rule *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
     otval ω1 -> otval ω2 -> val v ->
     oval v1 ω1 -> oval v2 ω2 ->
@@ -406,8 +409,9 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
     <{ r𝔹 [b] }> -->! b
 
 where "e '-->!' e'" := (step e e').
-Notation "Σ '⊢' e '-->!' e'" := (@step Σ e e') (at level 40).
 Hint Constructors step : step.
+
+Notation "Σ '⊢' e '-->!' e'" := (@step Σ e e') (at level 40).
 
 (** * Typing *)
 
@@ -463,6 +467,7 @@ Variant kind :=
 | KProper (l : label)
 | KOADT (τ : expr)
 .
+
 Declare Custom Entry oadt_kind.
 Notation "* @ l" := (KProper l) (in custom oadt_kind at level 0,
                                     l custom oadt_label at level 0,
