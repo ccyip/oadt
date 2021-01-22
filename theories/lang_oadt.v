@@ -49,7 +49,7 @@ Inductive expr :=
 | EUnfold (X : atom) (e : expr)
 (** Runtime expressions *)
 | EBoxedLit (b : bool)
-| EBoxedOInj (b : bool) (τ e : expr)
+| EBoxedInj (b : bool) (τ e : expr)
 .
 
 (** ** GLobal definitions (D) *)
@@ -190,18 +190,18 @@ Notation "'unfold' < X > e" := (EUnfold X e) (in custom oadt at level 0,
                                                  format "unfold < X >  e").
 Notation "[ b ]" := (EBoxedLit b) (in custom oadt at level 0,
                                       b constr at level 0).
-Notation "[ 'inj@' b < τ > e ]" := (EBoxedOInj b τ e)
+Notation "[ 'inj@' b < τ > e ]" := (EBoxedInj b τ e)
                                       (in custom oadt at level 0,
                                           b constr at level 0,
                                           τ custom oadt at level 0,
                                           e custom oadt at level 0,
                                           format "[ inj@ b < τ >  e ]").
-Notation "[ 'inl' < τ > e ]" := (EBoxedOInj true τ e)
+Notation "[ 'inl' < τ > e ]" := (EBoxedInj true τ e)
                                    (in custom oadt at level 0,
                                        τ custom oadt at level 0,
                                        e custom oadt at level 0,
                                        format "[ inl < τ >  e ]").
-Notation "[ 'inr' < τ > e ]" := (EBoxedOInj false τ e)
+Notation "[ 'inr' < τ > e ]" := (EBoxedInj false τ e)
                                    (in custom oadt at level 0,
                                        τ custom oadt at level 0,
                                        e custom oadt at level 0,
@@ -313,7 +313,7 @@ Inductive val : expr -> Prop :=
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
 | VFold X v : val v -> val <{ fold<X> v }>
 | VBoxedLit b : val <{ [b] }>
-| VBoxedOInj b ω v : otval ω -> val v -> val <{ [inj@b<ω> v] }>
+| VBoxedInj b ω v : otval ω -> val v -> val <{ [inj@b<ω> v] }>
 .
 Hint Constructors val : val.
 
@@ -574,7 +574,7 @@ Inductive lc : expr -> Prop :=
 | LCFold X e : lc e -> lc <{ fold<X> e }>
 | LCUnfold X e : lc e -> lc <{ unfold<X> e }>
 | LCBoxedLit b : lc <{ [b] }>
-| LCBoxedOInj b τ e : lc τ -> lc e -> lc <{ [inj@b<τ> e] }>
+| LCBoxedInj b τ e : lc τ -> lc e -> lc <{ [inj@b<τ> e] }>
 .
 Hint Constructors lc : lc.
 
