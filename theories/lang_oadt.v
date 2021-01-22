@@ -478,7 +478,46 @@ Notation "τ '=>' *" := (KOADT τ) (in custom oadt_kind at level 0,
 (** ** Typing context (Γ) *)
 Notation tctx := (amap expr).
 
-(** ** Expression typing *)
+(** ** Expression equivalence *)
+(** This definition is apparently unsound. But I use it as a placeholder for
+now, so that I can figure out the necessary properties it should have. *)
+Definition expr_equiv (Σ : gctx) (e e' : expr) : Prop := True.
+
+Notation "Σ '⊢' e '≡' e'" := (expr_equiv Σ e e')
+                               (at level 40,
+                                e custom oadt at level 0,
+                                e' custom oadt at level 0).
+
+(** ** Expression typing and kinding *)
+(** They are mutually defined. *)
+Reserved Notation "Γ '⊢' e ':' τ" (at level 40,
+                                   e custom oadt at level 0,
+                                   τ custom oadt at level 0).
+Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
+                                    τ custom oadt at level 0,
+                                    κ custom oadt_kind at level 0).
+
+Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
+| TUnit Γ : Γ ⊢ () : 𝟙
+
+where "Γ '⊢' e ':' τ" := (expr_typing Γ e τ)
+
+with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
+| KUnit Γ : Γ ⊢ 𝟙 :: *@A
+
+where "Γ '⊢' τ '::' κ" := (expr_kinding Γ τ κ)
+.
+Hint Constructors expr_typing : expr_typing.
+Hint Constructors expr_kinding : expr_kinding.
+
+Notation "Σ ; Γ '⊢' e ':' τ" := (@expr_typing Σ Γ e τ)
+                                  (at level 40,
+                                   e custom oadt at level 0,
+                                   τ custom oadt at level 0).
+Notation "Σ ; Γ '⊢' τ '::' κ" := (@expr_kinding Σ Γ τ κ)
+                                   (at level 40,
+                                    τ custom oadt at level 0,
+                                    κ custom oadt_kind at level 0).
 
 
 (** * Infrastructure *)
