@@ -208,6 +208,8 @@ Notation "[ 'inr' < τ > e ]" := (EBoxedInj false τ e)
                                        format "[ inr < τ >  e ]").
 
 Declare Custom Entry oadt_def.
+Notation "D" := D (in custom oadt_def at level 0, D constr at level 0).
+Notation "( D )" := D (in custom oadt_def, D at level 99).
 Notation "'data' X := e" := (X, DADT e) (in custom oadt_def at level 0,
                                             X constr at level 0,
                                             e custom oadt at level 99).
@@ -654,13 +656,61 @@ Hint Constructors expr_kinding : expr_kinding.
 
 Notation "Σ ; Γ '⊢' e ':' τ" := (@expr_typing Σ Γ e τ)
                                   (at level 40,
-                                   e custom oadt at level 0,
-                                   τ custom oadt at level 0).
+                                   Γ constr at level 0,
+                                   e custom oadt at level 99,
+                                   τ custom oadt at level 99).
 Notation "Σ ; Γ '⊢' τ '::' κ" := (@expr_kinding Σ Γ τ κ)
                                    (at level 40,
-                                    τ custom oadt at level 0,
-                                    κ custom oadt_kind at level 0).
+                                    Γ constr at level 0,
+                                    τ custom oadt at level 99,
+                                    κ custom oadt_kind at level 99).
 
+(** ** Global definitions typing *)
+Reserved Notation "Σ '⊢' D '▷' Σ'" (at level 40,
+                                    D custom oadt_def at level 99).
+
+Inductive gdef_typing : gctx -> (atom * gdef) -> gctx -> Prop :=
+| TADT Σ X τ :
+    Σ !! X = None ->
+    <[X:=DADT τ]>Σ ; ∅ ⊢ τ :: *@P ->
+    Σ ⊢ data X := τ ▷ <[X:=DADT τ]>Σ
+| TOADT Σ X τ e L :
+    Σ !! X = None ->
+    Σ; ∅ ⊢ τ :: *@P ->
+    (forall x, x ∉ L -> <[X:=DOADT τ e]>Σ ; ({[x:=τ]}) ⊢ e^x :: *@O) ->
+    Σ ⊢ obliv X (:τ) := e ▷ <[X:=DOADT τ e]>Σ
+| TFun Σ X τ e l :
+    Σ !! X = None ->
+    Σ; ∅ ⊢ τ :: *@l ->
+    <[X:=DFun τ e]>Σ ; ∅ ⊢ e : τ ->
+    Σ ⊢ def X : τ := e ▷ <[X:=DFun τ e]>Σ
+
+where "Σ '⊢' D '▷' Σ'" := (gdef_typing Σ D Σ')
+.
+Hint Constructors gdef_typing : gdef_typing.
+
+(* TODO: it would be nice to overload the notation of [gdef_typing]. Should be
+doable with typeclass. *)
+Reserved Notation "Σ '⊢' '<{' Ds '}>' '▷' Σ'" (at level 40,
+                                               Ds constr at level 99).
+
+Inductive gdefs_typing : gctx -> gdefs -> gctx -> Prop :=
+| TNil Σ : Σ ⊢ <{ [] }> ▷ Σ
+| TCons Σ0 Σ1 Σ2 D Ds :
+    Σ0 ⊢ D ▷ Σ1 ->
+    Σ1 ⊢ <{ Ds }> ▷ Σ2 ->
+    Σ0 ⊢ <{ D::Ds }> ▷ Σ2
+
+where "Σ '⊢' '<{' Ds '}>' '▷' Σ'" := (gdefs_typing Σ Ds Σ')
+.
+Hint Constructors gdefs_typing : gdefs_typing.
+
+(** ** Program typing *)
+(* TODO: notation? *)
+Definition program_typing (p : program) (Σ : gctx) (τ : expr) :=
+  match p with
+  | (Ds, e) => ∅ ⊢ <{ Ds }> ▷ Σ /\ Σ; ∅ ⊢ e : τ
+  end.
 
 (** * Infrastructure *)
 
