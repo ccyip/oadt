@@ -38,39 +38,3 @@ Ltac fold_hyps acc tac :=
 Tactic Notation "fold_hyps_cont" constr(acc) tactic3(tac) tactic3(ktac) :=
   let x := fold_hyps acc tac in
   ktac x.
-
-(** * Use lemmas with implicit arguments *)
-(** [sauto] family unfortunately does not accept lemmas with implicit arguments.
-Meanwhile, [use*] may be used to introduce these lemmas into the context. *)
-(* We may use [open_constr_list] as arguments, but unfortunately Coq seems to
-only allow primitive tactics to manipulate the list. *)
-Tactic Notation "use" "*" uconstr(L1)
-  := let H := fresh "Lem" in epose proof L1 as H.
-Tactic Notation "use" "*" uconstr(L1)
-                      "," uconstr(L2)
-  := let H := fresh "Lem" in epose proof L1 as H;
-     let H := fresh "Lem" in epose proof L2 as H.
-Tactic Notation "use" "*" uconstr(L1)
-                      "," uconstr(L2)
-                      "," uconstr(L3)
-  := let H := fresh "Lem" in epose proof L1 as H;
-     let H := fresh "Lem" in epose proof L2 as H;
-     let H := fresh "Lem" in epose proof L3 as H.
-Tactic Notation "use" "*" uconstr(L1)
-                      "," uconstr(L2)
-                      "," uconstr(L3)
-                      "," uconstr(L4)
-  := let H := fresh "Lem" in epose proof L1 as H;
-     let H := fresh "Lem" in epose proof L2 as H;
-     let H := fresh "Lem" in epose proof L3 as H;
-     let H := fresh "Lem" in epose proof L4 as H.
-Tactic Notation "use" "*" uconstr(L1)
-                      "," uconstr(L2)
-                      "," uconstr(L3)
-                      "," uconstr(L4)
-                      "," uconstr(L5)
-  := let H := fresh "Lem" in epose proof L1 as H;
-     let H := fresh "Lem" in epose proof L2 as H;
-     let H := fresh "Lem" in epose proof L3 as H;
-     let H := fresh "Lem" in epose proof L4 as H;
-     let H := fresh "Lem" in epose proof L5 as H.
