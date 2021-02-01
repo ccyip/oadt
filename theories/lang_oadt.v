@@ -528,7 +528,7 @@ Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
 | TLet Γ e1 e2 τ1 τ2 L :
     (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ e2^x : τ2) ->
     Γ ⊢ e1 : τ1 ->
-    Γ ⊢ let e1 in e2 : τ2
+    Γ ⊢ let e1 in e2 : τ2^e1
 | TApp Γ e1 e2 τ1 τ2 :
     Γ ⊢ e1 : (Π:τ2, τ1) ->
     Γ ⊢ e2 : τ2 ->
