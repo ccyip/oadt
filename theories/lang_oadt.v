@@ -75,7 +75,9 @@ Notation gctx := (amap gdef).
 (* Adapted from _Software Foundations_. *)
 Coercion ELit : bool >-> expr.
 Coercion EBVar : nat >-> expr.
-Coercion EGVar : atom >-> expr.
+(** This coercion should only be used in formalization. In the embedded language
+for users, we should coerce [atom] to [EGVar]. *)
+Coercion EFVar : atom >-> expr.
 
 Declare Scope oadt_scope.
 Delimit Scope oadt_scope with oadt.
@@ -84,10 +86,13 @@ Declare Custom Entry oadt.
 Notation "<{ e }>" := e (e custom oadt at level 99).
 Notation "( x )" := x (in custom oadt, x at level 99).
 Notation "x" := x (in custom oadt at level 0, x constr at level 0).
-Notation "'bvar' x" := (EBVar x) (in custom oadt at level 0, x constr at level 0).
-Notation "'fvar' x" := (EFVar x) (in custom oadt at level 0, x constr at level 0).
+Notation "'bvar' x" := (EBVar x) (in custom oadt at level 0, x constr at level 0,
+                                     only parsing).
+Notation "'fvar' x" := (EFVar x) (in custom oadt at level 0, x constr at level 0,
+                                     only parsing).
 Notation "'gvar' x" := (EGVar x) (in custom oadt at level 0, x constr at level 0).
-Notation "'lit' b" := (ELit b) (in custom oadt at level 0, b constr at level 0).
+Notation "'lit' b" := (ELit b) (in custom oadt at level 0, b constr at level 0,
+                                   only parsing).
 Notation "'𝟙'" := EUnitT (in custom oadt at level 0).
 Notation "'Unit'" := EUnitT (in custom oadt at level 0, only parsing).
 Notation "'𝔹'" := EBool (in custom oadt at level 0).
@@ -283,9 +288,9 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
 
 where "'{' k '~>' s '}' e" := (open_ k s e) (in custom oadt).
 
-Definition open s t := open_ 0 s t.
+Definition open s e := open_ 0 s e.
 
-Notation "t ^ s" := (open s t) (in custom oadt at level 20).
+Notation "e ^ s" := (open s e) (in custom oadt at level 20).
 
 (** ** Polynomial algebraic data type (α) *)
 Inductive padt : expr -> Prop :=
@@ -293,7 +298,7 @@ Inductive padt : expr -> Prop :=
 | PBool : padt <{ 𝔹 }>
 | PProd α1 α2 : padt α1 -> padt α2 -> padt <{ α1 * α2 }>
 | PSum α1 α2 : padt α1 -> padt α2 -> padt <{ α1 + α2 }>
-| PGVar (X : atom) : padt X
+| PGVar (X : atom) : padt <{ gvar X }>
 .
 Hint Constructors padt : padt.
 
@@ -394,10 +399,10 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
       <{ mux [b] (ite b (e1^v) (e1^v1)) (ite b (e2^v2) (e2^v)) }>
 | SAppOADT X τ e v :
     Σ !! X = Some (DOADT τ e) ->
-    <{ X v }> -->! <{ e^v }>
+    <{ (gvar X) v }> -->! <{ e^v }>
 | SAppFun x τ e :
     Σ !! x = Some (DFun τ e) ->
-    <{ x }> -->! <{ e }>
+    <{ gvar x }> -->! <{ e }>
 | SOInj b ω v :
     otval ω -> val v ->
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
@@ -551,8 +556,6 @@ Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
 | TProj Γ b e τ1 τ2 :
     Γ ⊢ e : τ1 * τ2 ->
     Γ ⊢ π@b e : ite b τ1 τ2
-(* TODO: [TInj] and [TOInj] are not expressive enough. Need to apply type
-equivalence here. *)
 | TInj Γ b e τ1 τ2 :
     Γ ⊢ e : ite b τ1 τ2 ->
     Γ ⊢ τ1 + τ2 :: *@P ->
@@ -744,7 +747,7 @@ Inductive lc : expr -> Prop :=
 | LCOSum τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 ~+ τ2 }>
 | LCApp e1 e2 : lc e1 -> lc e2 -> lc <{ e1 e2 }>
 | LCUnitV : lc <{ () }>
-| LCLit b : lc (ELit b)
+| LCLit b : lc <{ lit b }>
 | LCSec e : lc e -> lc <{ s𝔹 e }>
 | LCRet e : lc e -> lc <{ r𝔹 e }>
 | LCIte e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if e0 then e1 else e2 }>
@@ -761,34 +764,122 @@ Inductive lc : expr -> Prop :=
 Hint Constructors lc : lc.
 
 (** ** Substitution (for local free variables) *)
-Reserved Notation "'{' s '/' x '}' e" (in custom oadt at level 20, x constr).
+Reserved Notation "'{' x '↦' s '}' e" (in custom oadt at level 20, x constr).
 Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   match e with
   | <{ fvar y }> => if decide (x = y) then s else e
   (** Congruence rules *)
-  | <{ Π:τ1, τ2 }> => <{ Π:{s/x}τ1, {s/x}τ2 }>
-  | <{ \:τ => e }> => <{ \:{s/x}τ => {s/x}e }>
-  | <{ let e1 in e2 }> => <{ let {s/x}e1 in {s/x}e2 }>
-  | <{ case e0 of e1 | e2 }> => <{ case {s/x}e0 of {s/x}e1 | {s/x}e2 }>
-  | <{ ~case e0 of e1 | e2 }> => <{ ~case {s/x}e0 of {s/x}e1 | {s/x}e2 }>
-  | <{ τ1 * τ2 }> => <{ ({s/x}τ1) * ({s/x}τ2) }>
-  | <{ τ1 + τ2 }> => <{ ({s/x}τ1) + ({s/x}τ2) }>
-  | <{ τ1 ~+ τ2 }> => <{ ({s/x}τ1) ~+ ({s/x}τ2) }>
-  | <{ e1 e2 }> => <{ ({s/x}e1) ({s/x}e2) }>
-  | <{ s𝔹 e }> => <{ s𝔹 ({s/x}e) }>
-  | <{ r𝔹 e }> => <{ r𝔹 ({s/x}e) }>
-  | <{ if e0 then e1 else e2 }> => <{ if {s/x}e0 then {s/x}e1 else {s/x}e2 }>
-  | <{ mux e0 e1 e2 }> => <{ mux ({s/x}e0) ({s/x}e1) ({s/x}e2) }>
-  | <{ (e1, e2) }> => <{ ({s/x}e1, {s/x}e2) }>
-  | <{ π@b e }> => <{ π@b ({s/x}e) }>
-  | <{ inj@b<τ> e }> => <{ inj@b<({s/x}τ)> ({s/x}e) }>
-  | <{ ~inj@b<τ> e }> => <{ ~inj@b<({s/x}τ)> ({s/x}e) }>
-  | <{ fold<X> e }> => <{ fold<X> ({s/x}e) }>
-  | <{ unfold<X> e }> => <{ unfold<X> ({s/x}e) }>
+  | <{ Π:τ1, τ2 }> => <{ Π:{x↦s}τ1, {x↦s}τ2 }>
+  | <{ \:τ => e }> => <{ \:{x↦s}τ => {x↦s}e }>
+  | <{ let e1 in e2 }> => <{ let {x↦s}e1 in {x↦s}e2 }>
+  | <{ case e0 of e1 | e2 }> => <{ case {x↦s}e0 of {x↦s}e1 | {x↦s}e2 }>
+  | <{ ~case e0 of e1 | e2 }> => <{ ~case {x↦s}e0 of {x↦s}e1 | {x↦s}e2 }>
+  | <{ τ1 * τ2 }> => <{ ({x↦s}τ1) * ({x↦s}τ2) }>
+  | <{ τ1 + τ2 }> => <{ ({x↦s}τ1) + ({x↦s}τ2) }>
+  | <{ τ1 ~+ τ2 }> => <{ ({x↦s}τ1) ~+ ({x↦s}τ2) }>
+  | <{ e1 e2 }> => <{ ({x↦s}e1) ({x↦s}e2) }>
+  | <{ s𝔹 e }> => <{ s𝔹 ({x↦s}e) }>
+  | <{ r𝔹 e }> => <{ r𝔹 ({x↦s}e) }>
+  | <{ if e0 then e1 else e2 }> => <{ if {x↦s}e0 then {x↦s}e1 else {x↦s}e2 }>
+  | <{ mux e0 e1 e2 }> => <{ mux ({x↦s}e0) ({x↦s}e1) ({x↦s}e2) }>
+  | <{ (e1, e2) }> => <{ ({x↦s}e1, {x↦s}e2) }>
+  | <{ π@b e }> => <{ π@b ({x↦s}e) }>
+  | <{ inj@b<τ> e }> => <{ inj@b<({x↦s}τ)> ({x↦s}e) }>
+  | <{ ~inj@b<τ> e }> => <{ ~inj@b<({x↦s}τ)> ({x↦s}e) }>
+  | <{ fold<X> e }> => <{ fold<X> ({x↦s}e) }>
+  | <{ unfold<X> e }> => <{ unfold<X> ({x↦s}e) }>
   | _ => e
   end
 
-where "'{' s '/' x '}' e" := (subst x s e) (in custom oadt).
+where "'{' x '↦' s '}' e" := (subst x s e) (in custom oadt).
+
+(** ** Free variables *)
+Fixpoint fv (e : expr) : aset :=
+  match e with
+  | <{ fvar x }> => {[x]}
+  (* Congruence rules *)
+  | <{ \:τ => e }>
+  | <{ inj@_<τ> e }> | <{ ~inj@_<τ> e }> =>
+    fv τ ∪ fv e
+  | <{ Π:τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 + τ2 }> | <{ τ1 ~+ τ2 }> =>
+    fv τ1 ∪ fv τ2
+  | <{ let e1 in e2 }> | <{ (e1, e2) }> | <{ e1 e2 }> =>
+    fv e1 ∪ fv e2
+  | <{ case e0 of e1 | e2 }> | <{ ~case e0 of e1 | e2 }>
+  | <{ if e0 then e1 else e2 }> | <{ mux e0 e1 e2 }> =>
+    fv e0 ∪ fv e1 ∪ fv e2
+  | <{ s𝔹 e }> | <{ r𝔹 e }> | <{ π@_ e }>
+  | <{ fold<_> e }> | <{ unfold<_> e }> =>
+    fv e
+  | _ => ∅
+  end.
+
+Notation "x # e" := (x ∉ fv e) (at level 40).
+
+Definition closed e := fv e = ∅.
+
+Instance atom_stale : @Stale aset atom := singleton.
+Arguments atom_stale /.
+
+Instance aset_stale : Stale aset := id.
+Arguments aset_stale /.
+
+Instance expr_stale : Stale expr := fv.
+Arguments expr_stale /.
+
+Instance tctx_stale : Stale tctx := dom aset.
+Arguments tctx_stale /.
+
+Lemma open_lc_ e : forall s u i j,
+  <{ {j~>u}({i~>s}e) }> = <{ {i~>s}e }> ->
+  i <> j ->
+  <{ {j~>u}e }> = e.
+Proof.
+  induction e; hauto.
+Qed.
+
+(** Open a locally-closed expression does not change it. *)
+Lemma open_lc e : forall s,
+  lc e -> forall k, <{ {k~>s}e }> = e.
+Proof.
+  induction 1; try hauto;
+    (* expressions with binders *)
+    simpl_cofin; hauto use: open_lc_.
+Qed.
+
+Lemma subst_fresh e : forall x s,
+  x # e -> <{ {x↦s}e }> = e.
+Proof.
+  induction e; hauto simp+: set_unfold.
+Qed.
+
+Lemma subst_open_distr e : forall x s v,
+  lc s ->
+  <{ {x↦s}(e^v) }> = <{ ({x↦s}e)^({x↦s}v) }>.
+Proof.
+  unfold open. generalize 0.
+  induction e; hauto use: open_lc.
+Qed.
+
+Lemma subst_open_comm e : forall x y s,
+  x <> y ->
+  lc s ->
+  <{ {x↦s}(e^y) }> = <{ ({x↦s}e)^y }>.
+Proof.
+  qauto use: subst_open_distr.
+Qed.
+
+(** We may prove this one using [subst_open_distr] and [subst_fresh], but a
+direct induction gives us a slightly stronger version (without the local closure
+constraint). *)
+Lemma subst_intro e : forall s x,
+  x # e ->
+  <{ e^s }> = <{ {x↦s}(e^x) }>.
+Proof.
+  unfold open. generalize 0.
+  induction e; hauto simp+: set_unfold.
+Qed.
+
 
 (** * Metatheories *)
 
