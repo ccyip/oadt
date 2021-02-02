@@ -488,14 +488,11 @@ Variant kind :=
 | KOADT (τ : expr)
 .
 
-Declare Custom Entry oadt_kind.
-Notation "κ" := κ (in custom oadt_kind at level 0, κ constr at level 0).
-Notation "( κ )" := κ (in custom oadt_kind, κ at level 99).
-Notation "* @ l" := (KProper l) (in custom oadt_kind at level 0,
+Notation "* @ l" := (KProper l) (in custom oadt at level 0,
                                     l custom oadt_label at level 0,
                                     format "* @ l").
-Notation "τ '=>' *" := (KOADT τ) (in custom oadt_kind at level 0,
-                                     τ custom oadt at level 99).
+Notation "τ => *" := (KOADT τ) (in custom oadt at level 50,
+                                   τ custom oadt).
 
 (** ** Typing context (Γ) *)
 Notation tctx := (amap expr).
@@ -517,7 +514,7 @@ Reserved Notation "Γ '⊢' e ':' τ" (at level 40,
                                    τ custom oadt at level 99).
 Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
                                     τ custom oadt at level 99,
-                                    κ custom oadt_kind at level 99).
+                                    κ custom oadt at level 99).
 
 Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
 | TFVar Γ x τ :
@@ -666,7 +663,7 @@ Notation "Σ ; Γ '⊢' τ '::' κ" := (@expr_kinding Σ Γ τ κ)
                                    (at level 40,
                                     Γ constr at level 0,
                                     τ custom oadt at level 99,
-                                    κ custom oadt_kind at level 99).
+                                    κ custom oadt at level 99).
 
 (** ** Global definitions typing *)
 Reserved Notation "Σ '⊢' D '▷' Σ'" (at level 40,
