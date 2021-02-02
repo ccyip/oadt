@@ -665,6 +665,11 @@ Notation "Σ ; Γ '⊢' τ '::' κ" := (@expr_kinding Σ Γ τ κ)
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
+Scheme expr_typing_kinding_ind := Minimality for expr_typing Sort Prop
+  with expr_kinding_typing_ind := Minimality for expr_kinding Sort Prop.
+Combined Scheme expr_typing_kinding_mutind
+         from expr_typing_kinding_ind, expr_kinding_typing_ind.
+
 (** ** Global definitions typing *)
 Reserved Notation "Σ '⊢' D '▷' Σ'" (at level 40,
                                     D custom oadt_def at level 99).
@@ -875,6 +880,23 @@ Lemma subst_intro e : forall s x,
 Proof.
   unfold open. generalize 0.
   induction e; hauto simp+: set_unfold.
+Qed.
+
+(** Well-typed and well-kinded expressions are locally closed. *)
+Lemma expr_typing_lc Σ Γ e τ :
+  Σ; Γ ⊢ e : τ ->
+  lc e
+with expr_kinding_lc  Σ Γ τ κ :
+  Σ; Γ ⊢ τ :: κ ->
+  lc τ.
+Proof.
+  (* Technically we only need [destruct] here, but it is easier for automation
+  to construct a non-well-founded proof. *)
+  all : induction 1; try hauto ctrs: lc.
+  - hauto inv: lc ctrs: lc.
+  - econstructor; eauto.
+    simpl_cofin.
+    hauto unfold: open use: open_lc.
 Qed.
 
 
