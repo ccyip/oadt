@@ -378,10 +378,6 @@ Hint Constructors ectx : ectx.
 Reserved Notation "e '-->!' e'" (at level 40).
 
 Inductive step {Σ : gctx} : expr -> expr -> Prop :=
-| SCtx ℇ e e' :
-    ectx ℇ ->
-    e -->! e' ->
-    ℇ e -->! ℇ e'
 | SApp τ e v :
     val v ->
     <{ (\:τ => e) v }> -->! <{ e^v }>
@@ -424,6 +420,11 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
 (** Delimited release [b] *)
 | SRet b :
     <{ r𝔹 [b] }> -->! <{ b }>
+(** Step under evaluation context *)
+| SCtx ℇ e e' :
+    ectx ℇ ->
+    e -->! e' ->
+    ℇ e -->! ℇ e'
 
 where "e '-->!' e'" := (step e e').
 Hint Constructors step : step.
