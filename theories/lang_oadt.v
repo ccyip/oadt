@@ -429,7 +429,9 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
 where "e '-->!' e'" := (step e e').
 Hint Constructors step : step.
 
-Notation "Σ '⊢' e '-->!' e'" := (@step Σ e e') (at level 40).
+Notation "Σ '⊨' e '-->!' e'" := (@step Σ e e') (at level 40,
+                                                e constr at level 0,
+                                                e' constr at level 0).
 
 (** * Typing *)
 
