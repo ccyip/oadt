@@ -483,16 +483,12 @@ Instance label_join : Join label :=
     end.
 
 (** ** Kinds (κ) *)
-Variant kind :=
-| KProper (l : label)
-| KOADT (τ : expr)
-.
+(** We do not need kind abstraction. *)
+Definition kind := label.
 
-Notation "* @ l" := (KProper l) (in custom oadt at level 0,
-                                    l custom oadt_label at level 0,
-                                    format "* @ l").
-Notation "τ => *" := (KOADT τ) (in custom oadt at level 50,
-                                   τ custom oadt).
+Notation "* @ l" := (l) (in custom oadt at level 0,
+                            l custom oadt_label at level 0,
+                            format "* @ l").
 
 (** ** Typing context (Γ) *)
 Notation tctx := (amap expr).
@@ -603,10 +599,7 @@ where "Γ '⊢' e ':' τ" := (expr_typing Γ e τ)
 with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
 | KVarADT Γ X τ :
     Σ !! X = Some (DADT τ) ->
-    Γ ⊢ X :: *@P
-| KVarOADT Γ X τ e :
-    Σ !! X = Some (DOADT τ e) ->
-    Γ ⊢ X :: (τ => *)
+    Γ ⊢ gvar X :: *@P
 | KUnit Γ : Γ ⊢ 𝟙 :: *@A
 | KBool Γ : Γ ⊢ 𝔹 :: *@P
 | KOBool Γ : Γ ⊢ ~𝔹 :: *@O
@@ -615,9 +608,9 @@ with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
     Γ ⊢ τ2 :: *@l2 ->
     Γ ⊢ (Π:τ1, τ2) :: *@M
 | KApp Γ e τ X :
-    Γ ⊢ X :: (τ => *) ->
+    Σ !! X = Some (DOADT τ e) ->
     Γ ⊢ e : τ ->
-    Γ ⊢ X e :: *@O
+    Γ ⊢ (gvar X) e :: *@O
 | KProd Γ τ1 τ2 l :
     Γ ⊢ τ1 :: *@l ->
     Γ ⊢ τ2 :: *@l ->
