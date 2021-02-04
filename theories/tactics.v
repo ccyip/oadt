@@ -22,6 +22,18 @@ Tactic Notation "do_hyps" tactic3(tac) :=
       end in
   go hs.
 
+(** Run [tac] on each hypothesis matching [pat]. *)
+Tactic Notation "select" "!" open_constr(pat) tactic3(tac) :=
+  let T := lazymatch goal with
+           | H : pat |- _ => type of H
+           end in
+  do_hyps (fun H => lazymatch type of H with
+                  | pat => tac H
+                  | _ => idtac
+                  end);
+  (* Clear the shelved. *)
+  unify T pat.
+
 (** Fold over hypotheses and return the [constr] result. Run [tac] on each
 hypothesis with the accumulator. [acc] is the initial accumulator. *)
 Ltac fold_hyps acc tac :=
