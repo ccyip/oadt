@@ -50,3 +50,21 @@ Ltac fold_hyps acc tac :=
 Tactic Notation "fold_hyps_cont" constr(acc) tactic3(tac) tactic3(ktac) :=
   let x := fold_hyps acc tac in
   ktac x.
+
+(** * Check goal  *)
+
+Tactic Notation "goal_is" open_constr(pat) :=
+  lazymatch goal with
+  | |- pat => lazymatch goal with
+              | |- ?T => unify T pat
+              end
+  end.
+
+Tactic Notation "goal_contains" open_constr(pat) :=
+  lazymatch goal with
+  | |- context g [pat] =>
+    let T := context g [pat] in
+    lazymatch goal with
+    | |- ?T' => unify T' T
+    end
+  end.
