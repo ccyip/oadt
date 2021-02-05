@@ -468,13 +468,11 @@ visualized as follow.
    \ /
     A
 *)
-Instance label_le : SqSubsetEq label :=
-  fun l1 l2 =>
-    match l1, l2 with
-    | LAny, _ | _, LMixed => true
-    | LPublic, LPublic | LObliv, LObliv => true
-    | _, _ => false
-    end.
+Instance label_eq : EqDecision label.
+Proof.
+  unfold EqDecision, Decision.
+  decide equality.
+Defined.
 
 Instance label_join : Join label :=
   fun l1 l2 =>
@@ -484,6 +482,12 @@ Instance label_join : Join label :=
     | LMixed, _ | _, LMixed => LMixed
     | l, _ => l
     end.
+
+Instance label_le : SqSubsetEq label :=
+  fun l1 l2 => l2 = (l1 ⊔ l2).
+
+Instance label_top : Top label := LMixed.
+Instance label_bot : Bottom label := LAny.
 
 (** ** Kinds (κ) *)
 (** We do not need kind abstraction. *)
@@ -897,6 +901,105 @@ Qed.
 
 
 (** * Metatheories *)
+
+(** ** Properties of labels  *)
+(* TODO: organize them in a type class. *)
+Lemma label_join_comm (l1 l2 : label) :
+  l1 ⊔ l2 = l2 ⊔ l1.
+Proof.
+  destruct l1, l2; auto.
+Qed.
+
+Lemma label_join_assoc (l1 l2 l3 : label) :
+  l1 ⊔ (l2 ⊔ l3) = (l1 ⊔ l2) ⊔ l3.
+Proof.
+  destruct l1, l2, l3; auto.
+Qed.
+
+Lemma label_join_idempotent (l : label) :
+  l ⊔ l = l.
+Proof.
+  destruct l; auto.
+Qed.
+
+Lemma label_top_dominant_r (l : label) :
+  l ⊔ ⊤ = ⊤.
+Proof.
+  destruct l; auto.
+Qed.
+
+Lemma label_bot_identity_r (l : label) :
+  l ⊔ ⊥ = l.
+Proof.
+  destruct l; auto.
+Qed.
+
+Lemma label_join_consistent (l1 l2 : label) :
+  l1 ⊑ l2 <-> l2 = l1 ⊔ l2.
+Proof.
+  reflexivity.
+Qed.
+
+(** TODO: move them to another file. The following lemmas of label can be
+derived from the previous "axioms". *)
+Lemma label_join_is_lub (l1 l2 l : label) :
+  l1 ⊑ l -> l2 ⊑ l -> l1 ⊔ l2 ⊑ l.
+Proof.
+  intros.
+  rewrite label_join_consistent in *.
+  qauto use: label_join_assoc.
+Qed.
+
+Lemma label_join_prime (l1 l2 l : label) :
+  l ⊑ l1 -> l ⊑ l2 -> l ⊑ l1 ⊔ l2.
+Proof.
+  intros.
+  rewrite label_join_consistent in *.
+  hauto use: label_join_assoc.
+Qed.
+
+Lemma label_join_le_l (l1 l2 : label) :
+  l1 ⊑ l1 ⊔ l2.
+Proof.
+  rewrite label_join_consistent.
+  hauto use: label_join_assoc, label_join_idempotent.
+Qed.
+
+Lemma label_join_le_r (l1 l2 : label) :
+  l2 ⊑ l1 ⊔ l2.
+Proof.
+  hauto use: label_join_le_l, label_join_comm.
+Qed.
+
+Lemma label_top_le (l : label) :
+  l ⊑ ⊤.
+Proof.
+  qauto use: label_join_consistent, label_top_dominant_r.
+Qed.
+
+Lemma label_bot_le (l : label) :
+  ⊥ ⊑ l.
+Proof.
+  qauto use: label_join_consistent, label_top_dominant_r.
+Qed.
+
+Lemma label_bot_inv (l : label) :
+  l ⊑ ⊥ -> l = ⊥.
+Proof.
+  hauto use: label_join_consistent, label_bot_identity_r.
+Qed.
+
+Lemma label_join_bot_iff (l1 l2 : label) :
+  l1 ⊔ l2 = ⊥ <-> l1 = ⊥ /\ l2 = ⊥.
+Proof.
+  split.
+  - intros.
+    assert (l1 ⊔ (l1 ⊔ l2) = l1 ⊔ ⊥ /\ l2 ⊔ (l1 ⊔ l2) = l2 ⊔ ⊥)
+      by intuition congruence.
+    hauto use: label_join_assoc, label_join_comm, label_join_idempotent,
+               label_bot_identity_r.
+  - qauto.
+Qed.
 
 End lang.
 
