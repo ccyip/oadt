@@ -903,8 +903,91 @@ Proof.
   hauto unfold: open use: open_lc.
 Qed.
 
+(** This lemma is equivalent to [SCtx] constructor, but more friendly for
+automation. *)
+Lemma SCtx' {Σ} ℇ e e' E E' :
+    Σ ⊨ e -->! e' ->
+    ℇ e = E ->
+    ℇ e' = E' ->
+    ectx ℇ ->
+    Σ ⊨ E -->! E'.
+Proof.
+  hauto ctrs: step.
+Qed.
+Hint Resolve SCtx' : ectx.
+
+Hint Extern 0 (?f ?a = ?b) => higher_order_reflexivity : ectx.
 
 (** * Metatheories *)
+
+(** We can always find an inhabitant for any oblivious type value. *)
+Lemma oval_inhabited ω :
+  otval ω ->
+  exists v, oval v ω.
+Proof.
+  induction 1; try hauto ctrs: oval.
+  (* Case [~+]: we choose left injection as inhabitant. *)
+  hauto use: (OVOSum true).
+Qed.
+
+(** ** Canonical forms *)
+Lemma canonical_form_abs Σ e τ2 τ1 :
+  Σ; ∅ ⊢ e : Π:τ2, τ1 ->
+  val e ->
+  exists e' τ, e = <{ \:τ => e' }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_abs : canonical_forms.
+
+Lemma canonical_form_bool Σ e :
+  Σ; ∅ ⊢ e : 𝔹 ->
+  val e ->
+  exists b, e = <{ b }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_bool : canonical_forms.
+
+Lemma canonical_form_obool Σ e :
+  Σ; ∅ ⊢ e : ~𝔹 ->
+  val e ->
+  exists b, e = <{ [b] }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_obool : canonical_forms.
+
+Lemma canonical_form_prod Σ e τ1 τ2 :
+  Σ; ∅ ⊢ e : τ1 * τ2 ->
+  val e ->
+  exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_prod : canonical_forms.
+
+Lemma canonical_form_sum Σ e τ1 τ2 :
+  Σ; ∅ ⊢ e : τ1 + τ2 ->
+  val e ->
+  exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_sum : canonical_forms.
+
+Lemma canonical_form_osum Σ e τ1 τ2 :
+  Σ; ∅ ⊢ e : τ1 ~+ τ2 ->
+  val e ->
+  exists b v ω1 ω2, val v /\ otval ω1 /\ otval ω2 /\
+               e = <{ [inj@b<ω1 ~+ ω2> v] }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_osum : canonical_forms.
+
+Lemma canonical_form_fold Σ e τ X :
+  Σ !! X = Some (DADT τ) ->
+  Σ; ∅ ⊢ e : X ->
+  val e ->
+  exists v X', val v /\ e = <{ fold<X'> v }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_fold : canonical_forms.
 
 (** ** Properties of labels  *)
 (* TODO: organize them in a type class. *)
@@ -1003,6 +1086,94 @@ Proof.
     hauto use: label_join_assoc, label_join_comm, label_join_idempotent,
                label_bot_identity_r.
   - qauto.
+Qed.
+
+(** ** Properties of kinding  *)
+Lemma any_kind_otval Σ Γ τ :
+  Σ; Γ ⊢ τ :: *@A ->
+  otval τ.
+Proof.
+  remember <{ *@A }>.
+  induction 1; subst; try hauto ctrs: otval.
+  - rewrite label_join_bot_iff in *. easy.
+  - eauto using label_bot_inv.
+Qed.
+
+(** ** Progress *)
+
+Theorem progress_ Ds Σ :
+  ∅ ⊢ <{ Ds }> ▷ Σ ->
+  (forall Γ e τ,
+      Σ; Γ ⊢ e : τ ->
+      Γ = ∅ ->
+      val e \/ exists e', Σ ⊨ e -->! e') /\
+  (forall Γ τ κ,
+     Σ; Γ ⊢ τ :: κ ->
+     Γ = ∅ ->
+     κ = <{ *@O }> ->
+     otval τ \/ exists τ', Σ ⊨ τ -->! τ').
+Proof.
+  intros Hd.
+  apply expr_typing_kinding_mutind; intros; subst;
+    (* If a type is not used in the conclusion, the mutual inductive hypothesis
+    for it is useless. Remove this hypothesis to avoid slowdown the
+    automation. *)
+    try match goal with
+        | H : context [otval ?τ \/ _] |- val ?e \/ _ =>
+          assert_fails contains e τ; clear H
+        end;
+    (* Try solve the boring cases, unless they are the trickier ones. *)
+    (* TODO: the automation here is really slow. *)
+    first [ goal_is (val <{ ~case _ of _ | _ }> \/ _)
+          | goal_is (otval <{ _ + _ }> \/ _)
+          (* Take care of the simple cases. *)
+          | hauto simp: simpl_map
+                  ctrs: val, otval, step, ectx
+          (* Take care of the more complex cases involving evaluation context. *)
+          (* For expression progress. *)
+          | goal_contains val;
+            hauto ctrs: val, step
+                  solve+: (eauto with ectx)
+                  use: canonical_form_abs,
+                       canonical_form_bool,
+                       canonical_form_obool,
+                       canonical_form_prod,
+                       canonical_form_sum,
+                       canonical_form_fold
+          (* For oblivious type progress. *)
+          | goal_contains otval;
+            hauto ctrs: otval, step
+                  solve+: (eauto with ectx)
+                  use: canonical_form_bool,
+                       canonical_form_sum
+          | idtac ].
+
+  (* [~case _ of _ | _] *)
+  - right. intuition.
+    (* Discriminee is value. *)
+    + select (_; _ ⊢ _ : _) (fun H => apply canonical_form_osum in H); eauto.
+      sintuition.
+      select! (otval _) (fun H => use (oval_inhabited _ H)).
+      hauto ctrs: step.
+    (* Discriminee can take a step. *)
+    + hauto solve+: (eauto with ectx) ctrs: step.
+
+  (* [_ + _]. This case is impossible. *)
+  - enough (<{ *@P }> ⊑ <{ *@O }>). easy.
+    unfold kind in *.
+    select! (_ = <{ *@O }>) (fun H => rewrite <- H).
+    hauto use: label_join_le_r.
+
+  (* Kinding subsumption *)
+  - destruct (_ : kind); by eauto using any_kind_otval.
+Qed.
+
+Theorem progress Ds Σ τ e :
+  ∅ ⊢ <{ Ds }> ▷ Σ ->
+  Σ; ∅ ⊢ e : τ ->
+  val e \/ exists e', Σ ⊨ e -->! e'.
+Proof.
+  hauto use: progress_.
 Qed.
 
 End lang.
