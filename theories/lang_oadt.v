@@ -595,11 +595,16 @@ and do substitution in [τ]. *)
     Σ ⊢ τ' ≡ τ ->
     Γ ⊢ e : τ
 (** Typing for runtime expressions is for metatheories. These expressions do not
-appear in source programs. *)
+appear in source programs. Plus, it is not possible to type them at runtime
+since they are "encrypted" values. *)
 | TBoxedLit Γ b : Γ ⊢ [b] : ~𝔹
-| TBoxedInj Γ b e τ :
-    Γ ⊢ ~inj@b<τ> e : τ ->
-    Γ ⊢ [inj@b<τ> e] : τ
+| TBoxedInj Γ b v ω1 ω2 :
+    (* TODO: use [oval] later *)
+    Γ ⊢ v : ite b ω1 ω2 ->
+    Γ ⊢ ω1 ~+ ω2 :: *@O ->
+    val v ->
+    otval <{ ω1 ~+ ω2 }> ->
+    Γ ⊢ [inj@b<ω1 ~+ ω2> v] : ω1 ~+ ω2
 
 where "Γ '⊢' e ':' τ" := (expr_typing Γ e τ)
 
@@ -893,10 +898,9 @@ Proof.
   (* Technically we only need [destruct] here, but it is easier for automation
   to construct a non-well-founded proof. *)
   all : induction 1; try hauto ctrs: lc.
-  - hauto inv: lc ctrs: lc.
-  - econstructor; eauto.
-    simpl_cofin.
-    hauto unfold: open use: open_lc.
+  econstructor; eauto.
+  simpl_cofin.
+  hauto unfold: open use: open_lc.
 Qed.
 
 
