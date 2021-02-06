@@ -51,8 +51,16 @@ Tactic Notation "fold_hyps_cont" constr(acc) tactic3(tac) tactic3(ktac) :=
   let x := fold_hyps acc tac in
   ktac x.
 
-(** * Check goal  *)
+(** * General purpose tactics  *)
 
+(** Check [a] contains [pat]. *)
+Tactic Notation "contains" constr(a) open_constr(pat) :=
+  lazymatch a with
+  | context g [pat] => let a' := context g [pat] in
+                       unify a a'
+  end.
+
+(** Check goal matches pattern [pat]. *)
 Tactic Notation "goal_is" open_constr(pat) :=
   lazymatch goal with
   | |- pat => lazymatch goal with
@@ -60,11 +68,16 @@ Tactic Notation "goal_is" open_constr(pat) :=
               end
   end.
 
+(** Check goal contains [pat]. *)
 Tactic Notation "goal_contains" open_constr(pat) :=
   lazymatch goal with
-  | |- context g [pat] =>
-    let T := context g [pat] in
-    lazymatch goal with
-    | |- ?T' => unify T' T
+  | |- ?T => contains T pat
+  end.
+
+Ltac higher_order_reflexivity :=
+  match goal with
+  | |- (?f ?a) = ?b =>
+    match eval pattern a in b with
+    | ?f' _ => unify f f'; reflexivity
     end
   end.
