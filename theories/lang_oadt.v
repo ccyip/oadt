@@ -678,42 +678,42 @@ Combined Scheme expr_typing_kinding_mutind
          from expr_typing_kinding_ind, expr_kinding_typing_ind.
 
 (** ** Global definitions typing *)
-Reserved Notation "Σ '⊢' D '▷' Σ'" (at level 40,
-                                    D custom oadt_def at level 99).
+Reserved Notation "Σ '=[' D ']=>' Σ'" (at level 40,
+                                    D custom oadt_def at level 199).
 
 Inductive gdef_typing : gctx -> (atom * gdef) -> gctx -> Prop :=
 | TADT Σ X τ :
     Σ !! X = None ->
     <[X:=DADT τ]>Σ ; ∅ ⊢ τ :: *@P ->
-    Σ ⊢ data X := τ ▷ <[X:=DADT τ]>Σ
+    Σ =[ data X := τ ]=> <[X:=DADT τ]>Σ
 | TOADT Σ X τ e L :
     Σ !! X = None ->
     Σ; ∅ ⊢ τ :: *@P ->
     (forall x, x ∉ L -> <[X:=DOADT τ e]>Σ ; ({[x:=τ]}) ⊢ e^x :: *@O) ->
-    Σ ⊢ obliv X (:τ) := e ▷ <[X:=DOADT τ e]>Σ
+    Σ =[ obliv X (:τ) := e ]=> <[X:=DOADT τ e]>Σ
 | TFun Σ X τ e l :
     Σ !! X = None ->
     Σ; ∅ ⊢ τ :: *@l ->
     <[X:=DFun τ e]>Σ ; ∅ ⊢ e : τ ->
-    Σ ⊢ def X : τ := e ▷ <[X:=DFun τ e]>Σ
+    Σ =[ def X : τ := e ]=> <[X:=DFun τ e]>Σ
 
-where "Σ '⊢' D '▷' Σ'" := (gdef_typing Σ D Σ')
+where "Σ '=[' D ']=>' Σ'" := (gdef_typing Σ D Σ')
 .
 Hint Constructors gdef_typing : gdef_typing.
 
 (* TODO: it would be nice to overload the notation of [gdef_typing]. Should be
 doable with typeclass. *)
-Reserved Notation "Σ '⊢' '<{' Ds '}>' '▷' Σ'" (at level 40,
+Reserved Notation "Σ '={' Ds '}=>' Σ'" (at level 40,
                                                Ds constr at level 99).
 
 Inductive gdefs_typing : gctx -> gdefs -> gctx -> Prop :=
-| TNil Σ : Σ ⊢ <{ [] }> ▷ Σ
+| TNil Σ : Σ ={ [] }=> Σ
 | TCons Σ0 Σ1 Σ2 D Ds :
-    Σ0 ⊢ D ▷ Σ1 ->
-    Σ1 ⊢ <{ Ds }> ▷ Σ2 ->
-    Σ0 ⊢ <{ D::Ds }> ▷ Σ2
+    Σ0 =[ D ]=> Σ1 ->
+    Σ1 ={ Ds }=> Σ2 ->
+    Σ0 ={ D::Ds }=> Σ2
 
-where "Σ '⊢' '<{' Ds '}>' '▷' Σ'" := (gdefs_typing Σ Ds Σ')
+where "Σ '={' Ds '}=>' Σ'" := (gdefs_typing Σ Ds Σ')
 .
 Hint Constructors gdefs_typing : gdefs_typing.
 
@@ -1165,7 +1165,7 @@ Qed.
 (** ** Progress *)
 
 Theorem progress_ Ds Σ :
-  ∅ ⊢ <{ Ds }> ▷ Σ ->
+  ∅ ={ Ds }=> Σ ->
   (forall Γ e τ,
       Σ; Γ ⊢ e : τ ->
       Γ = ∅ ->
@@ -1232,7 +1232,7 @@ Proof.
 Qed.
 
 Theorem progress Ds Σ τ e :
-  ∅ ⊢ <{ Ds }> ▷ Σ ->
+  ∅ ={ Ds }=> Σ ->
   Σ; ∅ ⊢ e : τ ->
   val e \/ exists e', Σ ⊨ e -->! e'.
 Proof.
