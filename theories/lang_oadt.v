@@ -592,6 +592,8 @@ and do substitution in [τ]. *)
     Γ ⊢ case e0 of e1 | e2 : τ
 | TConv Γ e τ τ' :
     Γ ⊢ e : τ' ->
+    (* TODO: this assumption may be too strong. *)
+    Γ ⊢ τ :: *@O ->
     Σ ⊢ τ' ≡ τ ->
     Γ ⊢ e : τ
 (** Typing for runtime expressions is for metatheories. These expressions do not
@@ -920,75 +922,6 @@ Hint Extern 0 (?f ?a = ?b) => higher_order_reflexivity : ectx.
 
 (** * Metatheories *)
 
-(** We can always find an inhabitant for any oblivious type value. *)
-Lemma oval_inhabited ω :
-  otval ω ->
-  exists v, oval v ω.
-Proof.
-  induction 1; try hauto ctrs: oval.
-  (* Case [~+]: we choose left injection as inhabitant. *)
-  hauto use: (OVOSum true).
-Qed.
-
-(** ** Canonical forms *)
-Lemma canonical_form_abs Σ e τ2 τ1 :
-  Σ; ∅ ⊢ e : Π:τ2, τ1 ->
-  val e ->
-  exists e' τ, e = <{ \:τ => e' }>.
-Proof.
-  Admitted.
-Hint Resolve canonical_form_abs : canonical_forms.
-
-Lemma canonical_form_bool Σ e :
-  Σ; ∅ ⊢ e : 𝔹 ->
-  val e ->
-  exists b, e = <{ b }>.
-Proof.
-  Admitted.
-Hint Resolve canonical_form_bool : canonical_forms.
-
-Lemma canonical_form_obool Σ e :
-  Σ; ∅ ⊢ e : ~𝔹 ->
-  val e ->
-  exists b, e = <{ [b] }>.
-Proof.
-  Admitted.
-Hint Resolve canonical_form_obool : canonical_forms.
-
-Lemma canonical_form_prod Σ e τ1 τ2 :
-  Σ; ∅ ⊢ e : τ1 * τ2 ->
-  val e ->
-  exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
-Proof.
-  Admitted.
-Hint Resolve canonical_form_prod : canonical_forms.
-
-Lemma canonical_form_sum Σ e τ1 τ2 :
-  Σ; ∅ ⊢ e : τ1 + τ2 ->
-  val e ->
-  exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
-Proof.
-  Admitted.
-Hint Resolve canonical_form_sum : canonical_forms.
-
-Lemma canonical_form_osum Σ e τ1 τ2 :
-  Σ; ∅ ⊢ e : τ1 ~+ τ2 ->
-  val e ->
-  exists b v ω1 ω2, val v /\ otval ω1 /\ otval ω2 /\
-               e = <{ [inj@b<ω1 ~+ ω2> v] }>.
-Proof.
-  Admitted.
-Hint Resolve canonical_form_osum : canonical_forms.
-
-Lemma canonical_form_fold Σ e τ X :
-  Σ !! X = Some (DADT τ) ->
-  Σ; ∅ ⊢ e : X ->
-  val e ->
-  exists v X', val v /\ e = <{ fold<X'> v }>.
-Proof.
-  Admitted.
-Hint Resolve canonical_form_fold : canonical_forms.
-
 (** ** Properties of labels  *)
 (* TODO: organize them in a type class. *)
 Lemma label_join_comm (l1 l2 : label) :
@@ -1027,53 +960,69 @@ Proof.
   reflexivity.
 Qed.
 
-(** TODO: move them to another file. The following lemmas of label can be
+(* TODO: try aac rewrite and other automation for a tactic simpl_semilattice. *)
+
+(* TODO: move them to another file. The following lemmas of label can be
 derived from the previous "axioms". *)
+
+Lemma label_top_dominant_l (l : label) :
+  ⊤ ⊔ l = ⊤.
+Proof.
+  scongruence use: label_top_dominant_r, label_join_comm.
+Qed.
+
+Lemma label_bot_identity_l (l : label) :
+  ⊥ ⊔ l = l.
+Proof.
+  scongruence use: label_bot_identity_r, label_join_comm.
+Qed.
+
 Lemma label_join_is_lub (l1 l2 l : label) :
   l1 ⊑ l -> l2 ⊑ l -> l1 ⊔ l2 ⊑ l.
 Proof.
-  intros.
-  rewrite label_join_consistent in *.
-  qauto use: label_join_assoc.
+  scongruence use: label_join_consistent, label_join_assoc.
 Qed.
 
 Lemma label_join_prime (l1 l2 l : label) :
   l ⊑ l1 -> l ⊑ l2 -> l ⊑ l1 ⊔ l2.
 Proof.
-  intros.
-  rewrite label_join_consistent in *.
-  hauto use: label_join_assoc.
+  scongruence use: label_join_consistent, label_join_assoc.
 Qed.
 
 Lemma label_join_le_l (l1 l2 : label) :
   l1 ⊑ l1 ⊔ l2.
 Proof.
-  rewrite label_join_consistent.
-  hauto use: label_join_assoc, label_join_idempotent.
+  scongruence use: label_join_consistent, label_join_assoc, label_join_idempotent.
 Qed.
 
 Lemma label_join_le_r (l1 l2 : label) :
   l2 ⊑ l1 ⊔ l2.
 Proof.
-  hauto use: label_join_le_l, label_join_comm.
+  scongruence use: label_join_le_l, label_join_comm.
 Qed.
 
 Lemma label_top_le (l : label) :
   l ⊑ ⊤.
 Proof.
-  qauto use: label_join_consistent, label_top_dominant_r.
+  scongruence use: label_join_consistent, label_top_dominant_r.
 Qed.
 
 Lemma label_bot_le (l : label) :
   ⊥ ⊑ l.
 Proof.
-  qauto use: label_join_consistent, label_top_dominant_r.
+  sfirstorder use: label_join_consistent, label_top_dominant_r.
+Qed.
+
+Lemma label_top_inv (l : label) :
+  ⊤ ⊑ l -> l = ⊤.
+Proof.
+  scongruence use: label_join_consistent, label_top_dominant_l.
 Qed.
 
 Lemma label_bot_inv (l : label) :
   l ⊑ ⊥ -> l = ⊥.
 Proof.
-  hauto use: label_join_consistent, label_bot_identity_r.
+  scongruence use: label_join_consistent, label_bot_identity_r.
 Qed.
 
 Lemma label_join_bot_iff (l1 l2 : label) :
@@ -1082,11 +1031,125 @@ Proof.
   split.
   - intros.
     assert (l1 ⊔ (l1 ⊔ l2) = l1 ⊔ ⊥ /\ l2 ⊔ (l1 ⊔ l2) = l2 ⊔ ⊥)
-      by intuition congruence.
-    hauto use: label_join_assoc, label_join_comm, label_join_idempotent,
-               label_bot_identity_r.
+      by sfirstorder.
+    scongruence use: label_join_assoc, label_join_comm, label_join_idempotent,
+                     label_bot_identity_r.
   - qauto.
 Qed.
+
+Instance label_le_po : @PartialOrder label (⊑).
+Proof.
+  repeat split;
+    scongruence use: label_join_consistent,
+                     label_join_idempotent,
+                     label_join_assoc,
+                     label_join_comm.
+Qed.
+
+(** We can always find an inhabitant for any oblivious type value. *)
+Lemma oval_inhabited ω :
+  otval ω ->
+  exists v, oval v ω.
+Proof.
+  induction 1; try qauto ctrs: oval.
+  (* Case [~+]: we choose left injection as inhabitant. *)
+  sfirstorder use: (OVOSum true).
+Qed.
+
+(** ** Kind inversion  *)
+Ltac kind_inv_solver :=
+  match goal with
+  | |- _; _ ⊢ ?τ :: _ -> _ => remember τ
+  end;
+  induction 1; subst; try scongruence; qauto inv: label.
+
+Lemma kind_inv_pi Σ Γ τ1 τ2 κ :
+  Σ; Γ ⊢ Π:τ1, τ2 :: κ -> κ = <{ *@M }>.
+Proof.
+  kind_inv_solver.
+Qed.
+
+Lemma kind_inv_bool Σ Γ κ :
+  Σ; Γ ⊢ 𝔹 :: κ -> κ = <{ *@P }> \/ κ = <{ *@M }>.
+Proof.
+  kind_inv_solver.
+Qed.
+
+Lemma kind_inv_sum Σ Γ τ1 τ2 κ :
+  Σ; Γ ⊢ τ1 + τ2 :: κ -> κ = <{ *@P }> \/ κ = <{ *@M }>.
+Proof.
+  kind_inv_solver.
+Qed.
+
+Lemma kind_inv_gvar Σ Γ x κ :
+  Σ; Γ ⊢ gvar x :: κ -> κ = <{ *@P }> \/ κ = <{ *@M }>.
+Proof.
+  kind_inv_solver.
+Qed.
+
+(** ** Canonical forms *)
+Lemma canonical_form_abs Σ e τ2 τ1 :
+  Σ; ∅ ⊢ e : Π:τ2, τ1 ->
+  val e ->
+  exists e' τ, e = <{ \:τ => e' }>.
+Proof.
+  inversion 1; inversion 1; qauto use: kind_inv_pi.
+Qed.
+Hint Resolve canonical_form_abs : canonical_forms.
+
+Lemma canonical_form_bool Σ e :
+  Σ; ∅ ⊢ e : 𝔹 ->
+  val e ->
+  exists b, e = <{ b }>.
+Proof.
+  inversion 1; inversion 1; eauto; qauto use: kind_inv_bool.
+Qed.
+Hint Resolve canonical_form_bool : canonical_forms.
+
+Lemma canonical_form_obool Σ e :
+  Σ; ∅ ⊢ e : ~𝔹 ->
+  val e ->
+  exists b, e = <{ [b] }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_obool : canonical_forms.
+
+Lemma canonical_form_prod Σ e τ1 τ2 :
+  Σ; ∅ ⊢ e : τ1 * τ2 ->
+  val e ->
+  exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_prod : canonical_forms.
+
+Lemma canonical_form_sum Σ e τ1 τ2 :
+  Σ; ∅ ⊢ e : τ1 + τ2 ->
+  val e ->
+  exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
+Proof.
+  inversion 1; inversion 1; eauto; qauto use: kind_inv_sum.
+Qed.
+Hint Resolve canonical_form_sum : canonical_forms.
+
+Lemma canonical_form_osum Σ e τ1 τ2 :
+  Σ; ∅ ⊢ e : τ1 ~+ τ2 ->
+  val e ->
+  exists b v ω1 ω2, val v /\ otval ω1 /\ otval ω2 /\
+               e = <{ [inj@b<ω1 ~+ ω2> v] }>.
+Proof.
+  Admitted.
+Hint Resolve canonical_form_osum : canonical_forms.
+
+(** Though it seems we should have a condition of [X] being an (public) ADT, this
+condition is not needed since it is implied by the typing judgment. *)
+Lemma canonical_form_fold Σ e X :
+  Σ; ∅ ⊢ e : gvar X ->
+  val e ->
+  exists v X', val v /\ e = <{ fold<X'> v }>.
+Proof.
+  inversion 1; inversion 1; eauto; qauto use: kind_inv_gvar.
+Qed.
+Hint Resolve canonical_form_fold : canonical_forms.
 
 (** ** Properties of kinding  *)
 Lemma any_kind_otval Σ Γ τ :
