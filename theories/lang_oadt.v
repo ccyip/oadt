@@ -573,10 +573,10 @@ Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
 | TFold Γ X e τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e : τ ->
-    Γ ⊢ fold<X> e : X
+    Γ ⊢ fold<X> e : gvar X
 | TUnfold Γ X e τ :
     Σ !! X = Some (DADT τ) ->
-    Γ ⊢ e : X ->
+    Γ ⊢ e : gvar X ->
     Γ ⊢ unfold<X> e : τ
 (* TODO: [TIte] and [TCase] are not expressive enough. Need to infer the motive
 and do substitution in [τ]. *)
