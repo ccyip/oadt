@@ -501,9 +501,8 @@ Notation "* @ l" := (l) (in custom oadt at level 0,
 Notation tctx := (amap expr).
 
 (** ** Expression equivalence *)
-(** This definition is apparently unsound. But I use it as a placeholder for
-now, so that I can figure out the necessary properties it should have. *)
-Definition expr_equiv (Σ : gctx) (e e' : expr) : Prop := True.
+(** Type equivalence is a placeholder for now. *)
+Parameter expr_equiv : gctx -> expr -> expr -> Prop.
 
 Notation "Σ '⊢' e '≡' e'" := (expr_equiv Σ e e')
                                (at level 40,
@@ -590,10 +589,9 @@ and do substitution in [τ]. *)
     (forall x, x ∉ L -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
     Γ ⊢ e0 : τ1 + τ2 ->
     Γ ⊢ case e0 of e1 | e2 : τ
-| TConv Γ e τ τ' :
+| TConv Γ e τ τ' κ :
     Γ ⊢ e : τ' ->
-    (* TODO: this assumption may be too strong. *)
-    Γ ⊢ τ :: *@O ->
+    Γ ⊢ τ :: κ ->
     Σ ⊢ τ' ≡ τ ->
     Γ ⊢ e : τ
 (** Typing for runtime expressions is for metatheories. These expressions do not
@@ -721,7 +719,7 @@ Hint Constructors gdefs_typing : gdefs_typing.
 (* TODO: notation? *)
 Definition program_typing (p : program) (Σ : gctx) (τ : expr) :=
   match p with
-  | (Ds, e) => ∅ ⊢ <{ Ds }> ▷ Σ /\ Σ; ∅ ⊢ e : τ
+  | (Ds, e) => ∅ ={ Ds }=> Σ /\ Σ; ∅ ⊢ e : τ
   end.
 
 (** * Infrastructure *)
@@ -1037,7 +1035,7 @@ Proof.
   - qauto.
 Qed.
 
-Instance label_le_po : @PartialOrder label (⊑).
+Instance label_le_is_po : @PartialOrder label (⊑).
 Proof.
   repeat split;
     scongruence use: label_join_consistent,
@@ -1055,6 +1053,73 @@ Proof.
   (* Case [~+]: we choose left injection as inhabitant. *)
   sfirstorder use: (OVOSum true).
 Qed.
+
+(** ** Weak head normal form *)
+(** We only define weak head normal form for types, but may extend it for other
+expressions later. *)
+Inductive whnf {Σ : gctx} : expr -> Prop :=
+| WUnitT : whnf <{ 𝟙 }>
+| WBool : whnf <{ 𝔹 }>
+| WOBool : whnf <{ ~𝔹 }>
+| WPi τ1 τ2 : whnf <{ Π:τ1, τ2 }>
+| WProd τ1 τ2 : whnf <{ τ1 * τ2 }>
+| WSum τ1 τ2 : whnf <{ τ1 + τ2 }>
+| WOSum τ1 τ2 : whnf <{ τ1 ~+ τ2 }>
+| WADT X τ :
+    Σ !! X = Some (DADT τ) ->
+    whnf <{ gvar X }>
+.
+Arguments whnf : clear implicits.
+Hint Constructors whnf : whnf.
+
+(** Type equivalence for the weak head normal form fragments. This relation
+always assumes that the two type arguments are already in [whnf]. *)
+Inductive whnf_equiv {Σ : gctx} : expr -> expr -> Prop :=
+| WEqUnitT : whnf_equiv <{ 𝟙 }> <{ 𝟙 }>
+| WEqBool : whnf_equiv <{ 𝔹 }> <{ 𝔹 }>
+| WEqOBool : whnf_equiv <{ ~𝔹 }> <{ ~𝔹 }>
+| WEqPi τ1 τ2 τ1' τ2' :
+    Σ ⊢ τ1 ≡ τ1' ->
+    Σ ⊢ τ2 ≡ τ2' ->
+    whnf_equiv <{ Π:τ1, τ2 }> <{ Π:τ1', τ2' }>
+| WEqProd τ1 τ2 τ1' τ2' :
+    Σ ⊢ τ1 ≡ τ1' ->
+    Σ ⊢ τ2 ≡ τ2' ->
+    whnf_equiv <{ τ1 * τ2 }> <{ τ1' * τ2' }>
+| WEqSum τ1 τ2 τ1' τ2' :
+    Σ ⊢ τ1 ≡ τ1' ->
+    Σ ⊢ τ2 ≡ τ2' ->
+    whnf_equiv <{ τ1 + τ2 }> <{ τ1' + τ2' }>
+| WEqOSum τ1 τ2 τ1' τ2' :
+    Σ ⊢ τ1 ≡ τ1' ->
+    Σ ⊢ τ2 ≡ τ2' ->
+    whnf_equiv <{ τ1 ~+ τ2 }> <{ τ1' ~+ τ2' }>
+| WEqADT X : whnf_equiv <{ gvar X }> <{ gvar X }>
+.
+Arguments whnf_equiv : clear implicits.
+Hint Constructors whnf_equiv : whnf_equiv.
+
+(** ** Properties of type equivalence  *)
+Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
+Proof.
+Admitted.
+
+(** We only care about oblivious kind. *)
+(* TODO: do I need this one now? *)
+Lemma expr_equiv_preserve_kinding Σ τ1 τ2 :
+  Σ ⊢ τ1 ≡ τ2 ->
+  forall Γ, Σ; Γ ⊢ τ1 :: *@O ->
+       Σ; Γ ⊢ τ2 :: *@O.
+Proof.
+Admitted.
+
+(** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
+Lemma expr_equiv_iff_whnf_equiv Σ τ1 τ2 :
+  whnf Σ τ1 -> whnf Σ τ2 ->
+  Σ ⊢ τ1 ≡ τ2 <->
+  whnf_equiv Σ τ1 τ2.
+Proof.
+Admitted.
 
 (** ** Kind inversion  *)
 Ltac kind_inv_solver :=
@@ -1081,19 +1146,130 @@ Proof.
   kind_inv_solver.
 Qed.
 
-Lemma kind_inv_gvar Σ Γ x κ :
-  Σ; Γ ⊢ gvar x :: κ -> κ = <{ *@P }> \/ κ = <{ *@M }>.
+Lemma kind_inv_gvar Σ Γ X κ :
+  Σ; Γ ⊢ gvar X :: κ ->
+  (κ = <{ *@P }> \/ κ = <{ *@M }>) /\ exists τ, Σ !! X = Some (DADT τ).
 Proof.
   kind_inv_solver.
 Qed.
 
+(* This tactic is destructive. *)
+Ltac simpl_kind_inv :=
+  repeat match goal with
+         | H : _; _ ⊢ Π:_, _ :: _ |- _ => apply kind_inv_pi in H
+         | H : _; _ ⊢ 𝔹 :: _ |- _ => apply kind_inv_bool in H
+         | H : _; _ ⊢ _ + _ :: _ |- _ => apply kind_inv_sum in H
+         | H : _; _ ⊢ gvar _ :: _ |- _ => apply kind_inv_gvar in H
+         end; simp_hyps.
+
+(** ** Canonical types *)
+Ltac canonical_type_solver :=
+  match goal with
+  | |- _; _ ⊢ ?e : _ -> _ => remember e
+  end;
+  induction 1; subst; try scongruence;
+  simp_hyps;
+  repeat econstructor;
+  try reflexivity;
+  solve [etrans; solve [eauto | symmetry; eauto]].
+
+Lemma canonical_type_unit Σ Γ τ :
+  Σ; Γ ⊢ () : τ ->
+  Σ ⊢ τ ≡ 𝟙.
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_lit Σ Γ b τ :
+  Σ; Γ ⊢ lit b : τ ->
+  Σ ⊢ τ ≡ 𝔹.
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_abs Σ Γ e τ1 τ :
+  Σ; Γ ⊢ \:τ1 => e : τ ->
+  exists τ2, Σ ⊢ τ ≡ Π:τ1, τ2.
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_pair Σ Γ e1 e2 τ :
+  Σ; Γ ⊢ (e1, e2) : τ ->
+  exists τ1 τ2, Σ ⊢ τ ≡ τ1 * τ2.
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_inj Σ Γ b e τ' τ :
+  Σ; Γ ⊢ inj@b<τ'> e : τ ->
+  exists τ1 τ2, Σ ⊢ τ ≡ τ1 + τ2 /\ τ' = <{ τ1 + τ2 }>.
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_oinj Σ Γ b e τ' τ :
+  Σ; Γ ⊢ ~inj@b<τ'> e : τ ->
+  exists τ1 τ2, Σ ⊢ τ ≡ τ1 ~+ τ2 /\ τ' = <{ τ1 ~+ τ2 }>.
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_fold Σ Γ X e τ :
+  Σ; Γ ⊢ fold<X> e : τ ->
+  exists τ', Σ ⊢ τ ≡ gvar X /\ Σ !! X = Some (DADT τ').
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_boxedlit Σ Γ b τ :
+  Σ; Γ ⊢ [b] : τ ->
+  Σ ⊢ τ ≡ ~𝔹.
+Proof.
+  canonical_type_solver.
+Qed.
+
+Lemma canonical_type_boxedinj Σ Γ b e τ' τ :
+  Σ; Γ ⊢ [inj@b<τ'> e] : τ ->
+  exists τ1 τ2, Σ ⊢ τ ≡ τ1 ~+ τ2 /\ τ' = <{ τ1 ~+ τ2 }>.
+Proof.
+  canonical_type_solver.
+Qed.
+
+(* This tactic is destructive. *)
+Ltac simpl_canonical_types :=
+  repeat match goal with
+         | H : _; _ ⊢ () : _ |- _ => apply canonical_type_unit in H
+         | H : _; _ ⊢ lit _ : _ |- _ => apply canonical_type_lit in H
+         | H : _; _ ⊢ \:_ => _ : _ |- _ => apply canonical_type_abs in H
+         | H : _; _ ⊢ (_, _) : _ |- _ => apply canonical_type_pair in H
+         | H : _; _ ⊢ inj@_<_> _ : _ |- _ => apply canonical_type_inj in H
+         | H : _; _ ⊢ ~inj@_<_> _ : _ |- _ => apply canonical_type_oinj in H
+         | H : _; _ ⊢ fold<_> _ : _ |- _ => apply canonical_type_fold in H
+         | H : _; _ ⊢ [_] : _ |- _ => apply canonical_type_boxedlit in H
+         | H : _; _ ⊢ [inj@_<_> _] : _ |- _ => apply canonical_type_boxedinj in H
+         end; simp_hyps.
+
 (** ** Canonical forms *)
+Ltac canonical_form_solver :=
+  inversion 1; inversion 1; subst; eauto;
+  simpl_canonical_types;
+  simpl_kind_inv;
+  (* Try to derive contradiction if two equivalent types in [whnf] have
+  different head. *)
+  try match goal with
+      | H : _ ⊢ ?τ1 ≡ ?τ2 |- _ =>
+        solve [ first [ is_var τ1 | is_var τ2
+                      | apply expr_equiv_iff_whnf_equiv in H;
+                        eauto with whnf; inversion H ] ]
+      end.
+
 Lemma canonical_form_abs Σ e τ2 τ1 :
   Σ; ∅ ⊢ e : Π:τ2, τ1 ->
   val e ->
   exists e' τ, e = <{ \:τ => e' }>.
 Proof.
-  inversion 1; inversion 1; qauto use: kind_inv_pi.
+  canonical_form_solver.
 Qed.
 Hint Resolve canonical_form_abs : canonical_forms.
 
@@ -1102,7 +1278,7 @@ Lemma canonical_form_bool Σ e :
   val e ->
   exists b, e = <{ b }>.
 Proof.
-  inversion 1; inversion 1; eauto; qauto use: kind_inv_bool.
+  canonical_form_solver.
 Qed.
 Hint Resolve canonical_form_bool : canonical_forms.
 
@@ -1111,7 +1287,8 @@ Lemma canonical_form_obool Σ e :
   val e ->
   exists b, e = <{ [b] }>.
 Proof.
-  Admitted.
+  canonical_form_solver.
+Qed.
 Hint Resolve canonical_form_obool : canonical_forms.
 
 Lemma canonical_form_prod Σ e τ1 τ2 :
@@ -1119,7 +1296,8 @@ Lemma canonical_form_prod Σ e τ1 τ2 :
   val e ->
   exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
 Proof.
-  Admitted.
+  canonical_form_solver.
+Qed.
 Hint Resolve canonical_form_prod : canonical_forms.
 
 Lemma canonical_form_sum Σ e τ1 τ2 :
@@ -1127,7 +1305,7 @@ Lemma canonical_form_sum Σ e τ1 τ2 :
   val e ->
   exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
 Proof.
-  inversion 1; inversion 1; eauto; qauto use: kind_inv_sum.
+  canonical_form_solver.
 Qed.
 Hint Resolve canonical_form_sum : canonical_forms.
 
@@ -1137,7 +1315,12 @@ Lemma canonical_form_osum Σ e τ1 τ2 :
   exists b v ω1 ω2, val v /\ otval ω1 /\ otval ω2 /\
                e = <{ [inj@b<ω1 ~+ ω2> v] }>.
 Proof.
-  Admitted.
+  canonical_form_solver;
+  (* The cases when [e] is boxed injection. *)
+    subst; simp_hyps;
+      select (otval _) (fun H => sinvert H);
+      eauto 10.
+Qed.
 Hint Resolve canonical_form_osum : canonical_forms.
 
 (** Though it seems we should have a condition of [X] being an (public) ADT, this
@@ -1147,7 +1330,7 @@ Lemma canonical_form_fold Σ e X :
   val e ->
   exists v X', val v /\ e = <{ fold<X'> v }>.
 Proof.
-  inversion 1; inversion 1; eauto; qauto use: kind_inv_gvar.
+  canonical_form_solver.
 Qed.
 Hint Resolve canonical_form_fold : canonical_forms.
 
@@ -1164,6 +1347,7 @@ Qed.
 
 (** ** Progress *)
 
+(** The combined progress theorems for expressions and types. *)
 Theorem progress_ Ds Σ :
   ∅ ={ Ds }=> Σ ->
   (forall Γ e τ,
