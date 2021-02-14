@@ -3,6 +3,7 @@
 theories/base.v
 theories/tactics.v
 theories/ln.v
+theories/semilattice.v
 theories/prelude.v
 theories/lang_stlc.v
 theories/lang_oadt.v

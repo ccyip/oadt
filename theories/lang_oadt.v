@@ -917,128 +917,16 @@ Qed.
 
 (** * Metatheories *)
 
-(** ** Properties of labels  *)
-(* TODO: organize them in a type class. *)
-Lemma label_join_comm (l1 l2 : label) :
-  l1 ⊔ l2 = l2 ⊔ l1.
-Proof.
-  destruct l1, l2; auto.
-Qed.
-
-Lemma label_join_assoc (l1 l2 l3 : label) :
-  l1 ⊔ (l2 ⊔ l3) = (l1 ⊔ l2) ⊔ l3.
-Proof.
-  destruct l1, l2, l3; auto.
-Qed.
-
-Lemma label_join_idempotent (l : label) :
-  l ⊔ l = l.
-Proof.
-  destruct l; auto.
-Qed.
-
-Lemma label_top_dominant_r (l : label) :
-  l ⊔ ⊤ = ⊤.
-Proof.
-  destruct l; auto.
-Qed.
-
-Lemma label_bot_identity_r (l : label) :
-  l ⊔ ⊥ = l.
-Proof.
-  destruct l; auto.
-Qed.
-
-Lemma label_join_consistent (l1 l2 : label) :
-  l1 ⊑ l2 <-> l2 = l1 ⊔ l2.
-Proof.
-  reflexivity.
-Qed.
-
-(* TODO: try aac rewrite and other automation for a tactic simpl_semilattice. *)
-
-(* TODO: move them to another file. The following lemmas of label can be
-derived from the previous "axioms". *)
-
-Lemma label_top_dominant_l (l : label) :
-  ⊤ ⊔ l = ⊤.
-Proof.
-  scongruence use: label_top_dominant_r, label_join_comm.
-Qed.
-
-Lemma label_bot_identity_l (l : label) :
-  ⊥ ⊔ l = l.
-Proof.
-  scongruence use: label_bot_identity_r, label_join_comm.
-Qed.
-
-Lemma label_join_is_lub (l1 l2 l : label) :
-  l1 ⊑ l -> l2 ⊑ l -> l1 ⊔ l2 ⊑ l.
-Proof.
-  scongruence use: label_join_consistent, label_join_assoc.
-Qed.
-
-Lemma label_join_prime (l1 l2 l : label) :
-  l ⊑ l1 -> l ⊑ l2 -> l ⊑ l1 ⊔ l2.
-Proof.
-  scongruence use: label_join_consistent, label_join_assoc.
-Qed.
-
-Lemma label_join_le_l (l1 l2 : label) :
-  l1 ⊑ l1 ⊔ l2.
-Proof.
-  scongruence use: label_join_consistent, label_join_assoc, label_join_idempotent.
-Qed.
-
-Lemma label_join_le_r (l1 l2 : label) :
-  l2 ⊑ l1 ⊔ l2.
-Proof.
-  scongruence use: label_join_le_l, label_join_comm.
-Qed.
-
-Lemma label_top_le (l : label) :
-  l ⊑ ⊤.
-Proof.
-  scongruence use: label_join_consistent, label_top_dominant_r.
-Qed.
-
-Lemma label_bot_le (l : label) :
-  ⊥ ⊑ l.
-Proof.
-  sfirstorder use: label_join_consistent, label_top_dominant_r.
-Qed.
-
-Lemma label_top_inv (l : label) :
-  ⊤ ⊑ l -> l = ⊤.
-Proof.
-  scongruence use: label_join_consistent, label_top_dominant_l.
-Qed.
-
-Lemma label_bot_inv (l : label) :
-  l ⊑ ⊥ -> l = ⊥.
-Proof.
-  scongruence use: label_join_consistent, label_bot_identity_r.
-Qed.
-
-Lemma label_join_bot_iff (l1 l2 : label) :
-  l1 ⊔ l2 = ⊥ <-> l1 = ⊥ /\ l2 = ⊥.
+(** ** [label] forms a [SemiLattice].  *)
+Instance label_semilattice : SemiLattice label.
 Proof.
   split.
-  - intros.
-    assert (l1 ⊔ (l1 ⊔ l2) = l1 ⊔ ⊥ /\ l2 ⊔ (l1 ⊔ l2) = l2 ⊔ ⊥)
-      by sfirstorder.
-    scongruence use: label_join_assoc, label_join_comm, label_join_idempotent,
-                     label_bot_identity_r.
-  - qauto.
-Qed.
-
-Instance label_le_is_po : @PartialOrder label (⊑).
-Proof.
-  repeat split;
-    scongruence use: label_join_consistent,
-                     label_join_idempotent,
-                     label_join_assoc,
-                     label_join_comm.
+  - intros [] []; auto.
+  - intros [] [] []; auto.
+  - intros []; auto.
+  - intros []; auto.
+  - intros []; auto.
+  - reflexivity.
 Qed.
 
 (** We can always find an inhabitant for any oblivious type value. *)
@@ -1338,8 +1226,8 @@ Lemma any_kind_otval Σ Γ τ :
 Proof.
   remember <{ *@A }>.
   induction 1; subst; try hauto ctrs: otval.
-  - rewrite label_join_bot_iff in *. easy.
-  - eauto using label_bot_inv.
+  - srewrite join_bot_iff. easy.
+  - eauto using bot_inv.
 Qed.
 
 (** ** Progress *)
@@ -1417,13 +1305,11 @@ Proof.
     + hauto solve: step_ectx_solver ctrs: step.
 
   (* [_ + _]. This case is impossible. *)
-  - enough (<{ *@P }> ⊑ <{ *@O }>). easy.
-    unfold kind in *.
-    select (_ = <{ *@O }>) (fun H => rewrite <- H).
-    hauto use: label_join_le_r.
+  - enough (<{ *@P }> ⊑ <{ *@O }>) by easy.
+    scongruence unfold: kind use: join_ub_r.
 
   (* Kinding subsumption *)
-  - select kind (fun κ => destruct κ); by eauto using any_kind_otval.
+  - select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
 Qed.
 
 Theorem progress Ds Σ τ e :
