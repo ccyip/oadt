@@ -914,9 +914,6 @@ Lemma SCtx' {Σ} ℇ e e' E E' :
 Proof.
   hauto ctrs: step.
 Qed.
-Hint Resolve SCtx' : ectx.
-
-Hint Extern 0 (?f ?a = ?b) => higher_order_reflexivity : ectx.
 
 (** * Metatheories *)
 
@@ -1347,6 +1344,18 @@ Qed.
 
 (** ** Progress *)
 
+(** Take a step through evaluation context. *)
+Ltac step_ectx_solver :=
+  match goal with
+  | H : _ ⊨ _ -->! _ |- exists _, _ ⊨ _ -->! _ =>
+    eexists;
+    eapply SCtx';
+    [ solve [apply H]
+    | higher_order_reflexivity
+    | higher_order_reflexivity
+    | solve [constructor; eauto] ]
+  end.
+
 (** The combined progress theorems for expressions and types. *)
 Theorem progress_ Ds Σ :
   ∅ ={ Ds }=> Σ ->
@@ -1370,9 +1379,11 @@ Proof.
           assert_fails contains e τ; clear H
         end;
     (* Try solve the boring cases, unless they are the trickier ones. *)
-    (* TODO: the automation here is really slow. *)
     first [ goal_is (val <{ ~case _ of _ | _ }> \/ _)
           | goal_is (otval <{ _ + _ }> \/ _)
+          | match goal with
+            | |- otval ?τ \/ _ => is_var τ
+            end
           (* Take care of the simple cases. *)
           | hauto simp: simpl_map
                   ctrs: val, otval, step, ectx
@@ -1380,7 +1391,7 @@ Proof.
           (* For expression progress. *)
           | goal_contains val;
             hauto ctrs: val, step
-                  solve+: (eauto with ectx)
+                  solve: step_ectx_solver
                   use: canonical_form_abs,
                        canonical_form_bool,
                        canonical_form_obool,
@@ -1390,7 +1401,7 @@ Proof.
           (* For oblivious type progress. *)
           | goal_contains otval;
             hauto ctrs: otval, step
-                  solve+: (eauto with ectx)
+                  solve: step_ectx_solver
                   use: canonical_form_bool,
                        canonical_form_sum
           | idtac ].
@@ -1403,16 +1414,16 @@ Proof.
       select! (otval _) (fun H => use (oval_inhabited _ H)).
       hauto ctrs: step.
     (* Discriminee can take a step. *)
-    + hauto solve+: (eauto with ectx) ctrs: step.
+    + hauto solve: step_ectx_solver ctrs: step.
 
   (* [_ + _]. This case is impossible. *)
   - enough (<{ *@P }> ⊑ <{ *@O }>). easy.
     unfold kind in *.
-    select! (_ = <{ *@O }>) (fun H => rewrite <- H).
+    select (_ = <{ *@O }>) (fun H => rewrite <- H).
     hauto use: label_join_le_r.
 
   (* Kinding subsumption *)
-  - destruct (_ : kind); by eauto using any_kind_otval.
+  - select kind (fun κ => destruct κ); by eauto using any_kind_otval.
 Qed.
 
 Theorem progress Ds Σ τ e :
