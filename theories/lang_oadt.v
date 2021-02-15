@@ -920,13 +920,7 @@ Qed.
 (** ** [label] forms a [SemiLattice].  *)
 Instance label_semilattice : SemiLattice label.
 Proof.
-  split.
-  - intros [] []; auto.
-  - intros [] [] []; auto.
-  - intros []; auto.
-  - intros []; auto.
-  - intros []; auto.
-  - reflexivity.
+  split; try reflexivity; repeat intros []; auto.
 Qed.
 
 (** We can always find an inhabitant for any oblivious type value. *)
