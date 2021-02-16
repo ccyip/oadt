@@ -1372,12 +1372,15 @@ Proof.
             | |- otval ?τ \/ _ => is_var τ
             end
           (* Take care of the simple cases. *)
-          | hauto simp: simpl_map
+          | goal_is (val <{ [inj@_<_> _] }> \/ _); sfirstorder use: oval_elim
+          | qauto q: on rew: off
+                  simp: simpl_map
                   ctrs: val, otval, step, ectx
           (* Take care of the more complex cases involving evaluation context. *)
           (* For expression progress. *)
           | goal_contains val;
-            hauto ctrs: val, step
+            qauto q: on
+                  ctrs: val, step
                   solve: step_ectx_solver
                   use: canonical_form_abs,
                        canonical_form_bool,
@@ -1387,7 +1390,8 @@ Proof.
                        canonical_form_fold
           (* For oblivious type progress. *)
           | goal_contains otval;
-            hauto ctrs: otval, step
+            qauto q: on
+                  ctrs: otval, step
                   solve: step_ectx_solver
                   use: canonical_form_bool,
                        canonical_form_sum
@@ -1397,7 +1401,7 @@ Proof.
   - right. intuition.
     (* Discriminee is value. *)
     + select (_; _ ⊢ _ : _) (fun H => apply canonical_form_osum in H); eauto.
-      sintuition.
+      simp_hyps.
       select! (otval _) (fun H => use (oval_inhabited _ H)).
       hauto ctrs: step.
     (* Discriminee can take a step. *)
