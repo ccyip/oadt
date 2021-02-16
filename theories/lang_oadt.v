@@ -7,7 +7,7 @@ Module oadt.
 Section lang.
 
 Context `{is_atom : Atom atom amap aset}.
-Implicit Types (x X : atom) (L : aset).
+Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
 
 Open Scope type_scope.
