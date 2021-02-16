@@ -1346,8 +1346,7 @@ Ltac step_ectx_solver :=
   end.
 
 (** The combined progress theorems for expressions and types. *)
-Theorem progress_ Ds Σ :
-  ∅ ={ Ds }=> Σ ->
+Theorem progress_ Σ :
   (forall Γ e τ,
       Σ; Γ ⊢ e : τ ->
       Γ = ∅ ->
@@ -1358,7 +1357,6 @@ Theorem progress_ Ds Σ :
      κ = <{ *@O }> ->
      otval τ \/ exists τ', Σ ⊨ τ -->! τ').
 Proof.
-  intros Hd.
   apply expr_typing_kinding_mutind; intros; subst;
     (* If a type is not used in the conclusion, the mutual inductive hypothesis
     for it is useless. Remove this hypothesis to avoid slowdown the
@@ -1413,8 +1411,7 @@ Proof.
   - select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
 Qed.
 
-Theorem progress Ds Σ τ e :
-  ∅ ={ Ds }=> Σ ->
+Theorem progress Σ τ e :
   Σ; ∅ ⊢ e : τ ->
   val e \/ exists e', Σ ⊨ e -->! e'.
 Proof.
