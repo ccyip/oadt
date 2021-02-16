@@ -336,6 +336,8 @@ Inductive oval : expr -> expr -> Prop :=
     oval <{ (v1, v2) }> <{ ω1 * ω2 }>
 | OVOSum b v ω1 ω2 :
     oval v <{ ite b ω1 ω2 }> ->
+    (* Make sure the unused oblivious type is a value. *)
+    otval <{ ite b ω2 ω1 }> ->
     oval <{ [inj@b<ω1 ~+ ω2> v] }> <{ ω1 ~+ ω2 }>
 .
 Hint Constructors oval : oval.
@@ -598,13 +600,9 @@ and do substitution in [τ]. *)
 appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
 | TBoxedLit Γ b : Γ ⊢ [b] : ~𝔹
-| TBoxedInj Γ b v ω1 ω2 :
-    (* TODO: use [oval] later *)
-    Γ ⊢ v : ite b ω1 ω2 ->
-    Γ ⊢ ω1 ~+ ω2 :: *@O ->
-    val v ->
-    otval <{ ω1 ~+ ω2 }> ->
-    Γ ⊢ [inj@b<ω1 ~+ ω2> v] : ω1 ~+ ω2
+| TBoxedInj Γ b v ω :
+    oval <{ [inj@b<ω> v] }> ω ->
+    Γ ⊢ [inj@b<ω> v] : ω
 
 where "Γ '⊢' e ':' τ" := (expr_typing Γ e τ)
 
@@ -887,20 +885,29 @@ Proof.
   induction e; hauto simp+: set_unfold.
 Qed.
 
+Lemma otval_lc ω :
+  otval ω ->
+  lc ω.
+Proof.
+  induction 1; try hauto ctrs: lc.
+Qed.
+
+Lemma oval_lc v ω :
+  oval v ω ->
+  lc v /\ lc ω.
+Proof.
+  induction 1; hauto ctrs: lc use: otval_lc.
+Qed.
+
 (** Well-typed and well-kinded expressions are locally closed. *)
-Lemma expr_typing_lc Σ Γ e τ :
+Lemma typing_lc Σ Γ e τ :
   Σ; Γ ⊢ e : τ ->
   lc e
-with expr_kinding_lc  Σ Γ τ κ :
+with kinding_lc  Σ Γ τ κ :
   Σ; Γ ⊢ τ :: κ ->
   lc τ.
 Proof.
-  (* Technically we only need [destruct] here, but it is easier for automation
-  to construct a non-well-founded proof. *)
-  all : induction 1; try hauto ctrs: lc.
-  econstructor; eauto.
-  simpl_cofin.
-  hauto unfold: open use: open_lc.
+  all : destruct 1; hauto ctrs: lc use: oval_lc.
 Qed.
 
 (** This lemma is equivalent to [SCtx] constructor, but more friendly for
@@ -917,21 +924,17 @@ Qed.
 
 (** * Metatheories *)
 
-(** ** [label] forms a [SemiLattice].  *)
+(** ** Properties of [label] *)
+(** [label] forms a [SemiLattice].  *)
 Instance label_semilattice : SemiLattice label.
 Proof.
   split; try reflexivity; repeat intros []; auto.
 Qed.
 
-(** We can always find an inhabitant for any oblivious type value. *)
-Lemma oval_inhabited ω :
-  otval ω ->
-  exists v, oval v ω.
-Proof.
-  induction 1; try qauto ctrs: oval.
-  (* Case [~+]: we choose left injection as inhabitant. *)
-  sfirstorder use: (OVOSum true).
-Qed.
+Ltac label_naive_solver :=
+  solve [ reflexivity
+        | eauto
+        | etrans; eauto ].
 
 (** ** Weak head normal form *)
 (** We only define weak head normal form for types, but may extend it for other
@@ -978,6 +981,13 @@ Inductive whnf_equiv {Σ : gctx} : expr -> expr -> Prop :=
 Arguments whnf_equiv : clear implicits.
 Hint Constructors whnf_equiv : whnf_equiv.
 
+Lemma otval_whnf Σ ω :
+  otval ω ->
+  whnf Σ ω.
+Proof.
+  induction 1; sfirstorder.
+Qed.
+
 (** ** Properties of type equivalence  *)
 Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
 Proof.
@@ -1000,40 +1010,65 @@ Lemma expr_equiv_iff_whnf_equiv Σ τ1 τ2 :
 Proof.
 Admitted.
 
+(** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
+two equivalent types in [whnf] have different head. *)
+Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
+  match goal with
+  | H : _ ⊢ ?τ1 ≡ ?τ2 |- _ =>
+    apply expr_equiv_iff_whnf_equiv in H;
+    [ sinvert H
+    | solve [tac]
+    | solve [tac] ]
+  end.
+
+Tactic Notation "simpl_whnf_equiv" :=
+  simpl_whnf_equiv by eauto using otval_whnf with whnf.
+
+Ltac equiv_naive_solver :=
+  solve [ reflexivity
+        | eauto
+        | symmetry; eauto
+        | etrans; solve [eauto | symmetry; eauto] ].
+
 (** ** Kind inversion  *)
-Ltac kind_inv_solver :=
+Tactic Notation "kind_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?τ :: _ -> _ => remember τ
   end;
-  induction 1; subst; try scongruence; qauto inv: label.
+  induction 1; subst; simp_hyps; try scongruence;
+  tac.
+
+Tactic Notation "kind_inv_solver" :=
+  kind_inv_solver by qauto l: on solve: label_naive_solver.
 
 Lemma kind_inv_pi Σ Γ τ1 τ2 κ :
   Σ; Γ ⊢ Π:τ1, τ2 :: κ -> κ = <{ *@M }>.
 Proof.
-  kind_inv_solver.
+  kind_inv_solver by sfirstorder use: top_inv.
 Qed.
 
 Lemma kind_inv_bool Σ Γ κ :
-  Σ; Γ ⊢ 𝔹 :: κ -> κ = <{ *@P }> \/ κ = <{ *@M }>.
+  Σ; Γ ⊢ 𝔹 :: κ -> <{ *@P }> ⊑ κ.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_sum Σ Γ τ1 τ2 κ :
-  Σ; Γ ⊢ τ1 + τ2 :: κ -> κ = <{ *@P }> \/ κ = <{ *@M }>.
+  Σ; Γ ⊢ τ1 + τ2 :: κ -> <{ *@P }> ⊑ κ.
 Proof.
-  kind_inv_solver.
+  kind_inv_solver by qauto l: on solve: label_naive_solver
+                           use: join_ub_r.
 Qed.
 
 Lemma kind_inv_gvar Σ Γ X κ :
   Σ; Γ ⊢ gvar X :: κ ->
-  (κ = <{ *@P }> \/ κ = <{ *@M }>) /\ exists τ, Σ !! X = Some (DADT τ).
+  <{ *@P }> ⊑ κ /\ exists τ, Σ !! X = Some (DADT τ).
 Proof.
   kind_inv_solver.
 Qed.
 
 (* This tactic is destructive. *)
-Ltac simpl_kind_inv :=
+Ltac apply_kind_inv :=
   repeat match goal with
          | H : _; _ ⊢ Π:_, _ :: _ |- _ => apply kind_inv_pi in H
          | H : _; _ ⊢ 𝔹 :: _ |- _ => apply kind_inv_bool in H
@@ -1041,107 +1076,180 @@ Ltac simpl_kind_inv :=
          | H : _; _ ⊢ gvar _ :: _ |- _ => apply kind_inv_gvar in H
          end; simp_hyps.
 
-(** ** Canonical types *)
-Ltac canonical_type_solver :=
+(** ** Type inversion *)
+Tactic Notation "type_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?e : _ -> _ => remember e
   end;
-  induction 1; subst; try scongruence;
-  simp_hyps;
-  repeat econstructor;
-  try reflexivity;
-  solve [etrans; solve [eauto | symmetry; eauto]].
+  induction 1; subst; simp_hyps; try scongruence;
+  tac.
 
-Lemma canonical_type_unit Σ Γ τ :
+Tactic Notation "type_inv_solver" :=
+  type_inv_solver by hauto lq:on solve: equiv_naive_solver.
+
+Lemma type_inv_unit Σ Γ τ :
   Σ; Γ ⊢ () : τ ->
   Σ ⊢ τ ≡ 𝟙.
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_lit Σ Γ b τ :
+Lemma type_inv_lit Σ Γ b τ :
   Σ; Γ ⊢ lit b : τ ->
   Σ ⊢ τ ≡ 𝔹.
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_abs Σ Γ e τ1 τ :
-  Σ; Γ ⊢ \:τ1 => e : τ ->
-  exists τ2, Σ ⊢ τ ≡ Π:τ1, τ2.
+Lemma type_inv_abs Σ Γ e τ2 τ :
+  Σ; Γ ⊢ \:τ2 => e : τ ->
+  exists τ1 l L,
+    Σ ⊢ τ ≡ Π:τ2, τ1 /\
+    Σ; Γ ⊢ τ2 :: *@l /\
+    forall x, x ∉ L -> Σ; (<[x:=τ2]> Γ) ⊢ e^x : τ1^x.
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_pair Σ Γ e1 e2 τ :
+Lemma type_inv_pair Σ Γ e1 e2 τ :
   Σ; Γ ⊢ (e1, e2) : τ ->
-  exists τ1 τ2, Σ ⊢ τ ≡ τ1 * τ2.
+  exists τ1 τ2,
+    Σ ⊢ τ ≡ τ1 * τ2 /\
+    Σ; Γ ⊢ e1 : τ1 /\
+    Σ; Γ ⊢ e2 : τ2.
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_inj Σ Γ b e τ' τ :
+Lemma type_inv_inj Σ Γ b e τ' τ :
   Σ; Γ ⊢ inj@b<τ'> e : τ ->
-  exists τ1 τ2, Σ ⊢ τ ≡ τ1 + τ2 /\ τ' = <{ τ1 + τ2 }>.
+  exists τ1 τ2,
+    Σ ⊢ τ ≡ τ1 + τ2 /\
+    τ' = <{ τ1 + τ2 }> /\
+    Σ; Γ ⊢ τ1 + τ2 :: *@P /\
+    Σ; Γ ⊢ e : ite b τ1 τ2.
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_oinj Σ Γ b e τ' τ :
+Lemma type_inv_oinj Σ Γ b e τ' τ :
   Σ; Γ ⊢ ~inj@b<τ'> e : τ ->
-  exists τ1 τ2, Σ ⊢ τ ≡ τ1 ~+ τ2 /\ τ' = <{ τ1 ~+ τ2 }>.
+  exists τ1 τ2,
+    Σ ⊢ τ ≡ τ1 ~+ τ2 /\
+    τ' = <{ τ1 ~+ τ2 }> /\
+    Σ; Γ ⊢ τ1 ~+ τ2 :: *@O /\
+    Σ; Γ ⊢ e : ite b τ1 τ2.
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_fold Σ Γ X e τ :
+Lemma type_inv_fold Σ Γ X e τ :
   Σ; Γ ⊢ fold<X> e : τ ->
-  exists τ', Σ ⊢ τ ≡ gvar X /\ Σ !! X = Some (DADT τ').
+  exists τ',
+    Σ ⊢ τ ≡ gvar X /\
+    Σ; Γ ⊢ e : τ' /\
+    Σ !! X = Some (DADT τ').
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_boxedlit Σ Γ b τ :
+Lemma type_inv_boxedlit Σ Γ b τ :
   Σ; Γ ⊢ [b] : τ ->
   Σ ⊢ τ ≡ ~𝔹.
 Proof.
-  canonical_type_solver.
+  type_inv_solver.
 Qed.
 
-Lemma canonical_type_boxedinj Σ Γ b e τ' τ :
-  Σ; Γ ⊢ [inj@b<τ'> e] : τ ->
-  exists τ1 τ2, Σ ⊢ τ ≡ τ1 ~+ τ2 /\ τ' = <{ τ1 ~+ τ2 }>.
+Lemma type_inv_boxedinj Σ Γ b v ω τ :
+  Σ; Γ ⊢ [inj@b<ω> v] : τ ->
+  exists ω1 ω2,
+    Σ ⊢ τ ≡ ω1 ~+ ω2 /\
+    ω = <{ ω1 ~+ ω2 }> /\
+    oval <{ [inj@b<ω> v] }> ω.
 Proof.
-  canonical_type_solver.
+  type_inv_solver by hauto lq: on solve: equiv_naive_solver
+                           ctrs: oval inv: oval.
 Qed.
 
 (* This tactic is destructive. *)
-Ltac simpl_canonical_types :=
+Ltac apply_type_inv :=
   repeat match goal with
-         | H : _; _ ⊢ () : _ |- _ => apply canonical_type_unit in H
-         | H : _; _ ⊢ lit _ : _ |- _ => apply canonical_type_lit in H
-         | H : _; _ ⊢ \:_ => _ : _ |- _ => apply canonical_type_abs in H
-         | H : _; _ ⊢ (_, _) : _ |- _ => apply canonical_type_pair in H
-         | H : _; _ ⊢ inj@_<_> _ : _ |- _ => apply canonical_type_inj in H
-         | H : _; _ ⊢ ~inj@_<_> _ : _ |- _ => apply canonical_type_oinj in H
-         | H : _; _ ⊢ fold<_> _ : _ |- _ => apply canonical_type_fold in H
-         | H : _; _ ⊢ [_] : _ |- _ => apply canonical_type_boxedlit in H
-         | H : _; _ ⊢ [inj@_<_> _] : _ |- _ => apply canonical_type_boxedinj in H
+         | H : _; _ ⊢ () : _ |- _ => apply type_inv_unit in H
+         | H : _; _ ⊢ lit _ : _ |- _ => apply type_inv_lit in H
+         | H : _; _ ⊢ \:_ => _ : _ |- _ => apply type_inv_abs in H
+         | H : _; _ ⊢ (_, _) : _ |- _ => apply type_inv_pair in H
+         | H : _; _ ⊢ inj@_<_> _ : _ |- _ => apply type_inv_inj in H
+         | H : _; _ ⊢ ~inj@_<_> _ : _ |- _ => apply type_inv_oinj in H
+         | H : _; _ ⊢ fold<_> _ : _ |- _ => apply type_inv_fold in H
+         | H : _; _ ⊢ [_] : _ |- _ => apply type_inv_boxedlit in H
+         | H : _; _ ⊢ [inj@_<_> _] : _ |- _ => apply type_inv_boxedinj in H
          end; simp_hyps.
+
+(** ** Properties of [otval] and [oval] *)
+Lemma otval_well_kinded ω Σ Γ :
+  otval ω ->
+  Σ; Γ ⊢ ω :: *@O.
+Proof.
+  induction 1; hauto lq: on ctrs: expr_kinding solve: label_naive_solver.
+Qed.
+
+Lemma otval_uniq Σ ω1 ω2 :
+  otval ω1 ->
+  otval ω2 ->
+  Σ ⊢ ω1 ≡ ω2 ->
+  ω1 = ω2.
+Proof.
+  intros H. revert ω2.
+  induction H; intros; simpl_whnf_equiv;
+    qauto l:on rew:off inv: otval.
+Qed.
+
+Lemma oval_elim v ω :
+  oval v ω ->
+  val v /\ otval ω /\ ∅; ∅ ⊢ v : ω.
+Proof.
+  intros H. use H.
+  induction H; hauto lq:on ctrs: val, otval, expr_typing.
+Qed.
+
+Lemma oval_intro v ω :
+  val v ->
+  otval ω ->
+  ∅; ∅ ⊢ v : ω ->
+  oval v ω.
+Proof.
+  intros H. revert ω.
+  induction H; inversion 1; intros; subst;
+    apply_type_inv;
+    simpl_whnf_equiv;
+    try hauto lq: on rew: off
+              ctrs: oval, expr_typing
+              use: otval_well_kinded
+              solve: equiv_naive_solver.
+
+  (* Case [inj@_<_> _] *)
+  repeat match goal with
+         | H : _ ⊢ ?ω1 ≡ ?ω2 |- _ =>
+           apply otval_uniq in H; try qauto l: on inv: otval
+         end.
+Qed.
+
+(** We can always find an inhabitant for any oblivious type value. *)
+Lemma oval_inhabited ω :
+  otval ω ->
+  exists v, oval v ω.
+Proof.
+  induction 1; try qauto ctrs: oval.
+  (* Case [~+]: we choose left injection as inhabitant. *)
+  sfirstorder use: (OVOSum true).
+Qed.
 
 (** ** Canonical forms *)
 Ltac canonical_form_solver :=
-  inversion 1; inversion 1; subst; eauto;
-  simpl_canonical_types;
-  simpl_kind_inv;
-  (* Try to derive contradiction if two equivalent types in [whnf] have
-  different head. *)
-  try match goal with
-      | H : _ ⊢ ?τ1 ≡ ?τ2 |- _ =>
-        solve [ first [ is_var τ1 | is_var τ2
-                      | apply expr_equiv_iff_whnf_equiv in H;
-                        eauto with whnf; inversion H ] ]
-      end.
+  inversion 1; subst; inversion 1; subst; eauto;
+  apply_type_inv;
+  apply_kind_inv;
+  simpl_whnf_equiv.
 
 Lemma canonical_form_abs Σ e τ2 τ1 :
   Σ; ∅ ⊢ e : Π:τ2, τ1 ->
@@ -1195,10 +1303,9 @@ Lemma canonical_form_osum Σ e τ1 τ2 :
                e = <{ [inj@b<ω1 ~+ ω2> v] }>.
 Proof.
   canonical_form_solver;
-  (* The cases when [e] is boxed injection. *)
-    subst; simp_hyps;
-      select (otval _) (fun H => sinvert H);
-      eauto 10.
+    (* The cases when [e] is boxed injection. *)
+    select (otval _) (fun H => sinvert H);
+    repeat esplit; auto.
 Qed.
 Hint Resolve canonical_form_osum : canonical_forms.
 
