@@ -526,11 +526,11 @@ Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
     Σ !! x = Some (DFun τ e) ->
     Γ ⊢ gvar x : τ
 | TAbs Γ e τ1 τ2 l L :
-    (forall x, x ∉ L -> <[x:=τ2]>Γ ⊢ e^x : τ1) ->
+    (forall x, x ∉ L -> <[x:=τ2]>Γ ⊢ e^x : τ1^x) ->
     Γ ⊢ τ2 :: *@l ->
     Γ ⊢ \:τ2 => e : (Π:τ2, τ1)
 | TLet Γ e1 e2 τ1 τ2 L :
-    (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ e2^x : τ2) ->
+    (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ e2^x : τ2^x) ->
     Γ ⊢ e1 : τ1 ->
     Γ ⊢ let e1 in e2 : τ2^e1
 | TApp Γ e1 e2 τ1 τ2 :
@@ -615,9 +615,9 @@ with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
 | KUnit Γ : Γ ⊢ 𝟙 :: *@A
 | KBool Γ : Γ ⊢ 𝔹 :: *@P
 | KOBool Γ : Γ ⊢ ~𝔹 :: *@O
-| KPi Γ τ1 τ2 l1 l2 :
+| KPi Γ τ1 τ2 l1 l2 L :
+    (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ τ2^x :: *@l2) ->
     Γ ⊢ τ1 :: *@l1 ->
-    Γ ⊢ τ2 :: *@l2 ->
     Γ ⊢ (Π:τ1, τ2) :: *@M
 | KApp Γ e τ X :
     Σ !! X = Some (DOADT τ e) ->
