@@ -912,7 +912,7 @@ Qed.
 
 (** This lemma is equivalent to [SCtx] constructor, but more friendly for
 automation. *)
-Lemma SCtx' {Σ} ℇ e e' E E' :
+Lemma SCtx_intro {Σ} ℇ e e' E E' :
     Σ ⊨ e -->! e' ->
     ℇ e = E ->
     ℇ e' = E' ->
@@ -1338,7 +1338,7 @@ Ltac step_ectx_solver :=
   match goal with
   | H : _ ⊨ _ -->! _ |- exists _, _ ⊨ _ -->! _ =>
     eexists;
-    eapply SCtx';
+    eapply SCtx_intro;
     [ solve [apply H]
     | higher_order_reflexivity
     | higher_order_reflexivity
