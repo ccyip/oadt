@@ -276,6 +276,58 @@ Proof.
   induction 1; hauto ctrs: lc.
 Qed.
 
+Lemma open_fresh : forall t x x',
+  x # t ->
+  x <> x' ->
+  x # <{ t^x' }>.
+Proof.
+  intros t. unfold open. generalize 0.
+  induction t; intros; simpl in *;
+    hauto lq:on rew:off solve: set_solver.
+Qed.
+
+Lemma typing_rename_ : forall Gamma t T T' (x y : atom),
+  <[x:=T']>Gamma ⊢ t \in T ->
+  y ∉ fv t ∪ dom aset Gamma ->
+  <[y:=T']>Gamma ⊢ [x:=y]t \in T.
+Proof.
+  intros Gamma t T T' x y.
+  remember (<[x:=T']>Gamma) as Gamma'.
+  intros H. revert dependent Gamma.
+  induction H; intros; subst; simpl in *;
+    try qauto ctrs: has_type simp: set_unfold solve: (by simplify_map_eq).
+  - econstructor.
+    simpl_cofin.
+    rewrite <- subst_open_comm by qauto ctrs: lc simp: set_unfold.
+    qauto ctrs: lc use: insert_commute, open_fresh simp: set_unfold.
+Qed.
+
+Lemma typing_rename : forall Gamma t T T' (x y : atom),
+  <[x:=T']>Gamma ⊢ t^x \in T ->
+  x ∉ fv t ∪ dom aset Gamma ->
+  y ∉ fv t ∪ dom aset Gamma ->
+  <[y:=T']>Gamma ⊢ t^y \in T.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst; eauto.
+  rewrite subst_intro with (x:=x) by set_solver.
+  apply typing_rename_; eauto.
+  set_unfold.
+  qauto use: open_fresh.
+Qed.
+
+(* The admissible existential introduction form of abstraction. *)
+Lemma T_Abs_intro : forall Gamma T1 T2 t1 x,
+  x ∉ fv t1 ∪ dom aset Gamma ->
+  <[x:=T2]>Gamma ⊢ t1 ^ x \in T1 ->
+  Gamma ⊢ \:T2, t1 \in (T2 -> T1).
+Proof.
+  intros.
+  econstructor.
+  simpl_cofin.
+  qauto use: typing_rename simp: set_unfold.
+Qed.
+
 (** * Metatheories *)
 
 (** ** Progress *)
