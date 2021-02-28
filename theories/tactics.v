@@ -269,3 +269,47 @@ Tactic Notation "dup_hyp" "!" hyp(H) tactic3(tac) "with" tactic3(ktac) :=
 
 Tactic Notation "dup_hyp" "!" hyp(H) tactic3(tac) :=
   dup_hyp! H tac with (fun _ => idtac).
+
+(** ** Hypothesis application *)
+
+(** [apply_eq] applies hypothesis [H], and generates equality subgoals for the
+arguments if the arguments can not be unified. *)
+Tactic Notation "apply_eq" uconstr(H) "by" tactic3(tac) :=
+  let rec go T :=
+      match T with
+      | ?R ?a =>
+        let X := type of a in
+        let e := fresh "e" in evar (e : X);
+        let e' := eval unfold e in e in clear e;
+        replace a with e'; [ go R | block_goal ]
+      | _ => idtac
+      end in
+  match goal with
+  | |- ?T => go T
+  end; [ tac H | .. ];
+  try match goal with
+      | |- block _ => unblock_goal; try reflexivity
+      end.
+
+Tactic Notation "apply_eq" uconstr(H) := apply_eq H by (fun H => apply H).
+Tactic Notation "eapply_eq" uconstr(H) := apply_eq H by (fun H => eapply H).
+
+(** [auto_apply] applies the first appliable hypothesis of the same shape. It is
+useful for applying induction hypotheses automatically. *)
+Tactic Notation "auto_apply" "by" tactic3(tac) :=
+  try eassumption;
+  match goal with
+  | H : context [_ -> ?C] |- ?C => tac H
+  | H : context [_ -> ?C _] |- ?C _ => tac H
+  | H : context [_ -> ?C _ _] |- ?C _ _ => tac H
+  | H : context [_ -> ?C _ _ _] |- ?C _ _ _ => tac H
+  | H : context [_ -> ?C _ _ _ _] |- ?C _ _ _ _ => tac H
+  | H : context [_ -> ?C _ _ _ _ _] |- ?C _ _ _ _ _ => tac H
+  | H : context [_ -> ?C _ _ _ _ _ _] |- ?C _ _ _ _ _ _ => tac H
+  | H : context [_ -> ?C _ _ _ _ _ _ _] |- ?C _ _ _ _ _ _ _ => tac H
+  end.
+
+Tactic Notation "auto_apply" := auto_apply by (fun H => apply H).
+Tactic Notation "auto_eapply" := auto_apply by (fun H => eapply H).
+Tactic Notation "auto_apply_eq" := auto_apply by (fun H => apply_eq H).
+Tactic Notation "auto_eapply_eq" := auto_apply by (fun H => eapply_eq H).
