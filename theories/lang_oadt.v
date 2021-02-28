@@ -1326,6 +1326,20 @@ Lemma expr_equiv_iff_whnf_equiv Σ τ1 τ2 :
 Proof.
 Admitted.
 
+(* NOTE: Be aware of circular proofs! In case we need [gctx_wf] as a side
+condition. *)
+Lemma expr_equiv_weakening Σ τ τ' :
+  Σ ⊢ τ ≡ τ' ->
+  forall Σ', Σ ⊆ Σ' ->
+        Σ' ⊢ τ ≡ τ'.
+Admitted.
+
+Lemma expr_equiv_rename Σ τ τ' x y :
+  Σ ⊢ τ ≡ τ' ->
+  Σ ⊢ {x↦y}τ ≡ {x↦y}τ'.
+Proof.
+Admitted.
+
 (** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
 two equivalent types in [whnf] have different head. *)
 Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
