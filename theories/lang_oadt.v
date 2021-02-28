@@ -821,7 +821,7 @@ Fixpoint fv (e : expr) : aset :=
 
 Notation "x # e" := (x ∉ fv e) (at level 40).
 
-Definition closed e := fv e = ∅.
+Definition closed e := fv e ≡ ∅.
 
 Instance atom_stale : @Stale aset atom := singleton.
 Arguments atom_stale /.
