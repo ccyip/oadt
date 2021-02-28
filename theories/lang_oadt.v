@@ -798,6 +798,8 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
 
 where "'{' x '↦' s '}' e" := (subst x s e) (in custom oadt).
 
+Notation "{ x '↦' s }" := (subst x s).
+
 (** ** Free variables *)
 Fixpoint fv (e : expr) : aset :=
   match e with
@@ -880,6 +882,12 @@ Lemma subst_open_comm e : forall x y s,
   <{ {x↦s}(e^y) }> = <{ ({x↦s}e)^y }>.
 Proof.
   qauto use: subst_open_distr.
+Qed.
+
+Lemma subst_ite_distr b e1 e2 x s :
+  <{ {x↦s}(ite b e1 e2) }> = <{ ite b ({x↦s}e1) ({x↦s}e2) }>.
+Proof.
+  destruct b; reflexivity.
 Qed.
 
 (** We may prove this one using [subst_open_distr] and [subst_fresh], but a
@@ -1854,6 +1862,94 @@ Proof.
   intros. eapply gdefs_typing_wf_; eauto.
   unfold gctx_wf, map_Forall.
   intros. simplify_map_eq.
+Qed.
+
+(** ** Renaming lemmas *)
+
+Lemma typing_kinding_rename_ Σ :
+  gctx_wf Σ ->
+  (forall Γ' e τ,
+      Σ; Γ' ⊢ e : τ ->
+      forall Γ τ' x y,
+        Γ' = <[x:=τ']>Γ ->
+        x ∉ fv τ' ∪ dom aset Γ ->
+        y ∉ {[x]} ∪ fv e ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+        Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}e : {x↦y}τ) /\
+  (forall Γ' τ κ,
+      Σ; Γ' ⊢ τ :: κ ->
+      forall Γ τ' x y,
+        Γ' = <[x:=τ']>Γ ->
+        x ∉ fv τ' ∪ dom aset Γ ->
+        y ∉ {[x]} ∪ fv τ ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+        Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}τ :: κ).
+Proof.
+  intros Hwf.
+  apply expr_typing_kinding_mutind; intros; subst; simpl in *;
+    (* First we normalize the typing and kinding judgments so they are ready
+    for applying typing and kinding rules to. *)
+    rewrite ?subst_open_distr by constructor;
+    rewrite ?subst_ite_distr;
+    try lazymatch goal with
+        | |- _; _ ⊢ [inj@_< ?ω > _] : {_↦_}?ω =>
+          rewrite subst_fresh by shelve
+        | |- context [decide (_ = _)] =>
+          case_decide; subst
+        end;
+      (* Apply typing and kinding rules. *)
+      econstructor;
+      simpl_cofin?;
+      (* We define this subroutine [go] for applying induction hypotheses. *)
+      let go Γ :=
+          (* We massage the typing and kinding judgments so that we can apply
+          induction hypotheses to them. *)
+          rewrite <- ?subst_ite_distr;
+            rewrite <- ?subst_open_comm by (try constructor; shelve);
+            try lazymatch Γ with
+                | <[_:=_]>(<[_:=_]>({_↦_} <$> _)) =>
+                  first [ rewrite <- fmap_insert
+                        (* We may have to apply commutativity first. *)
+                        | rewrite insert_commute by shelve;
+                          rewrite <- fmap_insert ]
+                end;
+            (* Apply one of the induction hypotheses. *)
+            auto_apply in
+      (* Make sure we complete handling the typing and kinding judgments first.
+      Otherwise some existential variables may have undesirable
+      instantiation. *)
+      lazymatch goal with
+      | |- _; ?Γ ⊢ _ : _ => go Γ
+      | |- _; ?Γ ⊢ _ :: _ => go Γ
+      | _ => idtac
+      end;
+        (* Try to solve other side conditions. *)
+        eauto;
+        repeat lazymatch goal with
+               | |- _ ∉ _ =>
+                 shelve
+               | |- _ <> _ =>
+                 shelve
+               | |- <[_:=_]>(<[_:=_]>_) = <[_:=_]>(<[_:=_]>_) =>
+                 apply insert_commute
+               | |- _ ⊢ _ ≡ _ =>
+                 apply expr_equiv_rename
+               | |- <[?y:=_]>_ !! ?y = Some _ =>
+                 simplify_map_eq
+               | |- <[_:=_]>_ !! _ = Some _ =>
+                 rewrite lookup_insert_ne; [simplify_map_eq |]
+               | |- Some _ = Some ?D =>
+                 try reflexivity;
+                 lazymatch D with
+                 | context [ <{ {_↦_}_ }>] =>
+                   rewrite subst_fresh
+                 end
+               | H : ?Σ !! ?x = Some _ |- ?Σ !! ?x = Some _ =>
+                 rewrite H
+               end;
+        eauto.
+
+  Unshelve.
+
+  all : try fast_set_solver!!; simpl_fv by fast_set_solver!!; fast_set_solver*!!.
 Qed.
 
 End lang.
