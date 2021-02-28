@@ -199,3 +199,73 @@ Tactic Notation "fast_set_solver" "*" "!" :=
   set_prune_hyps_safe; fast_set_solver*.
 Tactic Notation "fast_set_solver" "*" "!!" :=
   set_prune_hyps; fast_set_solver*.
+
+(** ** Forward reasoning *)
+
+(** Duplicate hypothesis [H] and continue with [tac]. *)
+Tactic Notation "dup_hyp" hyp(H) tactic3(tac) :=
+  let H' := fresh "H" in
+  pose proof H as H'; tac H'.
+
+(** Check if [p] is not in the hypothesis context. *)
+Ltac no_hyp p :=
+  match type of p with
+  | ?T =>
+    lazymatch goal with
+    | H : T |- _ => fail "hypothesis exists"
+    | _ => idtac
+    end
+  end.
+
+(** Add hypothesis [p] if it is not in the context already. *)
+Ltac add_hyp p := no_hyp p; pose proof p.
+
+(** Check if there is another hypothesis that is the same as [H]. *)
+Ltac exists_same_hyp H :=
+  match type of H with
+  | ?X =>
+    match goal with
+    | H' : X |- _ =>
+      lazymatch H with
+      | H' => fail
+      | _ => idtac
+      end
+    end
+  end.
+
+(** Check if [H] is unique in the context. *)
+Ltac uniq_hyp H :=
+  tryif exists_same_hyp H then fail "hypothesis is not unique" else idtac.
+
+(** Blocking and unblocking hypotheses. They are used as markers. *)
+Ltac block_hyp H :=
+  match type of H with
+  | ?T => change (block T) in H
+  end.
+Ltac unblock_hyp H := unfold block in H.
+Ltac unblock_hyps := unfold block in *.
+Ltac clear_blocked := try select! (block _) (fun H => clear H).
+Ltac not_blocked_hyp H :=
+  lazymatch type of H with
+  | block _ => fail
+  | _ => idtac
+  end.
+
+(** [dup_hyp!] tactics allow we to implement forward reasoning tactics a la
+saturation. Currently, our saturation is naive, ad-hoc and quite fragile. It
+also requires a few boilerplates. *)
+(** Duplicate [H] and continue with [tac]. We check if [tac] produces something
+that is already in the context, and fail in this case to avoid divergence. This
+tactic also continues with [ktac] after checking, in case [ktac] destroys the
+hypothesis completely, e.g., by [destruct]. We use blocking to mark a hypothesis
+has been produced before, and we need to clear the blocked hypotheses after
+saturation. It would be better if we can create and access another global
+context in ltac, so we can thread a few tactics together without messing with
+the hypothesis context. *)
+Tactic Notation "dup_hyp" "!" hyp(H) tactic3(tac) "with" tactic3(ktac) :=
+  dup_hyp H (fun H => tac H;
+                    dup_hyp H (fun H => block_hyp H; uniq_hyp H);
+                    ktac H).
+
+Tactic Notation "dup_hyp" "!" hyp(H) tactic3(tac) :=
+  dup_hyp! H tac with (fun _ => idtac).
