@@ -951,6 +951,293 @@ Definition gctx_wf (Σ : gctx) :=
 Definition tctx_wf (Σ : gctx) (Γ : tctx) :=
   map_Forall (fun _ τ => exists κ, Σ; Γ ⊢ τ :: κ) Γ.
 
+(** ** Theories of free variables *)
+
+Lemma open_fv_l e s :
+  fv <{ e^s }> ⊆ fv e ∪ fv s.
+Proof.
+  unfold open. generalize 0.
+  induction e; intros; simpl in *;
+    try case_split; fast_set_solver*.
+Qed.
+
+Lemma open_fv_r e s :
+  fv e ⊆ fv <{ e^s }>.
+Proof.
+  unfold open. generalize 0.
+  induction e; intros; simpl in *;
+    fast_set_solver.
+Qed.
+
+Lemma open_fresh x e s :
+  x # e ->
+  x # s ->
+  x # <{ e^s }>.
+Proof.
+  qauto use: open_fv_l solve: set_solver.
+Qed.
+
+Lemma open_fresh_atom x e x' :
+  x # e ->
+  x <> x' ->
+  x # <{ e^x' }>.
+Proof.
+  eauto using open_fresh with set_solver.
+Qed.
+
+Ltac induction_map_fold :=
+  (* Massage the goal so it is ready for [map_fold_ind]. *)
+  match goal with
+  | |- context [ map_fold ?f ?b ?m ] =>
+    let a := fresh "a" in
+    set (map_fold f b m) as a; pattern a, m; subst a
+  end;
+  apply map_fold_ind.
+
+Lemma tctx_fv_consistent Γ x :
+  x ∉ tctx_fv Γ <-> map_Forall (fun _ τ => x # τ) Γ.
+Proof.
+  unfold tctx_fv.
+  split; induction_map_fold;
+    qauto use: map_Forall_empty, map_Forall_insert solve: fast_set_solver.
+Qed.
+
+Lemma tctx_fv_subseteq Γ τ x :
+  Γ !! x = Some τ ->
+  fv τ ⊆ tctx_fv Γ.
+Proof.
+  intros. set_unfold. intros.
+  (* Prove by contradiction; alternatively we can prove by [map_fold_ind]. *)
+  apply dec_stable.
+  hauto use: tctx_fv_consistent.
+Qed.
+
+Lemma tctx_fv_insert Γ x τ :
+  x ∉ dom aset Γ ->
+  tctx_fv (<[x:=τ]>Γ) ≡ fv τ ∪ tctx_fv Γ.
+Proof.
+  split; intros;
+    (* By contradiction *)
+    apply dec_stable;
+    set_unfold;
+    qauto l: on use: tctx_fv_consistent, map_Forall_insert, not_elem_of_dom.
+Qed.
+
+Lemma tctx_stale_inv Γ x :
+  x # Γ -> x ∉ dom aset Γ /\ map_Forall (fun _ τ => x # τ) Γ.
+Proof.
+  hauto use: tctx_fv_consistent solve: fast_set_solver.
+Qed.
+
+Lemma otval_closed ω :
+  otval ω ->
+  closed ω.
+Proof.
+  induction 1; set_solver.
+Qed.
+
+Lemma oval_closed v ω :
+  oval v ω ->
+  closed ω /\ closed v.
+Proof.
+  induction 1; qauto use: otval_closed solve: fast_set_solver*.
+Qed.
+
+(** Free variables simplifier. *)
+Tactic Notation "fv_rewrite" constr(T) :=
+  match T with
+  | context [dom aset (<[_:=_]>_)] =>
+    rewrite dom_insert
+  end.
+
+Tactic Notation "fv_rewrite" constr(T) "in" hyp(H) :=
+  match T with
+  | context [dom aset (<[_:=_]>_)] =>
+    rewrite dom_insert in H
+  end.
+
+Tactic Notation "fv_rewrite_l" constr(T) :=
+  match T with
+  | context [ fv <{ _ ^ _ }> ] =>
+    rewrite open_fv_l
+  end.
+
+Tactic Notation "fv_rewrite_l" constr(T) "in" hyp(H) :=
+  match T with
+  | context [ fv <{ _ ^ _ }> ] =>
+    rewrite open_fv_l in H
+  end.
+
+Tactic Notation "fv_rewrite_r" constr(T) :=
+  match T with
+  | context [ fv <{ _ ^ _ }> ] =>
+    rewrite <- open_fv_r
+  end.
+
+Tactic Notation "fv_rewrite_r" constr(T) "in" hyp(H) :=
+  match T with
+  | context [ fv <{ _ ^ _ }> ] =>
+    rewrite <- open_fv_r in H
+  end.
+
+(** We define a few simplifiers and thread them with [Smpl] plugin. *)
+Ltac simpl_fv_core :=
+  match goal with
+  | |- ?L ⊆ ?R =>
+    first [ fv_rewrite (L ⊆ R)
+          | fv_rewrite_l L
+          | fv_rewrite_r R ]
+  | |- _ ∉ ?T =>
+    first [ fv_rewrite T
+          | fv_rewrite_l T ]
+  | |- _ ∈ ?T =>
+    first [ fv_rewrite T
+          | fv_rewrite_r T ]
+  | H : context [?L ⊆ ?R] |- _ =>
+    not_blocked_hyp H;
+    first [ fv_rewrite (L ⊆ R) in H
+          | fv_rewrite_l R in H
+          | fv_rewrite_r L in H ]
+  | H : context [_ ∉ ?T] |- _ =>
+    not_blocked_hyp H;
+    first [ fv_rewrite T in H
+          | fv_rewrite_r T in H ]
+  | H : context [_ ∈ ?T] |- _ =>
+    not_blocked_hyp H;
+    first [ fv_rewrite T in H
+          | fv_rewrite_l T in H ]
+  | H : oval _ _ |- _ =>
+    apply oval_closed in H; unfold closed in H; destruct H
+  | H : ?Σ !! _ = Some ?D, Hwf : gctx_wf ?Σ |- _ =>
+    lazymatch D with
+    (* Handle [DFun] later *)
+    | DFun _ _ => fail
+    | _ => dup_hyp! H (fun H => apply Hwf in H) with (fun H => try simp_hyp H)
+    end
+  | H : ?Γ !! _ = Some _, Hwf : tctx_wf _ ?Γ |- _ =>
+    dup_hyp! H (fun H => apply Hwf in H) with (fun H => try simp_hyp H)
+  | H : ?Γ !! _ = Some _ |- _ =>
+    lazymatch type of Γ with
+    | tctx =>
+      dup_hyp! H (fun H => apply elem_of_dom_2 in H);
+      dup_hyp! H (fun H => apply tctx_fv_subseteq in H)
+    end
+  end.
+
+Tactic Notation "fv_rewrite" "by" tactic3(tac) :=
+  match goal with
+  | |- context [tctx_fv (<[_:=_]>_)] =>
+    rewrite tctx_fv_insert by tac
+  | H : context [tctx_fv (<[_:=_]>_)] |- _ =>
+    not_blocked_hyp H;
+    rewrite tctx_fv_insert in H by tac
+  end.
+
+Smpl Create fv.
+Smpl Add simpl_fv_core : fv.
+
+Tactic Notation "simpl_fv" "by" tactic3(tac) :=
+  repeat first [smpl fv | fv_rewrite by tac]; clear_blocked.
+Tactic Notation "simpl_fv" := simpl_fv by set_solver.
+
+(** Well-typed and well-kinded terms are closed under typing context. *)
+Lemma typing_kinding_fv Σ :
+  (forall Γ e τ,
+      Σ; Γ ⊢ e : τ ->
+      fv e ⊆ dom aset Γ) /\
+  (forall Γ τ κ,
+      Σ; Γ ⊢ τ :: κ ->
+      fv τ ⊆ dom aset Γ).
+Proof.
+  apply expr_typing_kinding_mutind; intros; simpl in *;
+    simpl_cofin?; simpl_fv; fast_set_solver*.
+Qed.
+
+Lemma typing_fv Σ Γ e τ :
+  Σ; Γ ⊢ e : τ ->
+  fv e ⊆ dom aset Γ.
+Proof.
+  qauto use: typing_kinding_fv.
+Qed.
+
+Lemma kinding_fv Σ Γ τ κ :
+  Σ; Γ ⊢ τ :: κ ->
+  fv τ ⊆ dom aset Γ.
+Proof.
+  qauto use: typing_kinding_fv.
+Qed.
+
+Ltac simpl_typing_kinding_fv :=
+  match goal with
+  | H : _; _ ⊢ _ : _ |- _ =>
+    dup_hyp! H (fun H => apply typing_fv in H)
+  | H : _; _ ⊢ _ :: _ |- _ =>
+    dup_hyp! H (fun H => apply kinding_fv in H)
+  end.
+Smpl Add simpl_typing_kinding_fv : fv.
+
+(** Simplifier given well-formed contexts. *)
+Lemma gctx_wf_closed Σ :
+  gctx_wf Σ ->
+  map_Forall (fun _ D => forall τ e, D = DFun τ e -> closed τ /\ closed e) Σ.
+Proof.
+  intros Hwf.
+  intros ?? H. intros; subst.
+  apply Hwf in H. simp_hyps.
+  simpl_fv. set_solver.
+Qed.
+
+Lemma tctx_fv_wf_fv Σ Γ :
+  tctx_wf Σ Γ ->
+  tctx_fv Γ ⊆ dom aset Γ.
+Proof.
+  intros. set_unfold. intros ? Hfv.
+  apply dec_stable.
+  contradict Hfv. apply tctx_fv_consistent.
+  qauto use: map_Forall_impl simp: simpl_fv solve: set_solver.
+Qed.
+
+Ltac simpl_wf_fv :=
+  match goal with
+  | H : ?Σ !! _ = Some (DFun _ _), Hwf : gctx_wf ?Σ |- _ =>
+    dup_hyp! H (fun H => apply gctx_wf_closed in H;
+                       [ efeed specialize H; [reflexivity |]
+                       | apply Hwf])
+      with (fun H => unfold closed in H; destruct H)
+  | H : tctx_wf _ _ |- _ =>
+    dup_hyp! H (fun H => apply tctx_fv_wf_fv in H)
+  end.
+Smpl Add simpl_wf_fv : fv.
+
+(** Lemmas about the free variables in the type of a well-typed term. *)
+Lemma typing_type_fv Σ Γ e τ :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ e : τ ->
+  fv τ ⊆ stale Γ.
+Proof.
+  intros Hwf.
+  induction 1; intros; simpl in *;
+    simpl_cofin?; simpl_fv by fast_set_solver!; fast_set_solver*.
+Qed.
+
+Lemma typing_type_fv_wf Σ Γ e τ :
+  gctx_wf Σ ->
+  tctx_wf Σ Γ ->
+  Σ; Γ ⊢ e : τ ->
+  fv τ ⊆ dom aset Γ.
+Proof.
+  qauto use: typing_type_fv, tctx_fv_wf_fv solve: set_solver.
+Qed.
+
+Ltac simpl_typing_type_fv :=
+  match goal with
+  | H : ?Σ; ?Γ ⊢ _ : _, Hwf : gctx_wf ?Σ |- _ =>
+    dup_hyp! H (fun H => apply typing_type_fv in H; [| apply Hwf])
+              with (fun H => simpl in H)
+  end.
+Smpl Add simpl_typing_type_fv : fv.
+
+
 (** * Metatheories *)
 
 (** ** Properties of [label] *)
