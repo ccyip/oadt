@@ -33,7 +33,12 @@ Class Atom A M D := {
   atom_finmap :> FinMap A M;
 
   (* Property about FinMapDom; we do it this way to avoid duplicates. *)
-  atom_elem_of_dom {C} (m : M C) i : i ∈ dom D m <-> is_Some (m !! i)
+  atom_elem_of_dom {C} (m : M C) i : i ∈ dom D m <-> is_Some (m !! i);
+
+  (* Decision procedure of ∈ can technically be derived from other constrains
+  (by applying [elem_of_dec_slow]). But this allows an efficient
+  implementation. *)
+  atom_finmap_elem_of_dec :> RelDecision (∈@{D});
 }.
 
 Instance atom_dom_spec `{is_atom : Atom A M D} : FinMapDom A M D.
