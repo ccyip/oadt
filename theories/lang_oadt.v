@@ -804,7 +804,7 @@ Fixpoint fv (e : expr) : aset :=
   | <{ fvar x }> => {[x]}
   (* Congruence rules *)
   | <{ \:τ => e }>
-  | <{ inj@_<τ> e }> | <{ ~inj@_<τ> e }> =>
+  | <{ inj@_<τ> e }> | <{ ~inj@_<τ> e }> | <{ [inj@_<τ> e] }> =>
     fv τ ∪ fv e
   | <{ Π:τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 + τ2 }> | <{ τ1 ~+ τ2 }> =>
     fv τ1 ∪ fv τ2
