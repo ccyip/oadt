@@ -96,8 +96,9 @@ Ltac prettify_stales :=
 
 (** Simplify the freshness assumptions. *)
 Ltac simpl_fresh H :=
-  rewrite ?not_elem_of_union in H;
-  destruct_and? H;
+  repeat (rewrite not_elem_of_union in H;
+          let H' := fresh "Hfresh" in
+          destruct H as [H H']);
   prettify_stales.
 
 (** Instantiate cofinite quantifiers with atom [x] and discharge the freshness
