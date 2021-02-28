@@ -617,8 +617,8 @@ with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
     (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ τ2^x :: *@l2) ->
     Γ ⊢ τ1 :: *@l1 ->
     Γ ⊢ (Π:τ1, τ2) :: *@M
-| KApp Γ e τ X :
-    Σ !! X = Some (DOADT τ e) ->
+| KApp Γ e' e τ X :
+    Σ !! X = Some (DOADT τ e') ->
     Γ ⊢ e : τ ->
     Γ ⊢ (gvar X) e :: *@O
 | KProd Γ τ1 τ2 l :
