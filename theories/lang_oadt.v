@@ -591,11 +591,6 @@ and do substitution in [τ]. *)
     (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
     Γ ⊢ e0 : τ1 + τ2 ->
     Γ ⊢ case e0 of e1 | e2 : τ
-| TConv Γ e τ τ' κ :
-    Γ ⊢ e : τ' ->
-    Γ ⊢ τ :: κ ->
-    Σ ⊢ τ' ≡ τ ->
-    Γ ⊢ e : τ
 (** Typing for runtime expressions is for metatheories. These expressions do not
 appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
@@ -603,7 +598,12 @@ since they are "encrypted" values. *)
 | TBoxedInj Γ b v ω :
     oval <{ [inj@b<ω> v] }> ω ->
     Γ ⊢ [inj@b<ω> v] : ω
-
+(** Type conversion *)
+| TConv Γ e τ τ' κ :
+    Γ ⊢ e : τ' ->
+    Γ ⊢ τ :: κ ->
+    Σ ⊢ τ' ≡ τ ->
+    Γ ⊢ e : τ
 where "Γ '⊢' e ':' τ" := (expr_typing Γ e τ)
 
 with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
