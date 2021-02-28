@@ -108,13 +108,21 @@ Ltac inst_atom x :=
            try specialize (H x ltac:(set_solver))
          end.
 
+(** Check if it is meaningful to generate fresh atoms. *)
+Ltac has_cofin :=
+  match goal with
+  | |- forall _, _ ∉ _ -> _ => idtac
+  | H : forall _, _ ∉ _ -> _ |- _ => idtac
+  end.
+
 (** Introduce a sufficiently fresh atom. [S] is an extra set that this atom does
 not belong to. Continue with [tac] on the freshness proof. *)
 Tactic Notation "sufficiently_fresh" constr(S) tactic3(tac) :=
-  change (?x ∈ ?v -> False) with (x ∉ v) in *;
+  set_fold_not;
   repeat lazymatch goal with
          | H : ?x ∉ ?L |- _ => is_evar L; revert x H
          end;
+  has_cofin;
   let H := fresh "Hfresh" in
   let S := collect_stales S in
   match goal with
@@ -139,3 +147,5 @@ Tactic Notation "simpl_cofin" constr(S) :=
 Tactic Notation "simpl_cofin" "*" := simpl_cofin* tt.
 
 Tactic Notation "simpl_cofin" := simpl_cofin tt.
+
+Tactic Notation "simpl_cofin" "?" := try simpl_cofin.
