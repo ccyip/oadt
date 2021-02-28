@@ -819,7 +819,8 @@ Fixpoint fv (e : expr) : aset :=
   | _ => ∅
   end.
 
-Notation "x # e" := (x ∉ fv e) (at level 40).
+Definition tctx_fv : tctx -> aset :=
+  map_fold (fun x τ S => fv τ ∪ S) ∅.
 
 Definition closed e := fv e ≡ ∅.
 
@@ -832,9 +833,11 @@ Arguments aset_stale /.
 Instance expr_stale : Stale expr := fv.
 Arguments expr_stale /.
 
-Instance tctx_stale : Stale tctx := dom aset.
+Instance tctx_stale : Stale tctx := fun Γ => dom aset Γ ∪ tctx_fv Γ.
 Arguments tctx_stale /.
 
+Notation "x # s" := (x ∉ stale s) (at level 40).
+Arguments stale /.
 Lemma open_lc_ e : forall s u i j,
   <{ {j~>u}({i~>s}e) }> = <{ {i~>s}e }> ->
   i <> j ->
