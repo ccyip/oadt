@@ -81,3 +81,14 @@ Ltac higher_order_reflexivity :=
     | ?f' _ => unify f f'; reflexivity
     end
   end.
+
+(** ** Set solving *)
+
+(* Much faster set solving tactic, with less solving strength. *)
+Tactic Notation "fast_set_solver" :=
+  solve [try fast_done; repeat (set_unfold; subst; intuition)].
+
+(* Faster set solving tactic. Stronger than [fast_set_solver], but also
+slower. *)
+Tactic Notation "fast_set_solver" "*" :=
+  try fast_done; set_unfold; qauto.
