@@ -1752,6 +1752,78 @@ Proof.
   hauto use: progress_.
 Qed.
 
+(** ** Weakening lemmas  *)
+Lemma weakening_ Σ :
+  (forall Γ e τ,
+    Σ; Γ ⊢ e : τ ->
+    forall Σ' Γ',
+      Σ ⊆ Σ' ->
+      Γ ⊆ Γ' ->
+      Σ'; Γ' ⊢ e : τ) /\
+  (forall Γ τ κ,
+    Σ; Γ ⊢ τ :: κ ->
+    forall Σ' Γ',
+      Σ ⊆ Σ' ->
+      Γ ⊆ Γ' ->
+      Σ'; Γ' ⊢ τ :: κ).
+Proof.
+  apply expr_typing_kinding_mutind; intros; subst;
+    try qauto l: on use: insert_mono, expr_equiv_weakening
+              ctrs: expr_typing, expr_kinding;
+    try qauto l: on use: lookup_weaken
+              ctrs: expr_typing, expr_kinding;
+    (* For the [case]/[~case] cases *)
+    econstructor; eauto using insert_mono.
+Qed.
+
+Lemma weakening Σ Γ Σ' Γ' e τ :
+  Σ; Γ ⊢ e : τ ->
+  Σ ⊆ Σ' ->
+  Γ ⊆ Γ' ->
+  Σ'; Γ' ⊢ e : τ.
+Proof.
+  hauto use: weakening_.
+Qed.
+
+Lemma kinding_weakening Σ Γ Σ' Γ' τ κ :
+  Σ; Γ ⊢ τ :: κ ->
+  Σ ⊆ Σ' ->
+  Γ ⊆ Γ' ->
+  Σ'; Γ' ⊢ τ :: κ.
+Proof.
+  hauto use: weakening_.
+Qed.
+
+Lemma weakening_empty Σ Γ e τ :
+  Σ; ∅ ⊢ e : τ ->
+  Σ; Γ ⊢ e : τ.
+Proof.
+  eauto using weakening, map_empty_subseteq.
+Qed.
+
+Lemma kinding_weakening_empty Σ Γ τ κ :
+  Σ; ∅ ⊢ τ :: κ ->
+  Σ; Γ ⊢ τ :: κ.
+Proof.
+  eauto using kinding_weakening, map_empty_subseteq.
+Qed.
+
+Lemma weakening_insert Σ Γ e τ τ' x :
+  x ∉ dom aset Γ ->
+  Σ; Γ ⊢ e : τ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e : τ.
+Proof.
+  eauto using weakening, insert_fresh_subseteq.
+Qed.
+
+Lemma kinding_weakening_insert Σ Γ τ τ' κ x :
+  x ∉ dom aset Γ ->
+  Σ; Γ ⊢ τ :: κ ->
+  Σ; (<[x:=τ']>Γ) ⊢ τ :: κ.
+Proof.
+  eauto using kinding_weakening, insert_fresh_subseteq.
+Qed.
+
 End lang.
 
 End oadt.
