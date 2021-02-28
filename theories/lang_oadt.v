@@ -838,6 +838,8 @@ Arguments tctx_stale /.
 
 Notation "x # s" := (x ∉ stale s) (at level 40).
 Arguments stale /.
+
+(* NOTE: [inversion] is the culprit for the slowness of this proof. *)
 Lemma open_lc_ e : forall s u i j,
   <{ {j~>u}({i~>s}e) }> = <{ {i~>s}e }> ->
   i <> j ->
@@ -850,7 +852,7 @@ Qed.
 Lemma open_lc e : forall s,
   lc e -> forall k, <{ {k~>s}e }> = e.
 Proof.
-  induction 1; try hauto;
+  induction 1; try scongruence;
     (* expressions with binders *)
     simpl_cofin; hauto use: open_lc_.
 Qed.
@@ -858,7 +860,10 @@ Qed.
 Lemma subst_fresh e : forall x s,
   x # e -> <{ {x↦s}e }> = e.
 Proof.
-  induction e; hauto simp+: set_unfold.
+  induction e; simpl; intros; f_equal;
+    (* Case analysis for [EFVar] case *)
+    try case_split; subst;
+    try auto_apply; fast_set_solver!.
 Qed.
 
 Lemma subst_open_distr e : forall x s v,
@@ -866,7 +871,7 @@ Lemma subst_open_distr e : forall x s v,
   <{ {x↦s}(e^v) }> = <{ ({x↦s}e)^({x↦s}v) }>.
 Proof.
   unfold open. generalize 0.
-  induction e; hauto use: open_lc.
+  induction e; try qauto rew: off use: open_lc; qauto use: open_lc.
 Qed.
 
 Lemma subst_open_comm e : forall x y s,
@@ -885,14 +890,17 @@ Lemma subst_intro e : forall s x,
   <{ e^s }> = <{ {x↦s}(e^x) }>.
 Proof.
   unfold open. generalize 0.
-  induction e; hauto simp+: set_unfold.
+  induction e; simpl; intros; f_equal;
+    (* Case analysis for [EFVar] case *)
+    try case_split; subst;
+    try auto_apply; fast_set_solver*!.
 Qed.
 
 Lemma otval_lc ω :
   otval ω ->
   lc ω.
 Proof.
-  induction 1; try hauto ctrs: lc.
+  induction 1; hauto ctrs: lc.
 Qed.
 
 Lemma oval_lc v ω :
@@ -910,7 +918,8 @@ with kinding_lc  Σ Γ τ κ :
   Σ; Γ ⊢ τ :: κ ->
   lc τ.
 Proof.
-  all : destruct 1; hauto ctrs: lc use: oval_lc.
+  all: destruct 1; try hauto q: on rew: off ctrs: lc use: oval_lc;
+    econstructor; simpl_cofin; qauto.
 Qed.
 
 (** This lemma is equivalent to [SCtx] constructor, but more friendly for
