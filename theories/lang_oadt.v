@@ -1824,6 +1824,38 @@ Proof.
   eauto using kinding_weakening, insert_fresh_subseteq.
 Qed.
 
+(** ** Well-formedness of [gctx] *)
+
+Lemma gdef_typing_wf D Σ' Σ :
+  Σ' =[ D ]=> Σ ->
+  gctx_wf Σ' ->
+  gctx_wf Σ.
+Proof.
+  inversion 1; subst; intros Hd X' D Hm.
+  all:
+    destruct (decide (X' = X)); subst; simpl_map;
+    [ inversion Hm; subst
+    | apply Hd in Hm; case_split; simp_hyps ];
+    eauto 10 using weakening, kinding_weakening, insert_subseteq.
+Qed.
+
+Lemma gdefs_typing_wf_ Ds Σ' Σ :
+  Σ' ={ Ds }=> Σ ->
+  gctx_wf Σ' ->
+  gctx_wf Σ.
+Proof.
+  induction 1; eauto using gdef_typing_wf.
+Qed.
+
+Lemma gdefs_typing_wf Ds Σ :
+  ∅ ={ Ds }=> Σ ->
+  gctx_wf Σ.
+Proof.
+  intros. eapply gdefs_typing_wf_; eauto.
+  unfold gctx_wf, map_Forall.
+  intros. simplify_map_eq.
+Qed.
+
 End lang.
 
 End oadt.
