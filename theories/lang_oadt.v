@@ -934,6 +934,23 @@ Proof.
   hauto ctrs: step.
 Qed.
 
+(** ** Well-formedness of [gctx] and [tctx] *)
+Definition gctx_wf (Σ : gctx) :=
+  map_Forall (fun _ D =>
+                match D with
+                | DADT τ =>
+                  Σ; ∅ ⊢ τ :: *@P
+                | DOADT τ e =>
+                  Σ; ∅ ⊢ τ :: *@P /\
+                  exists L, forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O
+                | DFun τ e =>
+                  Σ; ∅ ⊢ e : τ /\
+                  exists l, Σ; ∅ ⊢ τ :: *@l
+                end) Σ.
+
+Definition tctx_wf (Σ : gctx) (Γ : tctx) :=
+  map_Forall (fun _ τ => exists κ, Σ; Γ ⊢ τ :: κ) Γ.
+
 (** * Metatheories *)
 
 (** ** Properties of [label] *)
