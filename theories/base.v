@@ -17,3 +17,34 @@ Lemma map_empty_subseteq `{FinMap K M} {A} (m : M A) :
 Proof.
   rewrite map_subseteq_spec. intros ??. by rewrite lookup_empty.
 Qed.
+
+(** * More setoid rewriting for sets *)
+
+Section set.
+
+  Context `{SemiSet A C}.
+
+  #[global]
+  Instance union_subseteq_proper : Proper ((⊆) ==> (⊆) ==> (⊆@{C})) (∪).
+  Proof.
+    intros ??????.
+    set_solver.
+  Qed.
+
+  #[global]
+  Instance elem_of_subseteq_proper :
+    Proper ((=) ==> (⊆) ==> impl) (∈@{C}).
+  Proof.
+    intros ???????. subst.
+    set_solver.
+  Qed.
+
+  #[global]
+  Instance elem_of_subseteq_flip_proper :
+    Proper ((=) ==> (⊆) --> flip impl) (∈@{C}).
+  Proof.
+    intros ???????. subst.
+    set_solver.
+  Qed.
+
+End set.
