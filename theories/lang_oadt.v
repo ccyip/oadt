@@ -565,9 +565,9 @@ Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
     Γ ⊢ e : ite b τ1 τ2 ->
     Γ ⊢ τ1 ~+ τ2 :: *@O ->
     Γ ⊢ ~inj@b<τ1 ~+ τ2> e : τ1 ~+ τ2
-| TOCase Γ e0 e1 e2 τ1 τ2 τ L :
-    (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+| TOCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
+    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
+    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
     Γ ⊢ e0 : τ1 ~+ τ2 ->
     Γ ⊢ τ :: *@O ->
     Γ ⊢ ~case e0 of e1 | e2 : τ
@@ -586,9 +586,9 @@ and do substitution in [τ]. *)
     Γ ⊢ e1 : τ ->
     Γ ⊢ e2 : τ ->
     Γ ⊢ if e0 then e1 else e2 : τ
-| TCase Γ e0 e1 e2 τ1 τ2 τ L :
-    (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+| TCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
+    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
+    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
     Γ ⊢ e0 : τ1 + τ2 ->
     Γ ⊢ case e0 of e1 | e2 : τ
 | TConv Γ e τ τ' κ :
@@ -638,9 +638,9 @@ with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
     Γ ⊢ if e0 then τ1 else τ2 :: *@O
-| KCase Γ e0 τ1 τ2 τ1' τ2' L :
-    (forall x, x ∉ L -> <[x:=τ1']>Γ ⊢ τ1^x :: *@O) ->
-    (forall x, x ∉ L -> <[x:=τ2']>Γ ⊢ τ2^x :: *@O) ->
+| KCase Γ e0 τ1 τ2 τ1' τ2' L1 L2 :
+    (forall x, x ∉ L1 -> <[x:=τ1']>Γ ⊢ τ1^x :: *@O) ->
+    (forall x, x ∉ L2 -> <[x:=τ2']>Γ ⊢ τ2^x :: *@O) ->
     Γ ⊢ e0 : τ1' + τ2' ->
     Γ ⊢ case e0 of τ1 | τ2 :: *@O
 | KLet Γ e τ τ' L :
@@ -735,13 +735,13 @@ Inductive lc : expr -> Prop :=
 | LCLet e1 e2 L :
     (forall x, x ∉ L -> lc <{ e2^x }>) ->
     lc e1 -> lc <{ let e1 in e2 }>
-| LCCase e0 e1 e2 L :
-    (forall x, x ∉ L -> lc <{ e1^x }>) ->
-    (forall x, x ∉ L -> lc <{ e2^x }>) ->
+| LCCase e0 e1 e2 L1 L2 :
+    (forall x, x ∉ L1 -> lc <{ e1^x }>) ->
+    (forall x, x ∉ L2 -> lc <{ e2^x }>) ->
     lc e0 -> lc <{ case e0 of e1 | e2 }>
-| LCOCase e0 e1 e2 L :
-    (forall x, x ∉ L -> lc <{ e1^x }>) ->
-    (forall x, x ∉ L -> lc <{ e2^x }>) ->
+| LCOCase e0 e1 e2 L1 L2 :
+    (forall x, x ∉ L1 -> lc <{ e1^x }>) ->
+    (forall x, x ∉ L2 -> lc <{ e2^x }>) ->
     lc e0 -> lc <{ ~case e0 of e1 | e2 }>
 (** Congruence rules *)
 | LCUnitT : lc <{ 𝟙 }>
