@@ -1162,7 +1162,7 @@ Lemma typing_kinding_fv Σ :
       fv τ ⊆ dom aset Γ).
 Proof.
   apply expr_typing_kinding_mutind; intros; simpl in *;
-    simpl_cofin?; simpl_fv; fast_set_solver*.
+    simpl_cofin?; simpl_fv; fast_set_solver*!.
 Qed.
 
 Lemma typing_fv Σ Γ e τ :
@@ -1229,7 +1229,7 @@ Lemma typing_type_fv Σ Γ e τ :
 Proof.
   intros Hwf.
   induction 1; intros; simpl in *;
-    simpl_cofin?; simpl_fv; fast_set_solver*.
+    simpl_cofin?; simpl_fv; fast_set_solver*!.
 Qed.
 
 Lemma typing_type_fv_wf Σ Γ e τ :
@@ -1870,6 +1870,7 @@ Qed.
 
 (** ** Renaming lemmas *)
 
+(* Warning: this lemma is really slow. *)
 Lemma typing_kinding_rename_ Σ :
   gctx_wf Σ ->
   (forall Γ' e τ,
