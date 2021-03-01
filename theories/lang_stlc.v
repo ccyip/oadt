@@ -350,7 +350,7 @@ Lemma weakening : forall Gamma Gamma' t T,
 Proof.
   intros Gamma Gamma' t T Ht. revert Gamma'.
   induction Ht;
-    try hauto use: @lookup_weaken, @insert_mono, atom_finmap ctrs: has_type.
+    hauto use: lookup_weaken, insert_mono ctrs: has_type.
 Qed.
 
 Lemma weakening_insert : forall Gamma t T x T',
@@ -376,7 +376,7 @@ Proof.
     simpl_cofin.
     rewrite <- subst_open_comm
       by eauto using has_type_lc with set_solver.
-    qauto simp: set_unfold use: @insert_commute, weakening_insert, atom_finmap.
+    qauto simp: set_unfold use: insert_commute, weakening_insert.
 Qed.
 
 Theorem preservation : forall Gamma t t' T,

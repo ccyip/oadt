@@ -242,14 +242,6 @@ Notation "'ite' e0 e1 e2" := (if e0 then e1 else e2)
                                     e1 custom oadt at level 0,
                                     e2 custom oadt at level 0).
 
-(** * Examples *)
-(* Axiom ℕ : atom. *)
-(* Axiom pred : atom. *)
-(* Example nat_example := [{ *)
-(*   data ℕ := 𝟙 + ℕ; *)
-(*   def pred : Π:ℕ, ℕ := \:ℕ => case unfold<ℕ> 0 of 1 | 0 *)
-(* }]. *)
-
 (** * Dynamic semantics *)
 
 (** ** Variable opening  *)
@@ -376,22 +368,6 @@ Inductive ectx : (expr -> expr) -> Prop :=
 .
 Hint Constructors ectx : ectx.
 
-(* BD: Something seems off with this definition of evaluation
-   contexts, as there are no inductive occurences of ectx. 
-   
-   How to construct the context (v1, (v2, [ ]) ), for example?
- *)
-
-Definition ex_ctx (e1 : expr) : expr :=
-  <{ ((), ( (), e1) ) }> .
-
-Example ex_ctx_bad : ~ ectx ex_ctx.
-Proof.
-  unfold ex_ctx; intro H; inversion H; subst; 
-    try (generalize (f_equal_help _ _ _ _ H1 (eq_refl (ELit true))); intro; discriminate);
-    try (generalize (f_equal_help _ _ _ _ H0 (eq_refl (ELit true))); intro; discriminate).
-Qed.  
-
 (** ** Small-step relation *)
 Reserved Notation "e '-->!' e'" (at level 40).
 
@@ -451,19 +427,6 @@ Notation "Σ '⊨' e '-->!' e'" := (@step Σ e e') (at level 40,
                                                 e constr at level 0,
                                                 e' constr at level 0).
 
-(* BD: Turn out that non-recursive contexts aren't a problem, since
-   [SCTx] can be applied recursively. *)
-Example ex_ctx_stuck : 
-  forall Σ, Σ ⊨ (ex_ctx <{if true then true else false}>) -->! <{( (), ( (), true) )}>.
-Proof.
-  intros; unfold ex_ctx; eauto.
-  eapply SCtx with (ℇ := fun e => <{( (), e)}> ); 
-    [repeat econstructor| ].
-  eapply SCtx with (ℇ := fun e => <{( (), e)}> ); 
-    [repeat econstructor| ].
-  econstructor.
-Qed.          
-        
 (** * Typing *)
 
 (** ** Security level labels (l) *)
@@ -704,7 +667,7 @@ Combined Scheme expr_typing_kinding_mutind
 
 (** ** Global definitions typing *)
 Reserved Notation "Σ '=[' D ']=>' Σ'" (at level 40,
-                                    D custom oadt_def at level 199).
+                                       D custom oadt_def at level 199).
 
 Inductive gdef_typing : gctx -> (atom * gdef) -> gctx -> Prop :=
 | TADT Σ X τ :
@@ -729,7 +692,7 @@ Hint Constructors gdef_typing : gdef_typing.
 (* TODO: it would be nice to overload the notation of [gdef_typing]. Should be
 doable with typeclass. *)
 Reserved Notation "Σ '={' Ds '}=>' Σ'" (at level 40,
-                                               Ds constr at level 99).
+                                        Ds constr at level 99).
 
 Inductive gdefs_typing : gctx -> gdefs -> gctx -> Prop :=
 | TNil Σ : Σ ={ [] }=> Σ
