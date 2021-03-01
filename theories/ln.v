@@ -94,11 +94,21 @@ Ltac prettify_stales :=
            change H' in H
          end.
 
+Ltac simpl_union H :=
+  let rec go H :=
+      lazymatch type of H with
+      | _ ∉ _ ∪ _ =>
+        rewrite not_elem_of_union in H;
+          let H1 := fresh "Hfresh" in
+          let H2 := fresh "Hfresh" in
+          destruct H as [H1 H2]; go H1; go H2
+      | _ => idtac
+  end in go H.
+
 (** Simplify the freshness assumptions. *)
 Ltac simpl_fresh H :=
-  repeat (rewrite not_elem_of_union in H;
-          let H' := fresh "Hfresh" in
-          destruct H as [H H']);
+  unfold stale in H; simpl in H;
+  simpl_union H;
   prettify_stales.
 
 (** Instantiate cofinite quantifiers with atom [x] and discharge the freshness
