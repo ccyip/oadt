@@ -882,6 +882,20 @@ Proof.
   destruct b; reflexivity.
 Qed.
 
+Lemma subst_id e x :
+  {x↦x}e = e.
+Proof.
+  induction e; simpl; try case_decide; scongruence.
+Qed.
+
+Lemma subst_tctx_id (Γ : tctx) x :
+  {x↦x} <$> Γ = Γ.
+Proof.
+  rewrite <- map_fmap_id.
+  apply map_fmap_ext.
+  scongruence use: subst_id.
+Qed.
+
 (** We may prove this one using [subst_open_distr] and [subst_fresh], but a
 direct induction gives us a slightly stronger version (without the local closure
 constraint). *)
@@ -1037,6 +1051,18 @@ Proof.
   hauto use: tctx_fv_consistent solve: fast_set_solver.
 Qed.
 
+Lemma subst_tctx_fresh (Γ : tctx) x s :
+  x ∉ tctx_fv Γ ->
+  {x↦s} <$> Γ = Γ.
+Proof.
+  intros.
+  rewrite <- map_fmap_id.
+  apply map_fmap_ext.
+  intros; simpl.
+  rewrite subst_fresh; eauto.
+  hauto use: tctx_fv_consistent solve: fast_set_solver.
+Qed.
+
 Lemma otval_closed ω :
   otval ω ->
   closed ω.
@@ -1118,10 +1144,22 @@ Ltac simpl_fv_rewrite :=
             | fv_rewrite_l T in H ]
     end.
 
+Tactic Notation "simpl_fv_rewrite_more" "by" tactic3(tac) :=
+  match goal with
+  | |- context [tctx_fv (<[_:=_]>_)] =>
+    rewrite tctx_fv_insert by tac
+  | H : context [tctx_fv (<[_:=_]>_)] |- _ =>
+    rewrite tctx_fv_insert in H by tac
+  end.
+
 (** We thread the saturation-style simplifiers using the [Smpl] plugin, and
 then do the rewriting. *)
 Smpl Create fv.
-Ltac simpl_fv := repeat (smpl fv); clear_blocked; simpl_fv_rewrite.
+Tactic Notation "simpl_fv" := repeat (smpl fv); clear_blocked; simpl_fv_rewrite.
+Tactic Notation "simpl_fv" "*" "by" tactic3(tac) :=
+  simpl_fv; simpl_fv_rewrite_more by tac.
+Tactic Notation "simpl_fv" "*" :=
+  simpl_fv* by fast_set_solver!!.
 
 Ltac simpl_fv_core :=
   match goal with
@@ -1949,6 +1987,102 @@ Proof.
   all : try fast_set_solver!!; simpl_fv; fast_set_solver*!!.
 Qed.
 
+(** We also allow [x=y]. *)
+Lemma typing_rename_ Σ Γ e τ τ' x y :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e : τ ->
+  x ∉ fv τ' ∪ dom aset Γ ->
+  y ∉ fv e ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}e : {x↦y}τ.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst.
+  - scongruence use: subst_id, subst_tctx_id.
+  - qauto use: typing_kinding_rename_ solve: fast_set_solver!!.
+Qed.
+
+Lemma kinding_rename_ Σ Γ τ τ' κ x y :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ τ :: κ ->
+  x ∉ fv τ' ∪ dom aset Γ ->
+  y ∉ fv τ ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}τ :: κ.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst.
+  - scongruence use: subst_id, subst_tctx_id.
+  - qauto use: typing_kinding_rename_ solve: fast_set_solver!!.
+Qed.
+
+(** If the typing context is well-formed, [y] does not have to be fresh in the
+range of [Γ]. Not sure how useful this lemma is. But we have it for the
+record. *)
+Lemma typing_rename_wf_ Σ Γ e τ τ' x y :
+  gctx_wf Σ ->
+  tctx_wf Σ (<[x:=τ']>Γ) ->
+  Σ; (<[x:=τ']>Γ) ⊢ e : τ ->
+  x ∉ fv τ' ∪ dom aset Γ ->
+  y ∉ fv e ∪ fv τ' ∪ dom aset Γ ->
+  Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}e : {x↦y}τ.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst.
+  - scongruence use: subst_id, subst_tctx_id.
+  - eapply typing_rename_; eauto.
+    simpl_fv*.
+    fast_set_solver*!!.
+Qed.
+
+Lemma kinding_rename_wf_ Σ Γ τ τ' κ x y :
+  gctx_wf Σ ->
+  tctx_wf Σ (<[x:=τ']>Γ) ->
+  Σ; (<[x:=τ']>Γ) ⊢ τ :: κ ->
+  x ∉ fv τ' ∪ dom aset Γ ->
+  y ∉ fv τ ∪ fv τ' ∪ dom aset Γ ->
+  Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}τ :: κ.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst.
+  - scongruence use: subst_id, subst_tctx_id.
+  - eapply kinding_rename_; eauto.
+    simpl_fv*.
+    fast_set_solver*!!.
+Qed.
+
+(** The actual renaming lemmas. The side conditions are slightly different than
+the general version. *)
+Lemma typing_rename Σ Γ e τ τ' x y :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e^x : τ^x ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; (<[y:=τ']>Γ) ⊢ e^y : τ^y.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst; eauto.
+  rewrite <- (subst_tctx_fresh Γ x y) by fast_set_solver!!.
+  rewrite (subst_intro e y x) by fast_set_solver!!.
+  rewrite (subst_intro τ y x) by fast_set_solver!!.
+  apply typing_rename_; eauto.
+  fast_set_solver!!.
+  simpl_fv. fast_set_solver!!.
+Qed.
+
+Lemma kinding_rename Σ Γ τ κ τ' x y :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ τ^x :: κ ->
+  x ∉ fv τ' ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; (<[y:=τ']>Γ) ⊢ τ^y :: κ.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst; eauto.
+  rewrite <- (subst_tctx_fresh Γ x y) by fast_set_solver!!.
+  rewrite (subst_intro τ y x) by fast_set_solver!!.
+  apply kinding_rename_; eauto.
+  fast_set_solver!!.
+  simpl_fv. fast_set_solver!!.
+Qed.
 End lang.
 
 End oadt.
