@@ -1020,15 +1020,23 @@ Proof.
   hauto use: tctx_fv_consistent.
 Qed.
 
+Lemma tctx_fv_insert_subseteq Γ x τ :
+  tctx_fv (<[x:=τ]>Γ) ⊆ fv τ ∪ tctx_fv Γ.
+Proof.
+  intros ? H.
+  apply dec_stable. contradict H.
+  set_unfold.
+  qauto l: on use: tctx_fv_consistent, map_Forall_insert_2.
+Qed.
+
 Lemma tctx_fv_insert Γ x τ :
   x ∉ dom aset Γ ->
   tctx_fv (<[x:=τ]>Γ) ≡ fv τ ∪ tctx_fv Γ.
 Proof.
-  split; intros;
-    (* By contradiction *)
-    apply dec_stable;
-    set_unfold;
-    qauto l: on use: tctx_fv_consistent, map_Forall_insert, not_elem_of_dom.
+  split; intros; try qauto use: tctx_fv_insert_subseteq.
+  apply dec_stable.
+  set_unfold.
+  qauto l: on use: tctx_fv_consistent, map_Forall_insert, not_elem_of_dom.
 Qed.
 
 Lemma tctx_stale_inv Γ x :
@@ -1068,12 +1076,16 @@ Tactic Notation "fv_rewrite_l" constr(T) :=
   match T with
   | context [ fv <{ _ ^ _ }> ] =>
     rewrite open_fv_l
+  | context [tctx_fv (<[_:=_]>_)] =>
+    rewrite tctx_fv_insert_subseteq
   end.
 
 Tactic Notation "fv_rewrite_l" constr(T) "in" hyp(H) :=
   match T with
   | context [ fv <{ _ ^ _ }> ] =>
     rewrite open_fv_l in H
+  | context [tctx_fv (<[_:=_]>_)] =>
+    rewrite tctx_fv_insert_subseteq in H
   end.
 
 Tactic Notation "fv_rewrite_r" constr(T) :=
@@ -1132,21 +1144,10 @@ Ltac simpl_fv_core :=
     end
   end.
 
-Tactic Notation "fv_rewrite" "by" tactic3(tac) :=
-  match goal with
-  | |- context [tctx_fv (<[_:=_]>_)] =>
-    rewrite tctx_fv_insert by tac
-  | H : context [tctx_fv (<[_:=_]>_)] |- _ =>
-    not_blocked_hyp H;
-    rewrite tctx_fv_insert in H by tac
-  end.
-
 Smpl Create fv.
 Smpl Add simpl_fv_core : fv.
 
-Tactic Notation "simpl_fv" "by" tactic3(tac) :=
-  repeat first [smpl fv | fv_rewrite by tac]; clear_blocked.
-Tactic Notation "simpl_fv" := simpl_fv by set_solver.
+Ltac simpl_fv := repeat (smpl fv); clear_blocked.
 
 (** Well-typed and well-kinded terms are closed under typing context. *)
 Lemma typing_kinding_fv Σ :
@@ -1225,7 +1226,7 @@ Lemma typing_type_fv Σ Γ e τ :
 Proof.
   intros Hwf.
   induction 1; intros; simpl in *;
-    simpl_cofin?; simpl_fv by fast_set_solver!; fast_set_solver*.
+    simpl_cofin?; simpl_fv; fast_set_solver*.
 Qed.
 
 Lemma typing_type_fv_wf Σ Γ e τ :
@@ -1949,7 +1950,7 @@ Proof.
 
   Unshelve.
 
-  all : try fast_set_solver!!; simpl_fv by fast_set_solver!!; fast_set_solver*!!.
+  all : try fast_set_solver!!; simpl_fv; fast_set_solver*!!.
 Qed.
 
 End lang.
