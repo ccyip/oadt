@@ -116,6 +116,7 @@ Ltac set_prune_hyps_safe :=
     | H : ?T |- _ =>
       lazymatch T with
       | _ ⊆ _ => fail
+      | _ ≡ ∅ => rewrite H in *; clear H
       | _ ≡ _ => fail
       | _ ∈ _ => fail
       | _ ∉ _ => fail
@@ -127,6 +128,24 @@ Ltac set_prune_hyps_safe :=
       | context [_ -> _ <> _] => fail
       | _ => clear H
       end
+    end;
+  repeat
+    match goal with
+    | H : _ ∉ {[_]} |- _ => apply not_elem_of_singleton_1 in H
+    end;
+  (* Clear a subset relation if it is subsumed by another hypothesis. This
+  simple heuristic can result in ~50x faster set solving in some cases. *)
+  repeat
+    match goal with
+    | H : ?S ⊆ ?U, H' : ?S ⊆ ?V |- _ =>
+      let rec go U :=
+          lazymatch U with
+          | ?U1 ∪ ?U2 => go U1; go U2
+          | _ =>
+            lazymatch V with
+            | context [U] => idtac
+            end
+          end in go U; clear H'
     end.
 
 (** [set_hyp_filter] filters a hypothesis in continuation style, so we can
@@ -158,8 +177,7 @@ Tactic Notation "set_hyp_filter" constr(T) constr(x) ">>=" tactic3(tac) :=
 (** This pruning tactic is more radical. It is more likely to destroy the
 goal, but it also offers better performance in certain cases. *)
 Ltac set_prune_hyps :=
-  simpl;
-  set_fold_not;
+  set_prune_hyps_safe;
   try
     lazymatch goal with
     | |- _ ⊆ _ =>

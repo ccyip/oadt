@@ -1059,7 +1059,8 @@ Proof.
   induction 1; qauto use: otval_closed solve: fast_set_solver*.
 Qed.
 
-(** Free variables simplifier. *)
+(** Simplifier for free variable reasoning *)
+
 Tactic Notation "fv_rewrite" constr(T) :=
   match T with
   | context [dom aset (<[_:=_]>_)] =>
@@ -1100,32 +1101,38 @@ Tactic Notation "fv_rewrite_r" constr(T) "in" hyp(H) :=
     rewrite <- open_fv_r in H
   end.
 
-(** We define a few simplifiers and thread them with [Smpl] plugin. *)
+Ltac simpl_fv_rewrite :=
+  repeat
+    match goal with
+    | |- ?L ⊆ ?R =>
+      first [ fv_rewrite (L ⊆ R)
+            | fv_rewrite_l L
+            | fv_rewrite_r R ]
+    | |- _ ∉ ?T =>
+      first [ fv_rewrite T
+            | fv_rewrite_l T ]
+    | |- _ ∈ ?T =>
+      first [ fv_rewrite T
+            | fv_rewrite_r T ]
+    | H : context [?L ⊆ ?R] |- _ =>
+      first [ fv_rewrite (L ⊆ R) in H
+            | fv_rewrite_l R in H
+            | fv_rewrite_r L in H ]
+    | H : context [_ ∉ ?T] |- _ =>
+      first [ fv_rewrite T in H
+            | fv_rewrite_r T in H ]
+    | H : context [_ ∈ ?T] |- _ =>
+      first [ fv_rewrite T in H
+            | fv_rewrite_l T in H ]
+    end.
+
+(** We thread the saturation-style simplifiers using the [Smpl] plugin, and
+then do the rewriting. *)
+Smpl Create fv.
+Ltac simpl_fv := repeat (smpl fv); clear_blocked; simpl_fv_rewrite.
+
 Ltac simpl_fv_core :=
   match goal with
-  | |- ?L ⊆ ?R =>
-    first [ fv_rewrite (L ⊆ R)
-          | fv_rewrite_l L
-          | fv_rewrite_r R ]
-  | |- _ ∉ ?T =>
-    first [ fv_rewrite T
-          | fv_rewrite_l T ]
-  | |- _ ∈ ?T =>
-    first [ fv_rewrite T
-          | fv_rewrite_r T ]
-  | H : context [?L ⊆ ?R] |- _ =>
-    not_blocked_hyp H;
-    first [ fv_rewrite (L ⊆ R) in H
-          | fv_rewrite_l R in H
-          | fv_rewrite_r L in H ]
-  | H : context [_ ∉ ?T] |- _ =>
-    not_blocked_hyp H;
-    first [ fv_rewrite T in H
-          | fv_rewrite_r T in H ]
-  | H : context [_ ∈ ?T] |- _ =>
-    not_blocked_hyp H;
-    first [ fv_rewrite T in H
-          | fv_rewrite_l T in H ]
   | H : oval _ _ |- _ =>
     apply oval_closed in H; unfold closed in H; destruct H
   | H : ?Σ !! _ = Some ?D, Hwf : gctx_wf ?Σ |- _ =>
@@ -1143,11 +1150,7 @@ Ltac simpl_fv_core :=
       dup_hyp! H (fun H => apply tctx_fv_subseteq in H)
     end
   end.
-
-Smpl Create fv.
 Smpl Add simpl_fv_core : fv.
-
-Ltac simpl_fv := repeat (smpl fv); clear_blocked.
 
 (** Well-typed and well-kinded terms are closed under typing context. *)
 Lemma typing_kinding_fv Σ :
