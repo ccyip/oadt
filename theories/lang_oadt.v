@@ -513,8 +513,9 @@ Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
                                     κ custom oadt at level 99).
 
 Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
-| TFVar Γ x τ :
+| TFVar Γ x τ κ :
     Γ !! x = Some τ ->
+    Γ ⊢ τ :: κ ->
     Γ ⊢ fvar x : τ
 | TGVar Γ x τ e :
     Σ !! x = Some (DFun τ e) ->
@@ -948,7 +949,7 @@ Proof.
   hauto ctrs: step.
 Qed.
 
-(** ** Well-formedness of [gctx] and [tctx] *)
+(** ** Well-formedness of [gctx] *)
 Definition gctx_wf (Σ : gctx) :=
   map_Forall (fun _ D =>
                 match D with
@@ -961,9 +962,6 @@ Definition gctx_wf (Σ : gctx) :=
                   Σ; ∅ ⊢ e : τ /\
                   exists l, Σ; ∅ ⊢ τ :: *@l
                 end) Σ.
-
-Definition tctx_wf (Σ : gctx) (Γ : tctx) :=
-  map_Forall (fun _ τ => exists κ, Σ; Γ ⊢ τ :: κ) Γ.
 
 (** ** Theories of free variables *)
 
@@ -1171,8 +1169,6 @@ Ltac simpl_fv_core :=
     | DFun _ _ => fail
     | _ => dup_hyp! H (fun H => apply Hwf in H) with (fun H => try simp_hyp H)
     end
-  | H : ?Γ !! _ = Some _, Hwf : tctx_wf _ ?Γ |- _ =>
-    dup_hyp! H (fun H => apply Hwf in H) with (fun H => try simp_hyp H)
   | H : ?Γ !! _ = Some _ |- _ =>
     lazymatch type of Γ with
     | tctx =>
@@ -1229,16 +1225,6 @@ Proof.
   simpl_fv. set_solver.
 Qed.
 
-Lemma tctx_fv_wf_fv Σ Γ :
-  tctx_wf Σ Γ ->
-  tctx_fv Γ ⊆ dom aset Γ.
-Proof.
-  intros. set_unfold. intros ? Hfv.
-  apply dec_stable.
-  contradict Hfv. apply tctx_fv_consistent.
-  qauto use: map_Forall_impl simp: simpl_fv solve: set_solver.
-Qed.
-
 Ltac simpl_wf_fv :=
   match goal with
   | H : ?Σ !! _ = Some (DFun _ _), Hwf : gctx_wf ?Σ |- _ =>
@@ -1246,8 +1232,6 @@ Ltac simpl_wf_fv :=
                        [ efeed specialize H; [reflexivity |]
                        | apply Hwf])
       with (fun H => unfold closed in H; destruct H)
-  | H : tctx_wf _ _ |- _ =>
-    dup_hyp! H (fun H => apply tctx_fv_wf_fv in H)
   end.
 Smpl Add simpl_wf_fv : fv.
 
@@ -1255,20 +1239,11 @@ Smpl Add simpl_wf_fv : fv.
 Lemma typing_type_fv Σ Γ e τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ e : τ ->
-  fv τ ⊆ stale Γ.
+  fv τ ⊆ dom aset Γ.
 Proof.
   intros Hwf.
   induction 1; intros; simpl in *;
     simpl_cofin?; simpl_fv; fast_set_solver*!.
-Qed.
-
-Lemma typing_type_fv_wf Σ Γ e τ :
-  gctx_wf Σ ->
-  tctx_wf Σ Γ ->
-  Σ; Γ ⊢ e : τ ->
-  fv τ ⊆ dom aset Γ.
-Proof.
-  qauto use: typing_type_fv, tctx_fv_wf_fv solve: set_solver.
 Qed.
 
 Ltac simpl_typing_type_fv :=
@@ -1901,21 +1876,21 @@ Qed.
 (** ** Renaming lemmas *)
 
 (* Warning: this lemma is really slow. *)
-Lemma typing_kinding_rename_ Σ :
+Lemma typing_kinding_rename_ Σ x y :
   gctx_wf Σ ->
   (forall Γ' e τ,
       Σ; Γ' ⊢ e : τ ->
-      forall Γ τ' x y,
+      forall Γ τ',
         Γ' = <[x:=τ']>Γ ->
         x ∉ fv τ' ∪ dom aset Γ ->
-        y ∉ {[x]} ∪ fv e ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+        y ∉ {[x]} ∪ fv e ∪ fv τ' ∪ dom aset Γ ->
         Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}e : {x↦y}τ) /\
   (forall Γ' τ κ,
       Σ; Γ' ⊢ τ :: κ ->
-      forall Γ τ' x y,
+      forall Γ τ',
         Γ' = <[x:=τ']>Γ ->
         x ∉ fv τ' ∪ dom aset Γ ->
-        y ∉ {[x]} ∪ fv τ ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+        y ∉ {[x]} ∪ fv τ ∪ fv τ' ∪ dom aset Γ ->
         Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}τ :: κ).
 Proof.
   intros Hwf.
@@ -1992,7 +1967,7 @@ Lemma typing_rename_ Σ Γ e τ τ' x y :
   gctx_wf Σ ->
   Σ; (<[x:=τ']>Γ) ⊢ e : τ ->
   x ∉ fv τ' ∪ dom aset Γ ->
-  y ∉ fv e ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+  y ∉ fv e ∪ fv τ' ∪ dom aset Γ ->
   Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}e : {x↦y}τ.
 Proof.
   intros.
@@ -2005,48 +1980,13 @@ Lemma kinding_rename_ Σ Γ τ τ' κ x y :
   gctx_wf Σ ->
   Σ; (<[x:=τ']>Γ) ⊢ τ :: κ ->
   x ∉ fv τ' ∪ dom aset Γ ->
-  y ∉ fv τ ∪ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}τ :: κ.
-Proof.
-  intros.
-  destruct (decide (y = x)); subst.
-  - scongruence use: subst_id, subst_tctx_id.
-  - qauto use: typing_kinding_rename_ solve: fast_set_solver!!.
-Qed.
-
-(** If the typing context is well-formed, [y] does not have to be fresh in the
-range of [Γ]. Not sure how useful this lemma is. But we have it for the
-record. *)
-Lemma typing_rename_wf_ Σ Γ e τ τ' x y :
-  gctx_wf Σ ->
-  tctx_wf Σ (<[x:=τ']>Γ) ->
-  Σ; (<[x:=τ']>Γ) ⊢ e : τ ->
-  x ∉ fv τ' ∪ dom aset Γ ->
-  y ∉ fv e ∪ fv τ' ∪ dom aset Γ ->
-  Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}e : {x↦y}τ.
-Proof.
-  intros.
-  destruct (decide (y = x)); subst.
-  - scongruence use: subst_id, subst_tctx_id.
-  - eapply typing_rename_; eauto.
-    simpl_fv*.
-    fast_set_solver*!!.
-Qed.
-
-Lemma kinding_rename_wf_ Σ Γ τ τ' κ x y :
-  gctx_wf Σ ->
-  tctx_wf Σ (<[x:=τ']>Γ) ->
-  Σ; (<[x:=τ']>Γ) ⊢ τ :: κ ->
-  x ∉ fv τ' ∪ dom aset Γ ->
   y ∉ fv τ ∪ fv τ' ∪ dom aset Γ ->
   Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}τ :: κ.
 Proof.
   intros.
   destruct (decide (y = x)); subst.
   - scongruence use: subst_id, subst_tctx_id.
-  - eapply kinding_rename_; eauto.
-    simpl_fv*.
-    fast_set_solver*!!.
+  - qauto use: typing_kinding_rename_ solve: fast_set_solver!!.
 Qed.
 
 (** The actual renaming lemmas. The side conditions are slightly different than
@@ -2083,6 +2023,7 @@ Proof.
   fast_set_solver!!.
   simpl_fv. fast_set_solver!!.
 Qed.
+
 End lang.
 
 End oadt.
