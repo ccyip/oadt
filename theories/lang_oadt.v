@@ -1326,15 +1326,6 @@ Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
 Proof.
 Admitted.
 
-(** We only care about oblivious kind. *)
-(* TODO: do I need this one now? *)
-Lemma expr_equiv_preserve_kinding Σ τ1 τ2 :
-  Σ ⊢ τ1 ≡ τ2 ->
-  forall Γ, Σ; Γ ⊢ τ1 :: *@O ->
-       Σ; Γ ⊢ τ2 :: *@O.
-Proof.
-Admitted.
-
 (** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
 Lemma expr_equiv_iff_whnf_equiv Σ τ1 τ2 :
   whnf Σ τ1 -> whnf Σ τ2 ->
