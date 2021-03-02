@@ -32,6 +32,13 @@ Section set.
   Qed.
 
   #[global]
+  Instance union_subseteq_flip_proper : Proper ((⊆) --> (⊆) --> flip (⊆@{C})) (∪).
+  Proof.
+    intros ??????. simpl in *.
+    set_solver.
+  Qed.
+
+  #[global]
   Instance elem_of_subseteq_proper :
     Proper ((=) ==> (⊆) ==> impl) (∈@{C}).
   Proof.
