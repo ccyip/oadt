@@ -1872,19 +1872,19 @@ Qed.
 
 (** ** Renaming lemmas *)
 
-(* Warning: this lemma is really slow. *)
-Lemma typing_kinding_rename_ Σ x y :
+(* Warning: this lemma is rather slow. *)
+Lemma typing_kinding_rename_ Σ x y τ' :
   gctx_wf Σ ->
   (forall Γ' e τ,
       Σ; Γ' ⊢ e : τ ->
-      forall Γ τ',
+      forall Γ,
         Γ' = <[x:=τ']>Γ ->
         x ∉ fv τ' ∪ dom aset Γ ->
         y ∉ {[x]} ∪ fv e ∪ fv τ' ∪ dom aset Γ ->
         Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}e : {x↦y}τ) /\
   (forall Γ' τ κ,
       Σ; Γ' ⊢ τ :: κ ->
-      forall Γ τ',
+      forall Γ,
         Γ' = <[x:=τ']>Γ ->
         x ∉ fv τ' ∪ dom aset Γ ->
         y ∉ {[x]} ∪ fv τ ∪ fv τ' ∪ dom aset Γ ->
@@ -1943,12 +1943,10 @@ Proof.
                  simplify_map_eq
                | |- <[_:=_]>_ !! _ = Some _ =>
                  rewrite lookup_insert_ne; [simplify_map_eq |]
-               | |- Some _ = Some ?D =>
-                 try reflexivity;
-                 lazymatch D with
-                 | context [ <{ {_↦_}_ }>] =>
-                   rewrite subst_fresh
-                 end
+               | |- Some _ = Some _ =>
+                 try reflexivity; repeat f_equal
+               | |- _ = {_↦_} _ =>
+                 rewrite subst_fresh
                | H : ?Σ !! ?x = Some _ |- ?Σ !! ?x = Some _ =>
                  rewrite H
                end;
