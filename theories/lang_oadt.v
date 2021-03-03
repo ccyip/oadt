@@ -1117,30 +1117,35 @@ Tactic Notation "fv_rewrite_r" constr(T) "in" hyp(H) :=
     rewrite <- open_fv_r in H
   end.
 
+(* It would be ideal if we check the positivity of the set relation occurrence.
+But this works fine and we have to avoid unnecessary setoid rewriting, which is
+rather slow when they succeed and extremely slow when they fail. *)
 Ltac simpl_fv_rewrite :=
-  repeat
-    match goal with
-    | |- ?L ⊆ ?R =>
-      first [ fv_rewrite (L ⊆ R)
-            | fv_rewrite_l L
-            | fv_rewrite_r R ]
-    | |- _ ∉ ?T =>
-      first [ fv_rewrite T
-            | fv_rewrite_l T ]
-    | |- _ ∈ ?T =>
-      first [ fv_rewrite T
-            | fv_rewrite_r T ]
-    | H : context [?L ⊆ ?R] |- _ =>
-      first [ fv_rewrite (L ⊆ R) in H
-            | fv_rewrite_l R in H
-            | fv_rewrite_r L in H ]
-    | H : context [_ ∉ ?T] |- _ =>
-      first [ fv_rewrite T in H
-            | fv_rewrite_r T in H ]
-    | H : context [_ ∈ ?T] |- _ =>
-      first [ fv_rewrite T in H
-            | fv_rewrite_l T in H ]
-    end.
+  match goal with
+  | |- ?L ⊆ ?R =>
+    first [ fv_rewrite (L ⊆ R)
+          | fv_rewrite_l L
+          | fv_rewrite_r R ]
+  | |- _ ∉ ?T =>
+    first [ fv_rewrite T
+          | fv_rewrite_l T ]
+  | |- _ ∈ ?T =>
+    first [ fv_rewrite T
+          | fv_rewrite_r T ]
+  | H : ?L ⊆ ?R |- _ =>
+    first [ fv_rewrite_l R in H
+          | fv_rewrite_r L in H ]
+  | H : _ ∉ ?T |- _ =>
+    fv_rewrite_r T in H
+  | H : _ ∈ ?T |- _ =>
+    fv_rewrite_l T in H
+  | H : context [?L ⊆ ?R] |- _ =>
+    fv_rewrite (L ⊆ R) in H
+  | H : context [_ ∉ ?T] |- _ =>
+    fv_rewrite T in H
+  | H : context [_ ∈ ?T] |- _ =>
+    fv_rewrite T in H
+  end.
 
 Tactic Notation "simpl_fv_rewrite_more" "by" tactic3(tac) :=
   match goal with
@@ -1153,9 +1158,10 @@ Tactic Notation "simpl_fv_rewrite_more" "by" tactic3(tac) :=
 (** We thread the saturation-style simplifiers using the [Smpl] plugin, and
 then do the rewriting. *)
 Smpl Create fv.
-Tactic Notation "simpl_fv" := repeat (smpl fv); clear_blocked; simpl_fv_rewrite.
+Tactic Notation "simpl_fv" :=
+  repeat (smpl fv); clear_blocked; repeat simpl_fv_rewrite.
 Tactic Notation "simpl_fv" "*" "by" tactic3(tac) :=
-  simpl_fv; simpl_fv_rewrite_more by tac.
+  simpl_fv; repeat simpl_fv_rewrite_more by tac.
 Tactic Notation "simpl_fv" "*" :=
   simpl_fv* by fast_set_solver!!.
 
