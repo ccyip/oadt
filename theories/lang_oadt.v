@@ -1348,6 +1348,13 @@ Lemma expr_equiv_weakening Σ τ τ' :
         Σ' ⊢ τ ≡ τ'.
 Admitted.
 
+(* Some side conditions may be needed. *)
+Lemma expr_equiv_subst Σ τ τ' x s :
+  Σ ⊢ τ ≡ τ' ->
+  Σ ⊢ {x↦s}τ ≡ {x↦s}τ'.
+Proof.
+Admitted.
+
 Lemma expr_equiv_rename Σ τ τ' x y :
   Σ ⊢ τ ≡ τ' ->
   Σ ⊢ {x↦y}τ ≡ {x↦y}τ'.
@@ -2017,6 +2024,185 @@ Proof.
   apply kinding_rename_; eauto.
   fast_set_solver!!.
   simpl_fv. fast_set_solver!!.
+Qed.
+
+(** ** Substitution lemma *)
+
+Lemma subst_tctx_typing_kinding_ Σ x s :
+  gctx_wf Σ ->
+  (forall Γ e τ,
+      Σ; Γ ⊢ e : τ ->
+      x ∉ fv τ ∪ dom aset Γ ->
+      Σ; ({x↦s} <$> Γ) ⊢ e : τ) /\
+  (forall Γ τ κ,
+      Σ; Γ ⊢ τ :: κ ->
+      x ∉ dom aset Γ ->
+      Σ; ({x↦s} <$> Γ) ⊢ τ :: κ).
+Proof.
+  intros Hwf.
+  apply expr_typing_kinding_mutind; intros; subst; simpl in *;
+    econstructor; eauto;
+      simpl_cofin?;
+      (* Try to apply induction hypotheses. *)
+      lazymatch goal with
+      | |- _; ?Γ ⊢ ?e : ?τ =>
+        auto_apply || lazymatch goal with
+                      | H : _ -> _; ?Γ' ⊢ e : τ |- _ =>
+                        replace Γ with Γ'; [auto_apply |]
+                      end
+      | |- _; ?Γ ⊢ ?τ :: _ =>
+        auto_apply || lazymatch goal with
+                      | H : _ -> _; ?Γ' ⊢ τ :: _ |- _ =>
+                        replace Γ with Γ'; [auto_apply |]
+                      end
+      | _ => idtac
+      end; eauto;
+        (* Solve other side conditions *)
+        repeat lazymatch goal with
+               | |- _ ∉ _ =>
+                 shelve
+               | |- _ <> _ =>
+                 shelve
+               | |- {_↦_} <$> (<[_:=_]>_) = <[_:=_]>({_↦_} <$> _) =>
+                 rewrite fmap_insert; try reflexivity; repeat f_equal
+               | |- _ !! _ = Some _ =>
+                 simplify_map_eq
+               | |- Some _ = Some _ =>
+                 try reflexivity; repeat f_equal
+               | |- {_↦_} _ = _ =>
+                 rewrite subst_fresh
+               end;
+        eauto.
+
+  Unshelve.
+
+  all : try fast_set_solver!!; simpl_fv; fast_set_solver!!.
+Qed.
+
+Lemma subst_tctx_typing Σ Γ e τ x s :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ e : τ ->
+  x ∉ fv τ ∪ dom aset Γ ->
+  Σ; ({x↦s} <$> Γ) ⊢ e : τ.
+Proof.
+  qauto use: subst_tctx_typing_kinding_.
+Qed.
+
+(* Note that [lc s] is not needed, and it is here only for convenience. I will
+drop it in the actual lemma. *)
+Lemma subst_preversation_ Σ x s τ' :
+  gctx_wf Σ ->
+  lc s ->
+  (forall Γ' e τ,
+      Σ; Γ' ⊢ e : τ ->
+      forall Γ,
+        Γ' = <[x:=τ']>Γ ->
+        x ∉ fv τ' ∪ dom aset Γ ->
+        Σ; Γ ⊢ s : τ' ->
+        Σ; ({x↦s} <$> Γ) ⊢ {x↦s}e : {x↦s}τ) /\
+  (forall Γ' τ κ,
+      Σ; Γ' ⊢ τ :: κ ->
+      forall Γ,
+        Γ' = <[x:=τ']>Γ ->
+        x ∉ fv τ' ∪ dom aset Γ ->
+        Σ; Γ ⊢ s : τ' ->
+        Σ; ({x↦s} <$> Γ) ⊢ {x↦s}τ :: κ).
+Proof.
+  intros Hwf Hlc.
+  apply expr_typing_kinding_mutind; intros; subst; simpl in *;
+    (* First we normalize the typing and kinding judgments so they are ready
+    for applying typing and kinding rules to. *)
+    rewrite ?subst_open_distr by assumption;
+    rewrite ?subst_ite_distr;
+    try lazymatch goal with
+        | |- _; _ ⊢ [inj@_< ?ω > _] : {_↦_}?ω =>
+          rewrite subst_fresh by shelve
+        | |- context [decide (_ = _)] =>
+          (* The case of [fvar x] is the trickier one. Let's handle it later. *)
+          case_decide; subst; [shelve |]
+        end;
+      (* Apply typing and kinding rules. *)
+      econstructor;
+      simpl_cofin?;
+      (* We define this subroutine [go] for applying induction hypotheses. *)
+      let go Γ :=
+          (* We massage the typing and kinding judgments so that we can apply
+          induction hypotheses to them. *)
+          rewrite <- ?subst_ite_distr;
+            rewrite <- ?subst_open_comm by (try assumption; shelve);
+            try lazymatch Γ with
+                | <[_:=_]>({_↦_} <$> _) =>
+                  rewrite <- fmap_insert
+                end;
+            (* Apply one of the induction hypotheses. *)
+            auto_eapply in
+      (* Make sure we complete handling the typing and kinding judgments first.
+      Otherwise some existential variables may have undesirable
+      instantiation. *)
+      lazymatch goal with
+      | |- _; ?Γ ⊢ _ : _ => go Γ
+      | |- _; ?Γ ⊢ _ :: _ => go Γ
+      | _ => idtac
+      end;
+        (* Try to solve other side conditions. *)
+        eauto;
+        repeat lazymatch goal with
+               | |- _ ∉ _ =>
+                 shelve
+               | |- _ <> _ =>
+                 shelve
+               | |- <[_:=_]>(<[_:=_]>_) = <[_:=_]>(<[_:=_]>_) =>
+                 apply insert_commute
+               | |- _ ⊢ _ ≡ _ =>
+                 apply expr_equiv_subst
+               | |- (_ <$> _) !! _ = Some _ =>
+                 simplify_map_eq
+               | |- _; (<[_:=_]>_) ⊢ _ : _ =>
+                 apply weakening_insert
+               | |- Some _ = Some _ =>
+                 try reflexivity; repeat f_equal
+               | |- _ = {_↦_} _ =>
+                 rewrite subst_fresh
+               | H : ?Σ !! ?x = Some _ |- ?Σ !! ?x = Some _ =>
+                 rewrite H
+               end;
+        eauto.
+  Unshelve.
+
+  (* Case [fvar x] *)
+  simplify_map_eq.
+  rewrite subst_fresh.
+  apply subst_tctx_typing; eauto.
+
+  (* Solve other side conditions of free variables. *)
+  all : try fast_set_solver!!; simpl_fv; fast_set_solver*!!.
+Qed.
+
+(** The actual substitution lemma *)
+Lemma subst_preversation Σ x s τ' Γ e τ :
+  gctx_wf Σ ->
+  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e : τ ->
+  Σ; Γ ⊢ s : τ' ->
+  Σ; Γ ⊢ {x↦s}e : {x↦s}τ.
+Proof.
+  intros.
+  rewrite <- (subst_tctx_fresh Γ x s) by fast_set_solver!!.
+  eapply subst_preversation_; eauto using typing_lc.
+  fast_set_solver!!.
+Qed.
+
+Lemma kinding_subst_preversation Σ x s τ' Γ τ κ :
+  gctx_wf Σ ->
+  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; (<[x:=τ']>Γ) ⊢ τ :: κ ->
+  Σ; Γ ⊢ s : τ' ->
+  Σ; Γ ⊢ {x↦s}τ :: κ.
+Proof.
+  intros.
+  rewrite <- (subst_tctx_fresh Γ x s) by fast_set_solver!!.
+  eapply subst_preversation_; eauto using typing_lc.
+  fast_set_solver!!.
 Qed.
 
 End lang.
