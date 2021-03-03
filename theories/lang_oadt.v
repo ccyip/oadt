@@ -2097,6 +2097,19 @@ Proof.
   simpl_fv. fast_set_solver!!.
 Qed.
 
+Lemma typing_rename_lc Σ Γ e τ τ' x y :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e^x : τ ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv e ∪ dom aset Γ ->
+  Σ; (<[y:=τ']>Γ) ⊢ e^y : τ.
+Proof.
+  intros Hwf H. intros.
+  erewrite <- (open_lc τ y) by eauto using typing_kind_lc.
+  erewrite <- (open_lc τ x) in H by eauto using typing_kind_lc.
+  eapply typing_rename; eauto.
+Qed.
+
 (** ** Substitution lemma *)
 
 Lemma subst_tctx_typing_kinding_ Σ x s :
