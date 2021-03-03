@@ -834,6 +834,20 @@ Arguments tctx_stale /.
 Notation "x # s" := (x ∉ stale s) (at level 40).
 Arguments stale /.
 
+(** ** Well-formedness of [gctx] *)
+Definition gctx_wf (Σ : gctx) :=
+  map_Forall (fun _ D =>
+                match D with
+                | DADT τ =>
+                  Σ; ∅ ⊢ τ :: *@P
+                | DOADT τ e =>
+                  Σ; ∅ ⊢ τ :: *@P /\
+                  exists L, forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O
+                | DFun τ e =>
+                  Σ; ∅ ⊢ e : τ /\
+                  exists l, Σ; ∅ ⊢ τ :: *@l
+                end) Σ.
+
 (* NOTE: [inversion] is the culprit for the slowness of this proof. *)
 Lemma open_lc_ e : forall s u i j,
   <{ {j~>u}({i~>s}e) }> = <{ {i~>s}e }> ->
@@ -875,6 +889,17 @@ Lemma subst_open_comm e : forall x y s,
   <{ {x↦s}(e^y) }> = <{ ({x↦s}e)^y }>.
 Proof.
   qauto use: subst_open_distr.
+Qed.
+
+Lemma subst_trans x y s e :
+  y # e ->
+  {y↦s}({x↦y}e) = {x↦s}e.
+Proof.
+  intros.
+  induction e; simpl in *; eauto;
+    try (f_equal; auto_apply; fast_set_solver!!).
+  repeat (case_decide; subst; simpl); try qauto.
+  fast_set_solver!!.
 Qed.
 
 Lemma subst_ite_distr b e1 e2 x s :
@@ -937,6 +962,66 @@ Proof.
     econstructor; simpl_cofin; qauto.
 Qed.
 
+Lemma lc_subst_lc x e s :
+  lc s ->
+  lc <{ e }> ->
+  lc <{ {x↦s}e }>.
+Proof.
+  intros Hs.
+  induction 1; simpl;
+    try qauto ctrs: lc;
+    econstructor; eauto;
+      simpl_cofin?;
+      rewrite subst_open_comm in *; eauto; fast_set_solver!!.
+Qed.
+
+(* It seems this lemma can reduce to [subst_lc_lc]. But it would require a
+side condition on the freshness of [y]. *)
+Lemma lc_subst_lc_lc x s t e :
+  lc <{ {x↦s}e }> ->
+  lc s ->
+  lc t ->
+  lc <{ {x↦t}e }>.
+Proof.
+  intros H. intros Hs Ht. remember ({x↦s}e).
+  revert dependent e.
+  induction H;
+    intros []; simpl; inversion 1; subst; simp_hyps;
+      try (case_decide; subst); try scongruence;
+        econstructor; eauto;
+          simpl_cofin?;
+          rewrite <- ?subst_open_comm in *; eauto; fast_set_solver!!.
+Qed.
+
+Lemma lc_open_atom_lc x e s :
+  lc s ->
+  lc <{ e^x }> ->
+  lc <{ e^s }>.
+Proof.
+  intros.
+  destruct (exist_fresh (fv e)) as [y ?].
+  erewrite subst_intro in *; eauto.
+  eauto using lc_subst_lc_lc with lc.
+Qed.
+
+(** The type of well-typed expression is also locally closed. *)
+Lemma typing_kind_lc Σ Γ e τ :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ e : τ ->
+  lc τ.
+Proof.
+  intros Hwf.
+  induction 1; eauto using kinding_lc with lc;
+    try
+      lazymatch goal with
+      | H : Σ !! _ = Some _ |- _ =>
+        apply Hwf in H; simp_hyps; eauto using kinding_lc
+      | H : _; _ ⊢ _ : _ |- _ => apply typing_lc in H
+      | H : oval _ _ |- _ => apply oval_lc in H
+      end;
+    qauto use: lc_open_atom_lc inv: lc simp: simpl_cofin?.
+Qed.
+
 (** This lemma is equivalent to [SCtx] constructor, but more friendly for
 automation. *)
 Lemma SCtx_intro {Σ} ℇ e e' E E' :
@@ -948,20 +1033,6 @@ Lemma SCtx_intro {Σ} ℇ e e' E E' :
 Proof.
   hauto ctrs: step.
 Qed.
-
-(** ** Well-formedness of [gctx] *)
-Definition gctx_wf (Σ : gctx) :=
-  map_Forall (fun _ D =>
-                match D with
-                | DADT τ =>
-                  Σ; ∅ ⊢ τ :: *@P
-                | DOADT τ e =>
-                  Σ; ∅ ⊢ τ :: *@P /\
-                  exists L, forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O
-                | DFun τ e =>
-                  Σ; ∅ ⊢ e : τ /\
-                  exists l, Σ; ∅ ⊢ τ :: *@l
-                end) Σ.
 
 (** ** Theories of free variables *)
 
