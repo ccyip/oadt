@@ -290,21 +290,38 @@ Tactic Notation "dup_hyp" "!" hyp(H) tactic3(tac) :=
 
 (** ** Hypothesis application *)
 
+Ltac curry_tac f p :=
+  let rec go p :=
+      lazymatch p with
+      | (?a, ?p) =>
+        curry_tac (f a) p
+      | tt => f
+      end in go p.
+
 (** [apply_eq] applies hypothesis [H], and generates equality subgoals for the
-arguments if the arguments can not be unified. *)
+arguments if the arguments can not be unified. Note that this tactic only
+generates equality subgoals from the last argument to the first argument that
+can not be substituted, most likely due to dependent type. *)
 Tactic Notation "apply_eq" uconstr(H) "by" tactic3(tac) :=
-  let rec go T :=
-      match T with
+  let rec go R p :=
+      lazymatch R with
       | ?R ?a =>
-        let X := type of a in
-        let e := fresh "e" in evar (e : X);
-        let e' := eval unfold e in e in clear e;
-        replace a with e'; [ go R | block_goal ]
-      | _ => idtac
+        tryif is_evar a
+        then
+          go R constr:((a, p))
+        else
+          let e := fresh "e" in
+          let f := constr:(fun e =>
+                             ltac:(let g := curry_tac (R e) p in
+                                   exact g))
+          in
+          refine (eq_ind _ f _ _ _); [| block_goal ]
       end in
-  match goal with
-  | |- ?T => go T
-  end; [ tac H | .. ];
+  repeat
+    match goal with
+    | |- block _ => idtac
+    | |- ?T => go T constr:(tt)
+    end; [ tac H | .. ];
   try match goal with
       | |- block _ => unblock_goal; try reflexivity
       end.
