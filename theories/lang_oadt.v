@@ -2068,7 +2068,7 @@ Lemma typing_rename Σ Γ e τ τ' x y :
   gctx_wf Σ ->
   Σ; (<[x:=τ']>Γ) ⊢ e^x : τ^x ->
   x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  y ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv e ∪ dom aset Γ ->
   Σ; (<[y:=τ']>Γ) ⊢ e^y : τ^y.
 Proof.
   intros.
@@ -2085,7 +2085,7 @@ Lemma kinding_rename Σ Γ τ κ τ' x y :
   gctx_wf Σ ->
   Σ; (<[x:=τ']>Γ) ⊢ τ^x :: κ ->
   x ∉ fv τ' ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  y ∉ fv τ' ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv τ ∪ dom aset Γ ->
   Σ; (<[y:=τ']>Γ) ⊢ τ^y :: κ.
 Proof.
   intros.
