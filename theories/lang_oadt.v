@@ -2336,7 +2336,7 @@ Qed.
 
 (* Note that [lc s] is not needed, and it is here only for convenience. I will
 drop it in the actual lemma. *)
-Lemma subst_preversation_ Σ x s τ' :
+Lemma subst_preservation_ Σ x s τ' :
   gctx_wf Σ ->
   lc s ->
   (forall Γ' e τ,
@@ -2425,7 +2425,7 @@ Proof.
 Qed.
 
 (** The actual substitution lemma *)
-Lemma subst_preversation Σ x s τ' Γ e τ :
+Lemma subst_preservation Σ x s τ' Γ e τ :
   gctx_wf Σ ->
   x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
   Σ; (<[x:=τ']>Γ) ⊢ e : τ ->
@@ -2434,11 +2434,11 @@ Lemma subst_preversation Σ x s τ' Γ e τ :
 Proof.
   intros.
   rewrite <- (subst_tctx_fresh Γ x s) by fast_set_solver!!.
-  eapply subst_preversation_; eauto using typing_lc.
+  eapply subst_preservation_; eauto using typing_lc.
   fast_set_solver!!.
 Qed.
 
-Lemma kinding_subst_preversation Σ x s τ' Γ τ κ :
+Lemma kinding_subst_preservation Σ x s τ' Γ τ κ :
   gctx_wf Σ ->
   x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
   Σ; (<[x:=τ']>Γ) ⊢ τ :: κ ->
@@ -2447,7 +2447,7 @@ Lemma kinding_subst_preversation Σ x s τ' Γ τ κ :
 Proof.
   intros.
   rewrite <- (subst_tctx_fresh Γ x s) by fast_set_solver!!.
-  eapply subst_preversation_; eauto using typing_lc.
+  eapply subst_preservation_; eauto using typing_lc.
   fast_set_solver!!.
 Qed.
 
