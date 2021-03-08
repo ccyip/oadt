@@ -1916,16 +1916,16 @@ Proof.
 Qed.
 
 Lemma weakening_insert Σ Γ e τ τ' x :
-  x ∉ dom aset Γ ->
   Σ; Γ ⊢ e : τ ->
+  x ∉ dom aset Γ ->
   Σ; (<[x:=τ']>Γ) ⊢ e : τ.
 Proof.
   eauto using weakening, insert_fresh_subseteq.
 Qed.
 
 Lemma kinding_weakening_insert Σ Γ τ τ' κ x :
-  x ∉ dom aset Γ ->
   Σ; Γ ⊢ τ :: κ ->
+  x ∉ dom aset Γ ->
   Σ; (<[x:=τ']>Γ) ⊢ τ :: κ.
 Proof.
   eauto using kinding_weakening, insert_fresh_subseteq.
@@ -2151,67 +2151,67 @@ Section typing_kinding_intro.
     try fast_set_solver!!; simpl_fv; fast_set_solver!!.
 
   Lemma TAbs_intro Γ e τ1 τ2 l x :
-    x ∉ fv e ∪ fv τ1 ∪ dom aset Γ ∪ tctx_fv Γ ->
     <[x:=τ2]>Γ ⊢ e^x : τ1^x ->
     Γ ⊢ τ2 :: *@l ->
+    x ∉ fv e ∪ fv τ1 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ \:τ2 => e : (Π:τ2, τ1).
   Proof.
     typing_intro_solver.
   Qed.
 
   Lemma TLet_intro Γ e1 e2 τ1 τ2 x :
-    x ∉ fv e2 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     <[x:=τ1]>Γ ⊢ e2^x : τ2^x ->
     Γ ⊢ e1 : τ1 ->
+    x ∉ fv e2 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ let e1 in e2 : τ2^e1.
   Proof.
     typing_intro_solver.
   Qed.
 
   Lemma TCase_intro Γ e0 e1 e2 τ1 τ2 τ x :
-    x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
     <[x:=τ1]>Γ ⊢ e1^x : τ ->
     <[x:=τ2]>Γ ⊢ e2^x : τ ->
     Γ ⊢ e0 : τ1 + τ2 ->
+    x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ case e0 of e1 | e2 : τ.
   Proof.
     typing_intro_solver.
   Qed.
 
   Lemma TOCase_intro Γ e0 e1 e2 τ1 τ2 τ x :
-    x ∉ fv e1 ∪ fv e2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     <[x:=τ1]>Γ ⊢ e1^x : τ ->
     <[x:=τ2]>Γ ⊢ e2^x : τ ->
     Γ ⊢ e0 : τ1 ~+ τ2 ->
     Γ ⊢ τ :: *@O ->
+    x ∉ fv e1 ∪ fv e2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ ~case e0 of e1 | e2 : τ.
   Proof.
     typing_intro_solver.
   Qed.
 
   Lemma KPi_intro Γ τ1 τ2 l1 l2 x :
-    x ∉ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     <[x:=τ1]>Γ ⊢ τ2^x :: *@l2 ->
     Γ ⊢ τ1 :: *@l1 ->
+    x ∉ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ (Π:τ1, τ2) :: *@M.
   Proof.
     typing_intro_solver.
   Qed.
 
   Lemma KCase_intro Γ e0 τ1 τ2 τ1' τ2' x :
-    x ∉ fv τ1 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     <[x:=τ1']>Γ ⊢ τ1^x :: *@O ->
     <[x:=τ2']>Γ ⊢ τ2^x :: *@O ->
     Γ ⊢ e0 : τ1' + τ2' ->
+    x ∉ fv τ1 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ case e0 of τ1 | τ2 :: *@O.
   Proof.
     typing_intro_solver.
   Qed.
 
   Lemma KLet_intro Γ e τ τ' x :
-    x ∉ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
     <[x:=τ']>Γ ⊢ τ^x :: *@O ->
     Γ ⊢ e : τ' ->
+    x ∉ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ let e in τ :: *@O.
   Proof.
     typing_intro_solver.
@@ -2455,9 +2455,9 @@ Qed.
 
 Lemma kinding_subst_preservation Σ x s τ' Γ τ κ :
   gctx_wf Σ ->
-  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
   Σ; (<[x:=τ']>Γ) ⊢ τ :: κ ->
   Σ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
   Σ; Γ ⊢ {x↦s}τ :: κ.
 Proof.
   intros.
