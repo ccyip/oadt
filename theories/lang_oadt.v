@@ -866,6 +866,13 @@ Proof.
     simpl_cofin; hauto use: open_lc_.
 Qed.
 
+Lemma open_lc_intro e s :
+  lc e -> <{ e^s }> = e.
+Proof.
+  unfold open.
+  qauto use: open_lc.
+Qed.
+
 Lemma subst_fresh e : forall x s,
   x # e -> <{ {x↦s}e }> = e.
 Proof.
