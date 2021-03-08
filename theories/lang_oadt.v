@@ -1196,26 +1196,26 @@ Ltac simpl_fv_rewrite :=
   | |- ?L ⊆ ?R =>
     first [ fv_rewrite (L ⊆ R)
           | fv_rewrite_l L
-          | fv_rewrite_r R ]
+          | fv_rewrite_r R ]; simpl
   | |- _ ∉ ?T =>
     first [ fv_rewrite T
-          | fv_rewrite_l T ]
+          | fv_rewrite_l T ]; simpl
   | |- _ ∈ ?T =>
     first [ fv_rewrite T
-          | fv_rewrite_r T ]
+          | fv_rewrite_r T ]; simpl
   | H : ?L ⊆ ?R |- _ =>
     first [ fv_rewrite_l R in H
-          | fv_rewrite_r L in H ]
+          | fv_rewrite_r L in H ]; simpl in H
   | H : _ ∉ ?T |- _ =>
-    fv_rewrite_r T in H
+    fv_rewrite_r T in H; simpl in H
   | H : _ ∈ ?T |- _ =>
-    fv_rewrite_l T in H
+    fv_rewrite_l T in H; simpl in H
   | H : context [?L ⊆ ?R] |- _ =>
-    fv_rewrite (L ⊆ R) in H
+    fv_rewrite (L ⊆ R) in H; simpl in H
   | H : context [_ ∉ ?T] |- _ =>
-    fv_rewrite T in H
+    fv_rewrite T in H; simpl in H
   | H : context [_ ∈ ?T] |- _ =>
-    fv_rewrite T in H
+    fv_rewrite T in H; simpl in H
   end.
 
 Tactic Notation "simpl_fv_rewrite_more" "by" tactic3(tac) :=
@@ -1230,7 +1230,7 @@ Tactic Notation "simpl_fv_rewrite_more" "by" tactic3(tac) :=
 then do the rewriting. *)
 Smpl Create fv.
 Tactic Notation "simpl_fv" :=
-  repeat (smpl fv); clear_blocked; repeat simpl_fv_rewrite.
+  set_fold_not; repeat (smpl fv); clear_blocked; repeat simpl_fv_rewrite.
 Tactic Notation "simpl_fv" "*" "by" tactic3(tac) :=
   simpl_fv; repeat simpl_fv_rewrite_more by tac.
 Tactic Notation "simpl_fv" "*" :=
