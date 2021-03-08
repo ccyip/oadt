@@ -1471,7 +1471,11 @@ Tactic Notation "kind_inv_solver" :=
   kind_inv_solver by qauto l: on solve: label_naive_solver.
 
 Lemma kind_inv_pi Σ Γ τ1 τ2 κ :
-  Σ; Γ ⊢ Π:τ1, τ2 :: κ -> κ = <{ *@M }>.
+  Σ; Γ ⊢ Π:τ1, τ2 :: κ ->
+  κ = <{ *@M }> /\
+  exists L l1 l2,
+    (∀ x, x ∉ L → Σ; (<[x:=τ1]> Γ) ⊢ τ2^x :: *@l2) /\
+    Σ; Γ ⊢ τ1 :: *@l1.
 Proof.
   kind_inv_solver by sfirstorder use: top_inv.
 Qed.
@@ -1483,7 +1487,11 @@ Proof.
 Qed.
 
 Lemma kind_inv_sum Σ Γ τ1 τ2 κ :
-  Σ; Γ ⊢ τ1 + τ2 :: κ -> <{ *@P }> ⊑ κ.
+  Σ; Γ ⊢ τ1 + τ2 :: κ ->
+  <{ *@P }> ⊑ κ /\
+  exists l,
+    Σ; Γ ⊢ τ1 :: *@l /\
+    Σ; Γ ⊢ τ2 :: *@l.
 Proof.
   kind_inv_solver by qauto l: on solve: label_naive_solver
                            use: join_ub_r.
