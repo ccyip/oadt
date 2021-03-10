@@ -1487,6 +1487,16 @@ Proof.
   kind_inv_solver.
 Qed.
 
+Lemma kind_inv_prod Σ Γ τ1 τ2 κ :
+  Σ; Γ ⊢ τ1 * τ2 :: κ ->
+  exists l,
+    Σ; Γ ⊢ τ1 :: *@l /\
+    Σ; Γ ⊢ τ2 :: *@l /\
+    <{ *@l }> ⊑ κ.
+Proof.
+  kind_inv_solver by qauto l: on solve: label_naive_solver.
+Qed.
+
 Lemma kind_inv_sum Σ Γ τ1 τ2 κ :
   Σ; Γ ⊢ τ1 + τ2 :: κ ->
   <{ *@P }> ⊑ κ /\
@@ -1510,6 +1520,7 @@ Ltac apply_kind_inv :=
   repeat match goal with
          | H : _; _ ⊢ Π:_, _ :: _ |- _ => apply kind_inv_pi in H
          | H : _; _ ⊢ 𝔹 :: _ |- _ => apply kind_inv_bool in H
+         | H : _; _ ⊢ _ * _ :: _ |- _ => apply kind_inv_prod in H
          | H : _; _ ⊢ _ + _ :: _ |- _ => apply kind_inv_sum in H
          | H : _; _ ⊢ gvar _ :: _ |- _ => apply kind_inv_gvar in H
          end; simp_hyps.
