@@ -2487,6 +2487,55 @@ Proof.
   fast_set_solver!!.
 Qed.
 
+Lemma open_preservation Σ x s τ' Γ e τ :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e^x : τ^x ->
+  Σ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; Γ ⊢ e^s : τ^s.
+Proof.
+  intros.
+  rewrite (subst_intro e s x) by fast_set_solver!!.
+  rewrite (subst_intro τ s x) by fast_set_solver!!.
+  eapply subst_preservation; eauto.
+  fast_set_solver!!.
+Qed.
+
+Lemma kinding_open_preservation Σ x s τ' Γ τ κ :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ τ^x :: κ ->
+  Σ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; Γ ⊢ τ^s :: κ.
+Proof.
+  intros.
+  rewrite (subst_intro τ s x) by fast_set_solver!!.
+  eapply kinding_subst_preservation; eauto.
+  fast_set_solver!!.
+Qed.
+
+(** Types of well-typed expressions are well-kinded *)
+Lemma type_well_kinded Σ Γ e τ :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ e : τ ->
+  exists κ, Σ; Γ ⊢ τ :: κ.
+Proof.
+  intros Hwf.
+  induction 1; simp_hyps; eauto with expr_kinding;
+    try match goal with
+        | H : _ !! _ = _ |- _ =>
+          apply Hwf in H; simp_hyps; eauto using kinding_weakening_empty
+        end;
+    apply_kind_inv; simpl_cofin?; simp_hyps;
+    try first [ eexists; typing_kinding_intro; eauto; fast_set_solver!!
+              (* Types may be opened. *)
+              | eexists; qauto use: kinding_open_preservation
+                               solve: fast_set_solver!! ].
+
+  (* Boxed injection case *)
+  sfirstorder use: otval_well_kinded, oval_elim.
+Qed.
+
 End lang.
 
 End oadt.
