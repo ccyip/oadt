@@ -2444,9 +2444,9 @@ Qed.
 (** The actual substitution lemma *)
 Lemma subst_preservation Σ x s τ' Γ e τ :
   gctx_wf Σ ->
-  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
   Σ; (<[x:=τ']>Γ) ⊢ e : τ ->
   Σ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
   Σ; Γ ⊢ {x↦s}e : {x↦s}τ.
 Proof.
   intros.
