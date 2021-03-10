@@ -437,15 +437,6 @@ Variant label :=
 | LMixed
 .
 
-Declare Custom Entry oadt_label.
-Notation "l" := l (in custom oadt_label at level 0, l constr at level 0).
-Notation "( l )" := l (in custom oadt_label, l at level 99).
-Notation "'A'" := (LAny) (in custom oadt_label at level 0).
-Notation "'P'" := (LPublic) (in custom oadt_label at level 0).
-Notation "'O'" := (LObliv) (in custom oadt_label at level 0).
-Notation "'M'" := (LMixed) (in custom oadt_label at level 0).
-Infix "⊔" := (⊔) (in custom oadt_label at level 50).
-
 (** [label] has (semi-)lattice operators. *)
 
 (** We define the partial order [⊑] on [label] directly as a computable
@@ -487,9 +478,18 @@ Instance label_bot : Bottom label := LAny.
 (** We do not need kind abstraction. *)
 Definition kind := label.
 
-Notation "* @ l" := (l) (in custom oadt at level 0,
-                            l custom oadt_label at level 0,
-                            format "* @ l").
+Notation "*@A" := (LAny) (in custom oadt at level 0).
+Notation "*@P" := (LPublic) (in custom oadt at level 0).
+Notation "*@O" := (LObliv) (in custom oadt at level 0).
+Notation "*@M" := (LMixed) (in custom oadt at level 0).
+Notation "*@ l" := (l) (in custom oadt at level 0,
+                            format "*@ l").
+Notation "*@( l ⊔ 'P' )" := (l ⊔ LPublic)
+                              (in custom oadt at level 0,
+                                  format "*@( l  ⊔  'P' )").
+Notation "*@( l1 ⊔ l2 )" := (l1 ⊔ l2)
+                              (in custom oadt at level 0,
+                                  format "*@( l1  ⊔  l2 )").
 
 (** ** Typing context (Γ) *)
 Notation tctx := (amap expr).
