@@ -512,7 +512,7 @@ Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
-Inductive expr_typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
+Inductive typing {Σ : gctx} : tctx -> expr -> expr -> Prop :=
 | TFVar Γ x τ κ :
     Γ !! x = Some τ ->
     Γ ⊢ τ :: κ ->
@@ -598,9 +598,9 @@ since they are "encrypted" values. *)
     Γ ⊢ τ :: κ ->
     Σ ⊢ τ' ≡ τ ->
     Γ ⊢ e : τ
-where "Γ '⊢' e ':' τ" := (expr_typing Γ e τ)
+where "Γ '⊢' e ':' τ" := (typing Γ e τ)
 
-with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
+with kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
 | KVarADT Γ X τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ gvar X :: *@P
@@ -646,26 +646,26 @@ with expr_kinding {Σ : gctx} : tctx -> expr -> kind -> Prop :=
     l' ⊑ l ->
     Γ ⊢ τ :: *@l
 
-where "Γ '⊢' τ '::' κ" := (expr_kinding Γ τ κ)
+where "Γ '⊢' τ '::' κ" := (kinding Γ τ κ)
 .
-Hint Constructors expr_typing : expr_typing.
-Hint Constructors expr_kinding : expr_kinding.
+Hint Constructors typing : typing.
+Hint Constructors kinding : kinding.
 
-Notation "Σ ; Γ '⊢' e ':' τ" := (@expr_typing Σ Γ e τ)
+Notation "Σ ; Γ '⊢' e ':' τ" := (@typing Σ Γ e τ)
                                   (at level 40,
                                    Γ constr at level 0,
                                    e custom oadt at level 99,
                                    τ custom oadt at level 99).
-Notation "Σ ; Γ '⊢' τ '::' κ" := (@expr_kinding Σ Γ τ κ)
+Notation "Σ ; Γ '⊢' τ '::' κ" := (@kinding Σ Γ τ κ)
                                    (at level 40,
                                     Γ constr at level 0,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
-Scheme expr_typing_kinding_ind := Minimality for expr_typing Sort Prop
-  with expr_kinding_typing_ind := Minimality for expr_kinding Sort Prop.
-Combined Scheme expr_typing_kinding_mutind
-         from expr_typing_kinding_ind, expr_kinding_typing_ind.
+Scheme typing_kinding_ind := Minimality for typing Sort Prop
+  with kinding_typing_ind := Minimality for kinding Sort Prop.
+Combined Scheme typing_kinding_mutind
+         from typing_kinding_ind, kinding_typing_ind.
 
 (** ** Global definitions typing *)
 Reserved Notation "Σ '=[' D ']=>' Σ'" (at level 40,
@@ -1272,7 +1272,7 @@ Lemma typing_kinding_fv Σ :
       Σ; Γ ⊢ τ :: κ ->
       fv τ ⊆ dom aset Γ).
 Proof.
-  apply expr_typing_kinding_mutind; intros; simpl in *;
+  apply typing_kinding_mutind; intros; simpl in *;
     simpl_cofin?; simpl_fv; fast_set_solver*!.
 Qed.
 
@@ -1639,7 +1639,7 @@ Lemma otval_well_kinded ω Σ Γ :
   otval ω ->
   Σ; Γ ⊢ ω :: *@O.
 Proof.
-  induction 1; hauto lq: on ctrs: expr_kinding solve: label_naive_solver.
+  induction 1; hauto lq: on ctrs: kinding solve: label_naive_solver.
 Qed.
 
 Lemma otval_uniq Σ ω1 ω2 :
@@ -1658,7 +1658,7 @@ Lemma oval_elim v ω :
   val v /\ otval ω /\ ∅; ∅ ⊢ v : ω.
 Proof.
   intros H. use H.
-  induction H; hauto lq:on ctrs: val, otval, expr_typing.
+  induction H; hauto lq:on ctrs: val, otval, typing.
 Qed.
 
 Lemma oval_intro v ω :
@@ -1672,7 +1672,7 @@ Proof.
     apply_type_inv;
     simpl_whnf_equiv;
     try hauto lq: on rew: off
-              ctrs: oval, expr_typing
+              ctrs: oval, typing
               use: otval_well_kinded
               solve: equiv_naive_solver.
 
@@ -1806,7 +1806,7 @@ Theorem progress_ Σ :
      κ = <{ *@O }> ->
      otval τ \/ exists τ', Σ ⊨ τ -->! τ').
 Proof.
-  apply expr_typing_kinding_mutind; intros; subst;
+  apply typing_kinding_mutind; intros; subst;
     (* If a type is not used in the conclusion, the mutual inductive hypothesis
     for it is useless. Remove this hypothesis to avoid slowdown the
     automation. *)
@@ -1886,11 +1886,11 @@ Lemma weakening_ Σ :
       Γ ⊆ Γ' ->
       Σ'; Γ' ⊢ τ :: κ).
 Proof.
-  apply expr_typing_kinding_mutind; intros; subst;
+  apply typing_kinding_mutind; intros; subst;
     try qauto l: on use: insert_mono, expr_equiv_weakening
-              ctrs: expr_typing, expr_kinding;
+              ctrs: typing, kinding;
     try qauto l: on use: lookup_weaken
-              ctrs: expr_typing, expr_kinding;
+              ctrs: typing, kinding;
     (* For the [case]/[~case] cases *)
     econstructor; eauto using insert_mono.
 Qed.
@@ -1996,7 +1996,7 @@ Lemma typing_kinding_rename_ Σ x y τ' :
         Σ; (<[y:=τ']>({x↦y} <$> Γ)) ⊢ {x↦y}τ :: κ).
 Proof.
   intros Hwf.
-  apply expr_typing_kinding_mutind; intros; subst; simpl in *;
+  apply typing_kinding_mutind; intros; subst; simpl in *;
     (* First we normalize the typing and kinding judgments so they are ready
     for applying typing and kinding rules to. *)
     rewrite ?subst_open_distr by constructor;
@@ -2235,7 +2235,7 @@ Section typing_kinding_intro.
     Γ ⊢ τ2 :: *@l2 ->
     Γ ⊢ τ1 * τ2 :: *@(l1 ⊔ l2).
   Proof.
-    eauto using join_ub_l, join_ub_r with expr_kinding.
+    eauto using join_ub_l, join_ub_r with kinding.
   Qed.
 
 End typing_kinding_intro.
@@ -2322,7 +2322,7 @@ Lemma subst_tctx_typing_kinding_ Σ x s :
       Σ; ({x↦s} <$> Γ) ⊢ τ :: κ).
 Proof.
   intros Hwf.
-  apply expr_typing_kinding_mutind; intros; subst; simpl in *;
+  apply typing_kinding_mutind; intros; subst; simpl in *;
     econstructor; eauto;
       simpl_cofin?;
       (* Try to apply induction hypotheses. *)
@@ -2391,7 +2391,7 @@ Lemma subst_preservation_ Σ x s τ' :
         Σ; ({x↦s} <$> Γ) ⊢ {x↦s}τ :: κ).
 Proof.
   intros Hwf Hlc.
-  apply expr_typing_kinding_mutind; intros; subst; simpl in *;
+  apply typing_kinding_mutind; intros; subst; simpl in *;
     (* First we normalize the typing and kinding judgments so they are ready
     for applying typing and kinding rules to. *)
     rewrite ?subst_open_distr by assumption;
@@ -2521,7 +2521,7 @@ Lemma type_well_kinded Σ Γ e τ :
   exists κ, Σ; Γ ⊢ τ :: κ.
 Proof.
   intros Hwf.
-  induction 1; simp_hyps; eauto with expr_kinding;
+  induction 1; simp_hyps; eauto with kinding;
     try match goal with
         | H : _ !! _ = _ |- _ =>
           apply Hwf in H; simp_hyps; eauto using kinding_weakening_empty
