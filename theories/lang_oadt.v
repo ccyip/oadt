@@ -579,10 +579,11 @@ and do substitution in [τ]. *)
     Γ ⊢ e1 : τ ->
     Γ ⊢ e2 : τ ->
     Γ ⊢ if e0 then e1 else e2 : τ
-| TCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
+| TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
     (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
     Γ ⊢ e0 : τ1 + τ2 ->
+    Γ ⊢ τ :: κ ->
     Γ ⊢ case e0 of e1 | e2 : τ
 (** Typing for runtime expressions is for metatheories. These expressions do not
 appear in source programs. Plus, it is not possible to type them at runtime
@@ -2168,10 +2169,11 @@ Section typing_kinding_intro.
     typing_intro_solver.
   Qed.
 
-  Lemma TCase_intro Γ e0 e1 e2 τ1 τ2 τ x :
+  Lemma TCase_intro Γ e0 e1 e2 τ1 τ2 τ κ x :
     <[x:=τ1]>Γ ⊢ e1^x : τ ->
     <[x:=τ2]>Γ ⊢ e2^x : τ ->
     Γ ⊢ e0 : τ1 + τ2 ->
+    Γ ⊢ τ :: κ ->
     x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ case e0 of e1 | e2 : τ.
   Proof.
