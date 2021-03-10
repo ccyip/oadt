@@ -2230,6 +2230,14 @@ Section typing_kinding_intro.
     typing_intro_solver.
   Qed.
 
+  Lemma KProd_intro Γ τ1 τ2 l1 l2 :
+    Γ ⊢ τ1 :: *@l1 ->
+    Γ ⊢ τ2 :: *@l2 ->
+    Γ ⊢ τ1 * τ2 :: *@(l1 ⊔ l2).
+  Proof.
+    eauto using join_ub_l, join_ub_r with expr_kinding.
+  Qed.
+
 End typing_kinding_intro.
 
 (** Tactics for apply typing/kinding rules. Similar to [econstructor], but it
@@ -2270,7 +2278,7 @@ Ltac kinding_intro_ Σ T :=
   | Σ; _ ⊢ ~𝔹 :: _ => eapply KOBool
   | Σ; _ ⊢ Π:_, _ :: _ => eapply KPi_intro
   | Σ; _ ⊢ (gvar _) _ :: _ => eapply KApp
-  | Σ; _ ⊢ _ * _ :: _ => eapply KProd
+  | Σ; _ ⊢ _ * _ :: _ => eapply KProd_intro
   | Σ; _ ⊢ _ + _ :: _ => eapply KSum
   | Σ; _ ⊢ _ ~+ _ :: _ => eapply KOSum
   | Σ; _ ⊢ if _ then _ else _ :: _ => eapply KIte
