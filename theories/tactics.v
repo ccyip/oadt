@@ -82,6 +82,41 @@ Ltac higher_order_reflexivity :=
     end
   end.
 
+(** Get the head of a type [T]. *)
+Ltac head T :=
+  lazymatch T with
+  | ?T _ => head T
+  | _ => T
+  end.
+
+(** Check if the head of a type [T] is a constructor. *)
+Ltac head_constructor T :=
+  let C := head T in
+  is_constructor C.
+
+(** A convoluted way to get the head of the conclusion of a type [T]. If [T]
+is [forall a, forall b, ..., h x y z], then [concl_head T] returns [h]. *)
+(* TODO: is there a better approach? *)
+Ltac concl_head_ T :=
+  let H := fresh in
+  eassert (_ -> False -> T) as H;
+  [ lazymatch goal with
+    | |- ?T' -> _ -> _ =>
+      let H := fresh in
+      intros ? H; intros;
+      lazymatch goal with
+      | |- ?T => let T := head T in unify T' (block (fun _ => True) T)
+      end; elim H
+    end
+  | lazymatch type of H with
+    | _ ?T -> _ => exact T
+    end ].
+
+Ltac concl_head T :=
+  let C := constr:(ltac:(concl_head_ T)) in
+  let C := eval cbn in C in
+  C.
+
 (** ** Set solving *)
 
 (* Much faster set solving tactic, with less solving strength. *)
