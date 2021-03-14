@@ -3,6 +3,11 @@ From stdpp Require Export prelude fin_maps fin_map_dom.
 From smpl Require Export Smpl.
 From Hammer Require Export Tactics.
 
+(** * Definitions *)
+
+Definition nf {A : Type} (R : relation A) (a : A) : Prop :=
+  ¬ exists a', R a a'.
+
 (** * Lemmas *)
 
 Lemma insert_fresh_subseteq `{FinMapDom K M D} {A} k (m : M A) v :

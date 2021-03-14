@@ -427,6 +427,11 @@ Notation "Σ '⊨' e '-->!' e'" := (@step Σ e e') (at level 40,
                                                 e constr at level 0,
                                                 e' constr at level 0).
 
+Notation "Σ '⊨' e '-->*' e'" := (clos_refl_trans_1n _ (@step Σ) e e')
+                                  (at level 40,
+                                   e constr at level 0,
+                                   e' constr at level 0).
+
 (** * Typing *)
 
 (** ** Security level labels (l) *)
@@ -2789,6 +2794,21 @@ Theorem preservation Σ Γ e e' τ :
   Σ; Γ ⊢ e' : τ.
 Proof.
   hauto use: preservation_.
+Qed.
+
+(** ** Soundness *)
+
+Definition stuck (Σ : gctx) (e : expr) : Prop :=
+  nf (@step Σ) e /\ ¬val e.
+
+Corollary soundness Ds e Σ τ e' :
+  program_typing Ds e Σ τ ->
+  Σ ⊨ e -->* e' ->
+  ¬(stuck Σ e').
+Proof.
+  intros [Hd Ht]. apply gdefs_typing_wf in Hd.
+  induction 1;
+    qauto use: progress, preservation unfold: stuck, nf.
 Qed.
 
 End lang.
