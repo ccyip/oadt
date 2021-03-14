@@ -1407,6 +1407,13 @@ Proof.
 Qed.
 
 (** ** Properties of type equivalence  *)
+
+Ltac equiv_naive_solver :=
+  solve [ reflexivity
+        | eauto
+        | symmetry; eauto
+        | etrans; solve [eauto | symmetry; eauto] ].
+
 Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
 Proof.
 Admitted.
@@ -1420,17 +1427,32 @@ Proof.
 Admitted.
 
 (* NOTE: Be aware of circular proofs! In case we need [gctx_wf] as a side
-condition. *)
+condition, as we need this lemma to prove [gctx_wf] for well-typed global
+context. *)
 Lemma expr_equiv_weakening Σ τ τ' :
   Σ ⊢ τ ≡ τ' ->
   forall Σ', Σ ⊆ Σ' ->
         Σ' ⊢ τ ≡ τ'.
 Admitted.
 
-(* Some side conditions may be needed. *)
-Lemma expr_equiv_subst Σ τ τ' x s :
+(* Some side conditions may be needed for the next few lemmas. *)
+
+Lemma expr_equiv_step Σ e e' :
+  Σ ⊨ e -->! e' ->
+  Σ ⊢ e ≡ e'.
+Proof.
+Admitted.
+
+Lemma expr_equiv_subst Σ τ τ' e e' x :
   Σ ⊢ τ ≡ τ' ->
-  Σ ⊢ {x↦s}τ ≡ {x↦s}τ'.
+  Σ ⊢ e ≡ e' ->
+  Σ ⊢ {x↦e}τ ≡ {x↦e'}τ'.
+Proof.
+Admitted.
+
+Lemma expr_equiv_open_atom Σ τ1 τ2 x :
+  Σ ⊢ τ1 ≡ τ2 ->
+  Σ ⊢ τ1^x ≡ τ2^x.
 Proof.
 Admitted.
 
@@ -1438,7 +1460,42 @@ Lemma expr_equiv_rename Σ τ τ' x y :
   Σ ⊢ τ ≡ τ' ->
   Σ ⊢ {x↦y}τ ≡ {x↦y}τ'.
 Proof.
-Admitted.
+  qauto use: expr_equiv_subst solve: equiv_naive_solver.
+Qed.
+
+Lemma expr_equiv_subst1 Σ τ τ' x s :
+  Σ ⊢ τ ≡ τ' ->
+  Σ ⊢ {x↦s}τ ≡ {x↦s}τ'.
+Proof.
+  qauto use: expr_equiv_subst solve: equiv_naive_solver.
+Qed.
+
+Lemma expr_equiv_subst2 Σ τ x e e' :
+  Σ ⊢ e ≡ e' ->
+  Σ ⊢ {x↦e}τ ≡ {x↦e'}τ.
+Proof.
+  qauto use: expr_equiv_subst solve: equiv_naive_solver.
+Qed.
+
+Lemma expr_equiv_open1 Σ τ1 τ2 e :
+  Σ ⊢ τ1 ≡ τ2 ->
+  Σ ⊢ τ1^e ≡ τ2^e.
+Proof.
+  destruct (exist_fresh (fv τ1 ∪ fv τ2)) as [x ?].
+  erewrite (subst_intro τ1 e x) by fast_set_solver!!.
+  erewrite (subst_intro τ2 e x) by fast_set_solver!!.
+  eauto using expr_equiv_subst1, expr_equiv_open_atom.
+Qed.
+
+Lemma expr_equiv_open2 Σ τ e1 e2 :
+  Σ ⊢ e1 ≡ e2 ->
+  Σ ⊢ τ^e1 ≡ τ^e2.
+Proof.
+  destruct (exist_fresh (fv τ)) as [x ?].
+  erewrite (subst_intro τ e1 x) by eassumption.
+  erewrite (subst_intro τ e2 x) by eassumption.
+  eauto using expr_equiv_subst2.
+Qed.
 
 (** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
 two equivalent types in [whnf] have different head. *)
@@ -1453,12 +1510,6 @@ Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
 
 Tactic Notation "simpl_whnf_equiv" :=
   simpl_whnf_equiv by eauto using otval_whnf with whnf.
-
-Ltac equiv_naive_solver :=
-  solve [ reflexivity
-        | eauto
-        | symmetry; eauto
-        | etrans; solve [eauto | symmetry; eauto] ].
 
 (** ** Kind inversion  *)
 Tactic Notation "kind_inv_solver" "by" tactic3(tac) :=
@@ -2471,7 +2522,7 @@ Proof.
                | |- <[_:=_]>(<[_:=_]>_) = <[_:=_]>(<[_:=_]>_) =>
                  apply insert_commute
                | |- _ ⊢ _ ≡ _ =>
-                 apply expr_equiv_subst
+                 apply expr_equiv_subst1
                | |- (_ <$> _) !! _ = Some _ =>
                  simplify_map_eq
                | |- _; (<[_:=_]>_) ⊢ _ : _ =>
