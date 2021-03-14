@@ -63,7 +63,7 @@ Variant gdef :=
 Definition gdefs := list (atom * gdef).
 
 (** ** Programs (P) *)
-Definition program := gdefs * expr.
+Notation program := (gdefs * expr).
 
 (** ** Global context (Σ) *)
 (** It is used in operational semantics and typing. *)
@@ -709,10 +709,8 @@ Hint Constructors gdefs_typing : gdefs_typing.
 
 (** ** Program typing *)
 (* TODO: notation? *)
-Definition program_typing (p : program) (Σ : gctx) (τ : expr) :=
-  match p with
-  | (Ds, e) => ∅ ={ Ds }=> Σ /\ Σ; ∅ ⊢ e : τ
-  end.
+Definition program_typing (Ds : gdefs) (e : expr) (Σ : gctx) (τ : expr) :=
+  ∅ ={ Ds }=> Σ /\ Σ; ∅ ⊢ e : τ.
 
 (** * Infrastructure *)
 
