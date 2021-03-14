@@ -1508,6 +1508,15 @@ Proof.
                            use: join_ub_r.
 Qed.
 
+Lemma kind_inv_osum Σ Γ τ1 τ2 κ :
+  Σ; Γ ⊢ τ1 ~+ τ2 :: κ ->
+  <{ *@O }> ⊑ κ /\
+  Σ; Γ ⊢ τ1 :: *@O /\
+  Σ; Γ ⊢ τ2 :: *@O.
+Proof.
+  kind_inv_solver.
+Qed.
+
 Lemma kind_inv_gvar Σ Γ X κ :
   Σ; Γ ⊢ gvar X :: κ ->
   <{ *@P }> ⊑ κ /\ exists τ, Σ !! X = Some (DADT τ).
@@ -1556,6 +1565,12 @@ Lemma type_inv_abs Σ Γ e τ2 τ :
     Σ ⊢ τ ≡ Π:τ2, τ1 /\
     Σ; Γ ⊢ τ2 :: *@l /\
     forall x, x ∉ L -> Σ; (<[x:=τ2]> Γ) ⊢ e^x : τ1^x.
+
+Lemma type_inv_gvar Σ Γ x τ :
+  Σ; Γ ⊢ gvar x : τ ->
+  exists τ' e,
+    Σ !! x = Some (DFun τ' e) /\
+    Σ ⊢ τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
