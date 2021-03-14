@@ -2549,6 +2549,19 @@ Proof.
   fast_set_solver!!.
 Qed.
 
+Lemma open_preservation_lc Σ x s τ' Γ e τ :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e^x : τ ->
+  Σ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  Σ; Γ ⊢ e^s : τ.
+Proof.
+  intros Hwf H. intros.
+  erewrite <- (open_lc_intro τ s) by eauto using typing_kind_lc.
+  erewrite <- (open_lc_intro τ x) in H by eauto using typing_kind_lc.
+  eapply open_preservation; eauto.
+Qed.
+
 (** Types of well-typed expressions are well-kinded *)
 Lemma type_well_kinded Σ Γ e τ :
   gctx_wf Σ ->
