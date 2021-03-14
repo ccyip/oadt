@@ -1696,10 +1696,10 @@ Proof.
   induction H; hauto lq:on ctrs: val, otval, typing.
 Qed.
 
-Lemma oval_intro v ω :
+Lemma oval_intro v ω Σ Γ :
   val v ->
   otval ω ->
-  ∅; ∅ ⊢ v : ω ->
+  Σ; Γ ⊢ v : ω ->
   oval v ω.
 Proof.
   intros H. revert ω.
