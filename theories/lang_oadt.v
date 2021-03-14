@@ -1524,15 +1524,24 @@ Proof.
   kind_inv_solver.
 Qed.
 
-(* This tactic is destructive. *)
-Ltac apply_kind_inv :=
-  repeat match goal with
-         | H : _; _ ⊢ Π:_, _ :: _ |- _ => apply kind_inv_pi in H
-         | H : _; _ ⊢ 𝔹 :: _ |- _ => apply kind_inv_bool in H
-         | H : _; _ ⊢ _ * _ :: _ |- _ => apply kind_inv_prod in H
-         | H : _; _ ⊢ _ + _ :: _ |- _ => apply kind_inv_sum in H
-         | H : _; _ ⊢ gvar _ :: _ |- _ => apply kind_inv_gvar in H
-         end; simp_hyps.
+Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
+  lazymatch type of H with
+  | _; _ ⊢ Π:_, _ :: _ => tac kind_inv_pi
+  | _; _ ⊢ 𝔹 :: _ => tac kind_inv_bool
+  | _; _ ⊢ _ * _ :: _ => tac kind_inv_prod
+  | _; _ ⊢ _ + _ :: _ => tac kind_inv_sum
+  | _; _ ⊢ _ ~+ _ :: _ => tac kind_inv_osum
+  | _; _ ⊢ gvar _ :: _ => tac kind_inv_gvar
+  end.
+
+Tactic Notation "apply_kind_inv" hyp(H) :=
+  apply_kind_inv H by (fun lem => apply lem in H; try simp_hyp H).
+
+Tactic Notation "apply_kind_inv" :=
+  do_hyps (fun H => try apply_kind_inv H).
+
+Tactic Notation "apply_kind_inv" "*" :=
+  do_hyps (fun H => try dup_hyp H (fun H => apply_kind_inv H)).
 
 (** ** Type inversion *)
 Tactic Notation "type_inv_solver" "by" tactic3(tac) :=
@@ -1638,21 +1647,29 @@ Proof.
                            ctrs: oval inv: oval.
 Qed.
 
-(* This tactic is destructive. *)
-Ltac apply_type_inv :=
-  repeat match goal with
-         | H : _; _ ⊢ () : _ |- _ => apply type_inv_unit in H
-         | H : _; _ ⊢ lit _ : _ |- _ => apply type_inv_lit in H
-         | H : _; _ ⊢ \:_ => _ : _ |- _ => apply type_inv_abs in H
-         | H : _; _ ⊢ (_, _) : _ |- _ => apply type_inv_pair in H
-         | H : _; _ ⊢ inj@_<_> _ : _ |- _ => apply type_inv_inj in H
-         | H : _; _ ⊢ ~inj@_<_> _ : _ |- _ => apply type_inv_oinj in H
-         | H : _; _ ⊢ fold<_> _ : _ |- _ => apply type_inv_fold in H
-         | H : _; _ ⊢ [_] : _ |- _ => apply type_inv_boxedlit in H
-         | H : _; _ ⊢ [inj@_<_> _] : _ |- _ => apply type_inv_boxedinj in H
-         end; simp_hyps.
+Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
+  lazymatch type of H with
+  |  _; _ ⊢ () : _ => tac type_inv_unit
+  |  _; _ ⊢ lit _ : _ => tac type_inv_lit
+  |  _; _ ⊢ gvar _ : _ => tac type_inv_gvar
+  |  _; _ ⊢ \:_ => _ : _ => tac type_inv_abs
+  |  _; _ ⊢ (_, _) : _ => tac type_inv_pair
+  |  _; _ ⊢ inj@_<_> _ : _ => tac type_inv_inj
+  |  _; _ ⊢ ~inj@_<_> _ : _ => tac type_inv_oinj
+  |  _; _ ⊢ fold<_> _ : _ => tac type_inv_fold
+  |  _; _ ⊢ [_] : _ => tac type_inv_boxedlit
+  |  _; _ ⊢ [inj@_<_> _] : _ => tac type_inv_boxedinj
+  end.
 
-(** ** Properties of [otval] and [oval] *)
+Tactic Notation "apply_type_inv" hyp(H) :=
+  apply_type_inv H by (fun lem => apply lem in H; try simp_hyp H).
+
+Tactic Notation "apply_type_inv" :=
+  do_hyps (fun H => try apply_type_inv H).
+
+Tactic Notation "apply_type_inv" "*" :=
+  do_hyps (fun H => try dup_hyp H (fun H => apply_type_inv H)).
+
 Lemma otval_well_kinded ω Σ Γ :
   otval ω ->
   Σ; Γ ⊢ ω :: *@O.
