@@ -2167,8 +2167,8 @@ Lemma typing_rename_lc Σ Γ e τ τ' x y :
   Σ; (<[y:=τ']>Γ) ⊢ e^y : τ.
 Proof.
   intros Hwf H. intros.
-  erewrite <- (open_lc τ y) by eauto using typing_kind_lc.
-  erewrite <- (open_lc τ x) in H by eauto using typing_kind_lc.
+  erewrite <- (open_lc_intro τ y) by eauto using typing_kind_lc.
+  erewrite <- (open_lc_intro τ x) in H by eauto using typing_kind_lc.
   eapply typing_rename; eauto.
 Qed.
 
