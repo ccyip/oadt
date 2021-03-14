@@ -1562,9 +1562,12 @@ Qed.
 Lemma type_inv_abs Σ Γ e τ2 τ :
   Σ; Γ ⊢ \:τ2 => e : τ ->
   exists τ1 l L,
-    Σ ⊢ τ ≡ Π:τ2, τ1 /\
     Σ; Γ ⊢ τ2 :: *@l /\
-    forall x, x ∉ L -> Σ; (<[x:=τ2]> Γ) ⊢ e^x : τ1^x.
+    (forall x, x ∉ L -> Σ; (<[x:=τ2]> Γ) ⊢ e^x : τ1^x) /\
+    Σ ⊢ τ ≡ Π:τ2, τ1.
+Proof.
+  type_inv_solver.
+Qed.
 
 Lemma type_inv_gvar Σ Γ x τ :
   Σ; Γ ⊢ gvar x : τ ->
@@ -1578,9 +1581,9 @@ Qed.
 Lemma type_inv_pair Σ Γ e1 e2 τ :
   Σ; Γ ⊢ (e1, e2) : τ ->
   exists τ1 τ2,
-    Σ ⊢ τ ≡ τ1 * τ2 /\
     Σ; Γ ⊢ e1 : τ1 /\
-    Σ; Γ ⊢ e2 : τ2.
+    Σ; Γ ⊢ e2 : τ2 /\
+    Σ ⊢ τ ≡ τ1 * τ2.
 Proof.
   type_inv_solver.
 Qed.
@@ -1588,10 +1591,10 @@ Qed.
 Lemma type_inv_inj Σ Γ b e τ' τ :
   Σ; Γ ⊢ inj@b<τ'> e : τ ->
   exists τ1 τ2,
-    Σ ⊢ τ ≡ τ1 + τ2 /\
     τ' = <{ τ1 + τ2 }> /\
     Σ; Γ ⊢ τ1 + τ2 :: *@P /\
-    Σ; Γ ⊢ e : ite b τ1 τ2.
+    Σ; Γ ⊢ e : ite b τ1 τ2 /\
+    Σ ⊢ τ ≡ τ1 + τ2.
 Proof.
   type_inv_solver.
 Qed.
@@ -1599,10 +1602,10 @@ Qed.
 Lemma type_inv_oinj Σ Γ b e τ' τ :
   Σ; Γ ⊢ ~inj@b<τ'> e : τ ->
   exists τ1 τ2,
-    Σ ⊢ τ ≡ τ1 ~+ τ2 /\
     τ' = <{ τ1 ~+ τ2 }> /\
     Σ; Γ ⊢ τ1 ~+ τ2 :: *@O /\
-    Σ; Γ ⊢ e : ite b τ1 τ2.
+    Σ; Γ ⊢ e : ite b τ1 τ2 /\
+    Σ ⊢ τ ≡ τ1 ~+ τ2.
 Proof.
   type_inv_solver.
 Qed.
@@ -1610,9 +1613,9 @@ Qed.
 Lemma type_inv_fold Σ Γ X e τ :
   Σ; Γ ⊢ fold<X> e : τ ->
   exists τ',
-    Σ ⊢ τ ≡ gvar X /\
     Σ; Γ ⊢ e : τ' /\
-    Σ !! X = Some (DADT τ').
+    Σ !! X = Some (DADT τ') /\
+    Σ ⊢ τ ≡ gvar X.
 Proof.
   type_inv_solver.
 Qed.
@@ -1627,9 +1630,9 @@ Qed.
 Lemma type_inv_boxedinj Σ Γ b v ω τ :
   Σ; Γ ⊢ [inj@b<ω> v] : τ ->
   exists ω1 ω2,
-    Σ ⊢ τ ≡ ω1 ~+ ω2 /\
     ω = <{ ω1 ~+ ω2 }> /\
-    oval <{ [inj@b<ω> v] }> ω.
+    oval <{ [inj@b<ω> v] }> ω /\
+    Σ ⊢ τ ≡ ω1 ~+ ω2.
 Proof.
   type_inv_solver by hauto lq: on solve: equiv_naive_solver
                            ctrs: oval inv: oval.
