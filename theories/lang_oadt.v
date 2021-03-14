@@ -2302,7 +2302,7 @@ Ltac typing_intro_ Σ T :=
   | Σ; _ ⊢ case _ of _ | _ : _ => eapply TCase_intro
   | Σ; _ ⊢ [_] : _ => eapply TBoxedLit
   | Σ; _ ⊢ [inj@_<_> _] : _ => eapply TBoxedInj
-  | Σ; _ ⊢ ?e : _ => is_var e; eapply TConv
+  | Σ; _ ⊢ ?e : ?τ => is_var e; assert_fails (is_evar τ); eapply TConv
   end.
 
 Ltac kinding_intro_ Σ T :=
