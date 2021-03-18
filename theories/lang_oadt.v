@@ -2024,59 +2024,54 @@ Qed.
 
 (** ** Canonical forms *)
 Ltac canonical_form_solver :=
-  inversion 1; subst; inversion 1; subst; eauto;
+  inversion 1; intros; subst; eauto;
   apply_type_inv;
   apply_kind_inv;
   simpl_whnf_equiv.
 
-Lemma canonical_form_abs Σ e τ2 τ1 :
-  Σ; ∅ ⊢ e : Π:τ2, τ1 ->
+Lemma canonical_form_abs Σ Γ e τ2 τ1 :
   val e ->
+  Σ; Γ ⊢ e : Π:τ2, τ1 ->
   exists e' τ, e = <{ \:τ => e' }>.
 Proof.
   canonical_form_solver.
 Qed.
-Hint Resolve canonical_form_abs : canonical_forms.
 
-Lemma canonical_form_bool Σ e :
-  Σ; ∅ ⊢ e : 𝔹 ->
+Lemma canonical_form_bool Σ Γ e :
   val e ->
+  Σ; Γ ⊢ e : 𝔹 ->
   exists b, e = <{ b }>.
 Proof.
   canonical_form_solver.
 Qed.
-Hint Resolve canonical_form_bool : canonical_forms.
 
-Lemma canonical_form_obool Σ e :
-  Σ; ∅ ⊢ e : ~𝔹 ->
+Lemma canonical_form_obool Σ Γ e :
   val e ->
+  Σ; Γ ⊢ e : ~𝔹 ->
   exists b, e = <{ [b] }>.
 Proof.
   canonical_form_solver.
 Qed.
-Hint Resolve canonical_form_obool : canonical_forms.
 
-Lemma canonical_form_prod Σ e τ1 τ2 :
-  Σ; ∅ ⊢ e : τ1 * τ2 ->
+Lemma canonical_form_prod Σ Γ e τ1 τ2 :
   val e ->
+  Σ; Γ ⊢ e : τ1 * τ2 ->
   exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
 Proof.
   canonical_form_solver.
 Qed.
-Hint Resolve canonical_form_prod : canonical_forms.
 
-Lemma canonical_form_sum Σ e τ1 τ2 :
-  Σ; ∅ ⊢ e : τ1 + τ2 ->
+Lemma canonical_form_sum Σ Γ e τ1 τ2 :
   val e ->
+  Σ; Γ ⊢ e : τ1 + τ2 ->
   exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
 Proof.
   canonical_form_solver.
 Qed.
-Hint Resolve canonical_form_sum : canonical_forms.
 
-Lemma canonical_form_osum Σ e τ1 τ2 :
-  Σ; ∅ ⊢ e : τ1 ~+ τ2 ->
+Lemma canonical_form_osum Σ Γ e τ1 τ2 :
   val e ->
+  Σ; Γ ⊢ e : τ1 ~+ τ2 ->
   exists b v ω1 ω2, val v /\ otval ω1 /\ otval ω2 /\
                e = <{ [inj@b<ω1 ~+ ω2> v] }>.
 Proof.
@@ -2085,18 +2080,19 @@ Proof.
     select (otval _) (fun H => sinvert H);
     repeat esplit; auto.
 Qed.
-Hint Resolve canonical_form_osum : canonical_forms.
 
 (** Though it seems we should have a condition of [X] being an (public) ADT, this
 condition is not needed since it is implied by the typing judgment. *)
-Lemma canonical_form_fold Σ e X :
-  Σ; ∅ ⊢ e : gvar X ->
+Lemma canonical_form_fold Σ Γ e X :
   val e ->
+  Σ; Γ ⊢ e : gvar X ->
   exists v X', val v /\ e = <{ fold<X'> v }>.
 Proof.
-  canonical_form_solver.
+  inversion 1; inversion 1; intros; subst; eauto;
+  apply_type_inv;
+  apply_kind_inv;
+  simpl_whnf_equiv.
 Qed.
-Hint Resolve canonical_form_fold : canonical_forms.
 
 (** ** Properties of kinding  *)
 Lemma any_kind_otval Σ Γ τ :
