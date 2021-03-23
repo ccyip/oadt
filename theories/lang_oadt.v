@@ -594,6 +594,8 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
     <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
 (** The most interesting rule *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
+    (* TODO: do we need these 3 assumptions? We are not able to check if [v] is
+    value or not at runtime anyway. *)
     otval ω1 -> otval ω2 -> val v ->
     oval v1 ω1 -> oval v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
@@ -1064,6 +1066,7 @@ Definition gctx_wf (Σ : gctx) :=
                   exists l, Σ; ∅ ⊢ τ :: *@l
                 end) Σ.
 
+(** ** Properties of openness *)
 (* NOTE: [inversion] is the culprit for the slowness of this proof. *)
 Lemma open_lc_ e : forall s u i j,
   <{ {j~>u}({i~>s}e) }> = <{ {i~>s}e }> ->
@@ -2257,6 +2260,8 @@ Proof.
   all: destruct 1; eauto with expr_wf;
     simpl_cofin?; qauto l: on ctrs: expr_wf use: open_atom_expr_wf_inv.
 Qed.
+
+(** ** Properties of [otval] and [oval] *)
 
 Lemma otval_well_kinded ω Σ Γ :
   otval ω ->
