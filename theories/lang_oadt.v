@@ -1089,6 +1089,28 @@ Proof.
   qauto use: open_lc.
 Qed.
 
+(* Rather slow because we have to do induction on [e1] and then destruct [e2],
+which produces a lot of cases (square of the number of the language constructs).
+A better way to handle this may be to prove a "lock-step" induction
+principle, similar to [rect2] for [Vector]. *)
+Lemma open_inv x e1 e2 :
+  <{ e1^x }> = <{ e2^x }> ->
+  x ∉ fv e1 ∪ fv e2 ->
+  e1 = e2.
+Proof.
+  unfold open. generalize 0. revert e2.
+  induction e1; intros; subst; simpl in *;
+  lazymatch goal with
+  | H : ?e' = <{ {_~>_}?e }> |- _ =>
+    destruct e; simpl in *; repeat (try scongruence; case_decide);
+      try (head_constructor e'; sinvert H)
+  end;
+    repeat f_equal;
+    try (auto_eapply; eauto; fast_set_solver!!).
+
+  all: set_unfold; sfirstorder.
+Qed.
+
 Lemma subst_fresh e : forall x s,
   x # e -> <{ {x↦s}e }> = e.
 Proof.
