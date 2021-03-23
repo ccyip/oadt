@@ -388,6 +388,7 @@ Inductive step {Σ : gctx} : expr -> expr -> Prop :=
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
       <{ mux [b] (ite b (e1^v) (e1^v1)) (ite b (e2^v2) (e2^v)) }>
 | SAppOADT X τ e v :
+    val v ->
     Σ !! X = Some (DOADT τ e) ->
     <{ (gvar X) v }> -->! <{ e^v }>
 | SAppFun x τ e :
