@@ -1671,6 +1671,28 @@ Lemma expr_equiv_open_atom Σ τ1 τ2 x :
 Proof.
 Admitted.
 
+(* We may weaken it so Γ = ∅. But we need to weaken all theorems depending on
+it. *)
+Lemma expr_equiv_obliv_type_preserve_ Σ Γ τ τ' κ κ' :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ τ :: κ ->
+  Σ; Γ ⊢ τ' :: κ' ->
+  Σ ⊢ τ ≡ τ' ->
+  κ ⊑ <{ *@O }> ->
+  Σ; Γ ⊢ τ' :: *@O.
+Proof.
+Admitted.
+
+Lemma expr_equiv_obliv_type_preserve Σ Γ τ τ' κ :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ τ :: *@O ->
+  Σ ⊢ τ ≡ τ' ->
+  Σ; Γ ⊢ τ' :: κ ->
+  Σ; Γ ⊢ τ' :: *@O.
+Proof.
+  qauto use: expr_equiv_obliv_type_preserve_ solve: label_naive_solver.
+Qed.
+
 Lemma expr_equiv_rename Σ τ τ' x y :
   Σ ⊢ τ ≡ τ' ->
   Σ ⊢ {x↦y}τ ≡ {x↦y}τ'.
