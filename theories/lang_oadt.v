@@ -436,6 +436,115 @@ well-formed. But it is more convenient to do so for the current purposes. *)
 .
 Hint Constructors expr_wf: expr_wf.
 
+(** ** Indistinguishability *)
+(** Instead of formalizing an observe function and considering two expressions
+indistinguishable if they are observed the same, we directly formalize the
+indistinguishability relation between two expressions as the equivalence induced
+by the observe function. *)
+Reserved Notation "e '≈' e'" (at level 40).
+(** All rules but the rules for boxed expressions are just congruence rules.
+Some rules are not necessary if the expressions are well-typed, but we include
+them anyway. *)
+Inductive indistinguishable : expr -> expr -> Prop :=
+| IBVar k : <{ bvar k }> ≈ <{ bvar k }>
+| IFVar x : <{ fvar x }> ≈ <{ fvar x }>
+| IGVar x : <{ gvar x }> ≈ <{ gvar x }>
+| IPi τ1 τ1' τ2 τ2' :
+    τ1 ≈ τ1' ->
+    τ2 ≈ τ2' ->
+    <{ Π:τ1, τ2 }> ≈ <{ Π:τ1', τ2' }>
+| IAbs τ τ' e e' :
+    τ ≈ τ' ->
+    e ≈ e' ->
+    <{ \:τ => e }> ≈ <{ \:τ' => e' }>
+| ILet e1 e1' e2 e2' :
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ let e1 in e2 }> ≈ <{ let e1' in e2' }>
+| ICase e0 e0' e1 e1' e2 e2' :
+    e0 ≈ e0' ->
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ case e0 of e1 | e2 }> ≈ <{ case e0' of e1' | e2' }>
+| IOCase e0 e0' e1 e1' e2 e2' :
+    e0 ≈ e0' ->
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ ~case e0 of e1 | e2 }> ≈ <{ ~case e0' of e1' | e2' }>
+| IUnitT : <{ 𝟙 }> ≈ <{ 𝟙 }>
+| IBool : <{ 𝔹 }> ≈ <{ 𝔹 }>
+| IOBool : <{ ~𝔹 }> ≈ <{ ~𝔹 }>
+| IProd τ1 τ1' τ2 τ2' :
+    τ1 ≈ τ1' ->
+    τ2 ≈ τ2' ->
+    <{ τ1 * τ2 }> ≈ <{ τ1' * τ2' }>
+| ISum τ1 τ1' τ2 τ2' :
+    τ1 ≈ τ1' ->
+    τ2 ≈ τ2' ->
+    <{ τ1 + τ2 }> ≈ <{ τ1' + τ2' }>
+| IOSum τ1 τ1' τ2 τ2' :
+    τ1 ≈ τ1' ->
+    τ2 ≈ τ2' ->
+    <{ τ1 ~+ τ2 }> ≈ <{ τ1' ~+ τ2' }>
+| IApp e1 e1' e2 e2' :
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ e1 e2 }> ≈ <{ e1' e2' }>
+| IUnitV : <{ () }> ≈ <{ () }>
+| ILit b : <{ lit b }> ≈ <{ lit b }>
+| ISec e e' :
+    e ≈ e' ->
+    <{ s𝔹 e }> ≈ <{ s𝔹 e' }>
+| IRet e e' :
+    e ≈ e' ->
+    <{ r𝔹 e }> ≈ <{ r𝔹 e' }>
+| IIte e0 e0' e1 e1' e2 e2' :
+    e0 ≈ e0' ->
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ if e0 then e1 else e2 }> ≈ <{ if e0' then e1' else e2' }>
+| IMux e0 e0' e1 e1' e2 e2' :
+    e0 ≈ e0' ->
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ mux e0 e1 e2 }> ≈ <{ mux e0' e1' e2' }>
+| IPair e1 e1' e2 e2' :
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ (e1, e2) }> ≈ <{ (e1', e2') }>
+| IProj b e e' :
+    e ≈ e' ->
+    <{ π@b e }> ≈ <{ π@b e' }>
+| IInj b b' τ τ' e e' :
+    τ ≈ τ' ->
+    e ≈ e' ->
+    <{ inj@b<τ> e }> ≈ <{ inj@b<τ'> e' }>
+| IOInj b τ τ' e e' :
+    τ ≈ τ' ->
+    e ≈ e' ->
+    <{ ~inj@b<τ> e }> ≈ <{ ~inj@b<τ'> e' }>
+| IFold X e e' :
+    e ≈ e' ->
+    <{ fold<X> e }> ≈ <{ fold<X> e' }>
+| IUnfold X e e' :
+    e ≈ e' ->
+    <{ unfold<X> e }> ≈ <{ unfold<X> e' }>
+(* The only interesting cases *)
+| IBoxedLit b b' :
+    (* We can not distinguish between two encrypted boolean values. *)
+    <{ [b] }> ≈ <{ [b'] }>
+| IBoxedInj b b' τ e e' :
+    (* We can not tell which branch an encrypted sum injects to nor what the
+    encrypted value is. But the type information is public so we need to make
+    sure nothing leaked from this type information. Technically we only need the
+    two types to be indistinguishable, but the stronger notion of equality also
+    works. *)
+    <{ [inj@b<τ> e] }> ≈ <{ [inj@b'<τ> e'] }>
+
+where "e '≈' e'" := (indistinguishable e e').
+
+Hint Constructors indistinguishable : indistinguishable.
+
 (** ** Evaluation context (ℇ) *)
 (* This style is inspired by Iron Lambda. *)
 (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
