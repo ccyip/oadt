@@ -334,6 +334,108 @@ Inductive oval : expr -> expr -> Prop :=
 .
 Hint Constructors oval : oval.
 
+(** ** Syntactical well-formedness *)
+(** Intuitively it means the boxed injection must be a value and it can be typed
+by the annotated oblivious type value. This is useful for connecting the core
+oblivious computation and the conceal phase: we assume the oblivious values
+given by the conceal process are indeed well-formed. On the other hand, the
+boxed injections produced by oblivious injections must be well-formed by our
+small-step semantics. *)
+Inductive expr_wf : expr -> Prop :=
+| WfBVar k : expr_wf <{ bvar k }>
+(* Conceptually we may choose to not consider free variables syntactically
+well-formed. But it is more convenient to do so for the current purposes. *)
+| WfFVar x : expr_wf <{ fvar x }>
+| WfGVar x : expr_wf <{ gvar x }>
+| WfPi τ1 τ2 :
+    expr_wf τ1 ->
+    expr_wf τ2 ->
+    expr_wf <{ Π:τ1, τ2 }>
+| WfAbs τ e :
+    expr_wf τ ->
+    expr_wf e ->
+    expr_wf <{ \:τ => e }>
+| WfLet e1 e2 :
+    expr_wf e1 ->
+    expr_wf e2 ->
+    expr_wf <{ let e1 in e2 }>
+| WfCase e0 e1 e2 :
+    expr_wf e0 ->
+    expr_wf e1 ->
+    expr_wf e2 ->
+    expr_wf <{ case e0 of e1 | e2 }>
+| WfOCase e0 e1 e2 :
+    expr_wf e0 ->
+    expr_wf e1 ->
+    expr_wf e2 ->
+    expr_wf <{ ~case e0 of e1 | e2 }>
+| WfUnitT : expr_wf <{ 𝟙 }>
+| WfBool : expr_wf <{ 𝔹 }>
+| WfOBool : expr_wf <{ ~𝔹 }>
+| WfProd τ1 τ2 :
+    expr_wf τ1 ->
+    expr_wf τ2 ->
+    expr_wf <{ τ1 * τ2 }>
+| WfSum τ1 τ2 :
+    expr_wf τ1 ->
+    expr_wf τ2 ->
+    expr_wf <{ τ1 + τ2 }>
+| WfOSum τ1 τ2 :
+    expr_wf τ1 ->
+    expr_wf τ2 ->
+    expr_wf <{ τ1 ~+ τ2 }>
+| WfApp e1 e2 :
+    expr_wf e1 ->
+    expr_wf e2 ->
+    expr_wf <{ e1 e2 }>
+| WfUnitV : expr_wf <{ () }>
+| WfLit b : expr_wf <{ lit b }>
+| WfSec e :
+    expr_wf e ->
+    expr_wf <{ s𝔹 e }>
+| WfRet e :
+    expr_wf e ->
+    expr_wf <{ r𝔹 e }>
+| WfIte e0 e1 e2 :
+    expr_wf e0 ->
+    expr_wf e1 ->
+    expr_wf e2 ->
+    expr_wf <{ if e0 then e1 else e2 }>
+| WfMux e0 e1 e2 :
+    expr_wf e0 ->
+    expr_wf e1 ->
+    expr_wf e2 ->
+    expr_wf <{ mux e0 e1 e2 }>
+| WfPair e1 e2 :
+    expr_wf e1 ->
+    expr_wf e2 ->
+    expr_wf <{ (e1, e2) }>
+| WfProj b e :
+    expr_wf e ->
+    expr_wf <{ π@b e }>
+| WfInj b τ e :
+    expr_wf τ ->
+    expr_wf e ->
+    expr_wf <{ inj@b<τ> e }>
+| WfOInj b τ e :
+    expr_wf τ ->
+    expr_wf e ->
+    expr_wf <{ ~inj@b<τ> e }>
+| WfFold X e :
+    expr_wf e ->
+    expr_wf <{ fold<X> e }>
+| WfUnfold X e :
+    expr_wf e ->
+    expr_wf <{ unfold<X> e }>
+| WfBoxedLit b :
+    expr_wf <{ [b] }>
+(* The only interesting case *)
+| WfBoxedInj b ω v :
+    oval <{ [inj@b<ω> v] }> ω ->
+    expr_wf <{ [inj@b<ω> v] }>
+.
+Hint Constructors expr_wf: expr_wf.
+
 (** ** Evaluation context (ℇ) *)
 (* This style is inspired by Iron Lambda. *)
 (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
@@ -1964,6 +2066,44 @@ Tactic Notation "apply_type_inv" :=
 
 Tactic Notation "apply_type_inv" "*" :=
   do_hyps (fun H => try dup_hyp H (fun H => apply_type_inv H)).
+
+(** ** Properties of [expr_wf] *)
+
+Lemma open_expr_wf e s :
+  expr_wf e ->
+  expr_wf s ->
+  expr_wf <{ e^s }>.
+Proof.
+  unfold open. intros H. generalize 0.
+  induction H; simpl; intros; try case_decide; eauto with expr_wf.
+Qed.
+
+Lemma open_expr_wf_inv e s :
+  expr_wf <{ e^s }> ->
+  expr_wf s ->
+  expr_wf e.
+Proof.
+  unfold open. generalize 0.
+  induction e; simpl; intros; qauto l: on inv: expr_wf ctrs: expr_wf.
+Qed.
+
+Lemma open_atom_expr_wf_inv e x :
+  expr_wf <{ e^x }> ->
+  expr_wf e.
+Proof.
+  qauto use: open_expr_wf_inv ctrs: expr_wf.
+Qed.
+
+Lemma typing_expr_wf Σ Γ e τ :
+  Σ; Γ ⊢ e : τ ->
+  expr_wf e
+with kinding_expr_wf Σ Γ τ κ :
+  Σ; Γ ⊢ τ :: κ ->
+  expr_wf τ.
+Proof.
+  all: destruct 1; eauto with expr_wf;
+    simpl_cofin?; qauto l: on ctrs: expr_wf use: open_atom_expr_wf_inv.
+Qed.
 
 Lemma otval_well_kinded ω Σ Γ :
   otval ω ->
