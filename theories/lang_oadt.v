@@ -2301,6 +2301,14 @@ Ltac canonical_form_solver :=
   apply_kind_inv;
   simpl_whnf_equiv.
 
+Lemma canonical_form_unit Σ Γ e :
+  val e ->
+  Σ; Γ ⊢ e : 𝟙 ->
+  e = <{ () }>.
+Proof.
+  canonical_form_solver.
+Qed.
+
 Lemma canonical_form_abs Σ Γ e τ2 τ1 :
   val e ->
   Σ; Γ ⊢ e : Π:τ2, τ1 ->
