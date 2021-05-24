@@ -6,3 +6,4 @@ theories/ln.v
 theories/semilattice.v
 theories/prelude.v
 theories/lang_oadt.v
+theories/playground/lang_stlc.v
