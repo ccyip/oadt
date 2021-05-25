@@ -109,3 +109,8 @@ Proof.
 Qed.
 
 End theorems.
+
+Ltac lattice_naive_solver :=
+  solve [ reflexivity
+        | eauto
+        | etrans; eauto ].

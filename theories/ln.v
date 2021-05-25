@@ -46,6 +46,13 @@ Proof.
   destruct is_atom. split; first [typeclasses eauto | auto].
 Defined.
 
+Module Type AtomSig.
+  Context `(is_atom : Atom atom amap aset).
+
+  #[export]
+  Hint Resolve is_atom : typeclass_instances.
+End AtomSig.
+
 (* From stdpp Require Import stringmap mapset. *)
 (* (** An Atom instance, showing Atom can be inhabited. This instance is not *)
 (* intended to be used in the acutal implementation. *) *)

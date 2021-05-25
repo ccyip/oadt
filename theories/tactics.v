@@ -383,3 +383,11 @@ Tactic Notation "auto_apply" := auto_apply by (fun H => apply H).
 Tactic Notation "auto_eapply" := auto_apply by (fun H => eapply H).
 Tactic Notation "auto_apply_eq" := auto_apply by (fun H => apply_eq H).
 Tactic Notation "auto_eapply_eq" := auto_apply by (fun H => eapply_eq H).
+
+(** ** General solvers *)
+
+Ltac equiv_naive_solver :=
+  solve [ reflexivity
+        | eauto
+        | symmetry; eauto
+        | etrans; solve [eauto | symmetry; eauto] ].
