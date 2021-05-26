@@ -1,16 +1,15 @@
 From oadt Require Import prelude.
-From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.properties.
 
 (** * Progress *)
 (** The progress metatheorem. *)
 
-Module progress (atom_sig : AtomSig).
+Module M (atom_sig : AtomSig).
 
-Module Export properties := properties atom_sig.
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
+Include properties.M atom_sig.
+Import syntax_notations.
+Import semantics_notations.
+Import typing_notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -191,4 +190,4 @@ Proof.
   hauto use: progress_.
 Qed.
 
-End progress.
+End M.

@@ -1,16 +1,15 @@
 From oadt Require Import prelude.
-From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.progress.
 
 (** * Preservation *)
 (** The preservation metatheorem. *)
 
-Module preservation (atom_sig : AtomSig).
+Module M (atom_sig : AtomSig).
 
-Module Export progress := progress atom_sig.
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
+Include progress.M atom_sig.
+Import syntax_notations.
+Import semantics_notations.
+Import typing_notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -855,4 +854,4 @@ Proof.
 Qed.
 
 
-End preservation.
+End M.

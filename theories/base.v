@@ -60,3 +60,8 @@ Section set.
   Qed.
 
 End set.
+
+
+(** * Custom Grammar *)
+Declare Custom Entry oadt.
+Declare Custom Entry oadt_def.

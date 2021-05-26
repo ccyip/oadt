@@ -1,16 +1,15 @@
 From oadt Require Import prelude.
-From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.infrastructure.
 
 (** * Properties *)
 (** Lemmas for various definitions. *)
 
-Module properties (atom_sig : AtomSig).
+Module M (atom_sig : AtomSig).
 
-Module Export infrastructure := infrastructure atom_sig.
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
+Include infrastructure.M atom_sig.
+Import syntax_notations.
+Import semantics_notations.
+Import typing_notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -770,28 +769,4 @@ Proof.
   - eauto using bot_inv.
 Qed.
 
-(** ** Properties of [val] *)
-
-Lemma val_is_nf Σ v :
-  val v ->
-  nf (@step Σ) v.
-Proof.
-  qauto use: indistinguishable_val_is_nf solve: reflexivity.
-Qed.
-
-Lemma otval_is_nf Σ ω :
-  otval ω ->
-  nf (@step Σ) ω.
-Proof.
-  qauto use: indistinguishable_otval_is_nf solve: reflexivity.
-Qed.
-
-Lemma val_step Σ v e :
-  Σ ⊨ v -->! e ->
-  val v ->
-  False.
-Proof.
-  sfirstorder use: val_is_nf.
-Qed.
-
-End properties.
+End M.

@@ -2,10 +2,7 @@ From oadt Require Import prelude.
 
 (** * Syntax *)
 
-Declare Custom Entry oadt.
-Declare Custom Entry oadt_def.
-
-Module syntax (atom_sig : AtomSig).
+Module M (atom_sig : AtomSig).
 
 Export atom_sig.
 
@@ -66,8 +63,8 @@ Notation program := (gdefs * expr).
 (** It is used in operational semantics and typing. *)
 Notation gctx := (amap gdef).
 
-(** ** Notations for syntax *)
-Module syntax_notations.
+(** ** Notations for expressions *)
+Module expr_notations.
 
 (* Adapted from _Software Foundations_. *)
 Coercion ELit : bool >-> expr.
@@ -232,13 +229,13 @@ Notation "'ite' e0 e1 e2" := (if e0 then e1 else e2)
                                     e1 custom oadt at level 0,
                                     e2 custom oadt at level 0).
 
-End syntax_notations.
+End expr_notations.
 
 
 (** ** Various Definitions *)
 Section definitions.
 
-Import syntax_notations.
+Import expr_notations.
 
 (** ** Indistinguishability *)
 
@@ -423,9 +420,9 @@ Definition open s e := open_ 0 s e.
 Hint Constructors indistinguishable : indistinguishable.
 
 (** ** Notations *)
-Module notations.
+Module syntax_notations.
 
-Export syntax_notations.
+Export expr_notations.
 
 Notation "e '≈' e'" := (indistinguishable e e') (at level 40).
 
@@ -439,6 +436,6 @@ Notation "{ x '↦' s }" := (subst x s) (at level 20).
 
 Notation "x # s" := (x ∉ stale s) (at level 40).
 
-End notations.
+End syntax_notations.
 
-End syntax.
+End M.

@@ -1,16 +1,15 @@
 From oadt Require Import prelude.
-From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.preservation.
 
 (** * Obliviousness *)
 (** The obliviousness metatheorem. Essentially a noninterference property. *)
 
-Module obliviousness (atom_sig : AtomSig).
+Module M (atom_sig : AtomSig).
 
-Module Export preservation := preservation atom_sig.
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
+Include preservation.M atom_sig.
+Import syntax_notations.
+Import semantics_notations.
+Import typing_notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -143,6 +142,30 @@ Proof.
   sfirstorder use: indistinguishable_otval_is_nf.
 Qed.
 
+(** The next few lemmas can be proved independently, but they can simply reduce
+to the indistinguishable counterparts. *)
+Lemma val_is_nf Σ v :
+  val v ->
+  nf (@step Σ) v.
+Proof.
+  qauto use: indistinguishable_val_is_nf solve: reflexivity.
+Qed.
+
+Lemma otval_is_nf Σ ω :
+  otval ω ->
+  nf (@step Σ) ω.
+Proof.
+  qauto use: indistinguishable_otval_is_nf solve: reflexivity.
+Qed.
+
+Lemma val_step Σ v e :
+  Σ ⊨ v -->! e ->
+  val v ->
+  False.
+Proof.
+  sfirstorder use: val_is_nf.
+Qed.
+
 Lemma otval_step Σ ω e :
   Σ ⊨ ω -->! e ->
   otval ω ->
@@ -150,6 +173,7 @@ Lemma otval_step Σ ω e :
 Proof.
   sfirstorder use: otval_is_nf.
 Qed.
+
 
 Ltac apply_canonical_form_ H τ :=
   lazymatch τ with
@@ -406,4 +430,4 @@ Proof.
   qauto use: indistinguishable_step, indistinguishable_deterministic.
 Qed.
 
-End obliviousness.
+End M.
