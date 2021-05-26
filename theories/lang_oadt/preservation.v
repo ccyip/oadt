@@ -278,8 +278,8 @@ Lemma typing_rename_lc Σ Γ e τ τ' x y :
   Σ; (<[y:=τ']>Γ) ⊢ e^y : τ.
 Proof.
   intros Hwf H. intros.
-  erewrite <- (open_lc_intro τ y) by eauto using typing_kind_lc.
-  erewrite <- (open_lc_intro τ x) in H by eauto using typing_kind_lc.
+  erewrite <- (open_lc_intro τ y) by eauto using typing_type_lc.
+  erewrite <- (open_lc_intro τ x) in H by eauto using typing_type_lc.
   eapply typing_rename; eauto.
 Qed.
 
@@ -402,10 +402,9 @@ Ltac typing_intro_ Σ T :=
   | Σ; _ ⊢ lit _ : _ => eapply TLit
   | Σ; _ ⊢ s𝔹 _ : _ => eapply TSec
   | Σ; _ ⊢ (_, _) : _ => eapply TPair
-  | Σ; _ ⊢ mux _ _ _ : _ => eapply TMux
+  | Σ; _ ⊢ ~if _ then _ else _ : _ => eapply TMux
   | Σ; _ ⊢ π@_ _ : _ => eapply TProj
-  | Σ; _ ⊢ inj@_<_> _ : _ => eapply TInj
-  | Σ; _ ⊢ ~inj@_<_> _ : _ => eapply TOInj
+  | Σ; _ ⊢ inj{_}@_<_> _ : _ => eapply TInj
   | Σ; _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
   | Σ; _ ⊢ fold<_> _ : _ => eapply TFold
   | Σ; _ ⊢ unfold<_> _ : _ => eapply TUnfold
@@ -420,8 +419,7 @@ Ltac kinding_intro_ Σ T :=
   lazymatch T with
   | Σ; _ ⊢ gvar _ :: _ => eapply KVarADT
   | Σ; _ ⊢ 𝟙 :: _ => eapply KUnit
-  | Σ; _ ⊢ 𝔹 :: _ => eapply KBool
-  | Σ; _ ⊢ ~𝔹 :: _ => eapply KOBool
+  | Σ; _ ⊢ 𝔹{_} :: _ => eapply KBool
   | Σ; _ ⊢ Π:_, _ :: _ => eapply KPi_intro
   | Σ; _ ⊢ (gvar _) _ :: _ => eapply KApp
   | Σ; _ ⊢ _ * _ :: _ => eapply KProd_intro
@@ -668,8 +666,8 @@ Lemma open_preservation_lc Σ x s τ' Γ e τ :
   Σ; Γ ⊢ e^s : τ.
 Proof.
   intros Hwf H. intros.
-  erewrite <- (open_lc_intro τ s) by eauto using typing_kind_lc.
-  erewrite <- (open_lc_intro τ x) in H by eauto using typing_kind_lc.
+  erewrite <- (open_lc_intro τ s) by eauto using typing_type_lc.
+  erewrite <- (open_lc_intro τ x) in H by eauto using typing_type_lc.
   eapply open_preservation; eauto.
 Qed.
 

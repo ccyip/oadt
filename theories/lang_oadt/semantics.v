@@ -85,31 +85,21 @@ well-formed. But it is more convenient to do so for the current purposes. *)
     expr_wf e1 ->
     expr_wf e2 ->
     expr_wf <{ let e1 in e2 }>
-| WfCase e0 e1 e2 :
+| WfCase l e0 e1 e2 :
     expr_wf e0 ->
     expr_wf e1 ->
     expr_wf e2 ->
-    expr_wf <{ case e0 of e1 | e2 }>
-| WfOCase e0 e1 e2 :
-    expr_wf e0 ->
-    expr_wf e1 ->
-    expr_wf e2 ->
-    expr_wf <{ ~case e0 of e1 | e2 }>
+    expr_wf <{ case{l} e0 of e1 | e2 }>
 | WfUnitT : expr_wf <{ 𝟙 }>
-| WfBool : expr_wf <{ 𝔹 }>
-| WfOBool : expr_wf <{ ~𝔹 }>
+| WfBool l : expr_wf <{ 𝔹{l} }>
 | WfProd τ1 τ2 :
     expr_wf τ1 ->
     expr_wf τ2 ->
     expr_wf <{ τ1 * τ2 }>
-| WfSum τ1 τ2 :
+| WfSum l τ1 τ2 :
     expr_wf τ1 ->
     expr_wf τ2 ->
-    expr_wf <{ τ1 + τ2 }>
-| WfOSum τ1 τ2 :
-    expr_wf τ1 ->
-    expr_wf τ2 ->
-    expr_wf <{ τ1 ~+ τ2 }>
+    expr_wf <{ τ1 +{l} τ2 }>
 | WfApp e1 e2 :
     expr_wf e1 ->
     expr_wf e2 ->
@@ -119,19 +109,11 @@ well-formed. But it is more convenient to do so for the current purposes. *)
 | WfSec e :
     expr_wf e ->
     expr_wf <{ s𝔹 e }>
-| WfRet e :
-    expr_wf e ->
-    expr_wf <{ r𝔹 e }>
-| WfIte e0 e1 e2 :
+| WfIte l e0 e1 e2 :
     expr_wf e0 ->
     expr_wf e1 ->
     expr_wf e2 ->
-    expr_wf <{ if e0 then e1 else e2 }>
-| WfMux e0 e1 e2 :
-    expr_wf e0 ->
-    expr_wf e1 ->
-    expr_wf e2 ->
-    expr_wf <{ mux e0 e1 e2 }>
+    expr_wf <{ if{l} e0 then e1 else e2 }>
 | WfPair e1 e2 :
     expr_wf e1 ->
     expr_wf e2 ->
@@ -139,14 +121,10 @@ well-formed. But it is more convenient to do so for the current purposes. *)
 | WfProj b e :
     expr_wf e ->
     expr_wf <{ π@b e }>
-| WfInj b τ e :
+| WfInj l b τ e :
     expr_wf τ ->
     expr_wf e ->
-    expr_wf <{ inj@b<τ> e }>
-| WfOInj b τ e :
-    expr_wf τ ->
-    expr_wf e ->
-    expr_wf <{ ~inj@b<τ> e }>
+    expr_wf <{ inj{l}@b<τ> e }>
 | WfFold X e :
     expr_wf e ->
     expr_wf <{ fold<X> e }>
@@ -178,19 +156,17 @@ Inductive ectx : (expr -> expr) -> Prop :=
 | CtxApp2 v2 : val v2 -> ectx (fun e1 => <{ e1 v2 }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
 | CtxSec : ectx (fun e => <{ s𝔹 e }>)
-| CtxRet : ectx (fun e => <{ r𝔹 e }>)
 | CtxIte e1 e2 : ectx (fun e0 => <{ if e0 then e1 else e2 }>)
-| CtxMux1 e1 e2 : ectx (fun e0 => <{ mux e0 e1 e2 }>)
-| CtxMux2 v0 e2 : val v0 -> ectx (fun e1 => <{ mux v0 e1 e2 }>)
-| CtxMux3 v0 v1 : val v0 -> val v1 -> ectx (fun e2 => <{ mux v0 v1 e2 }>)
+| CtxMux1 e1 e2 : ectx (fun e0 => <{ ~if e0 then e1 else e2 }>)
+| CtxMux2 v0 e2 : val v0 -> ectx (fun e1 => <{ ~if v0 then e1 else e2 }>)
+| CtxMux3 v0 v1 : val v0 -> val v1 -> ectx (fun e2 => <{ ~if v0 then v1 else e2 }>)
 | CtxPair1 e2 : ectx (fun e1 => <{ (e1, e2) }>)
 | CtxPair2 v1 : val v1 -> ectx (fun e2 => <{ (v1, e2) }>)
 | CtxProj b : ectx (fun e => <{ π@b e }>)
 | CtxInj b τ : ectx (fun e => <{ inj@b<τ> e }>)
-| CtxCase e1 e2: ectx (fun e0 => <{ case e0 of e1 | e2 }>)
 | CtxOInj1 b e : ectx (fun τ => <{ ~inj@b<τ> e }>)
 | CtxOInj2 b ω : otval ω -> ectx (fun e => <{ ~inj@b<ω> e }>)
-| CtxOCase e1 e2: ectx (fun e0 => <{ ~case e0 of e1 | e2 }>)
+| CtxCase l e1 e2: ectx (fun e0 => <{ case{l} e0 of e1 | e2 }>)
 | CtxFold X : ectx (fun e => <{ fold<X> e }>)
 | CtxUnfold X : ectx (fun e => <{ unfold<X> e }>)
 .
@@ -217,7 +193,7 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
     otval ω1 -> otval ω2 -> val v ->
     oval v1 ω1 -> oval v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
-      <{ mux [b] (ite b (e1^v) (e1^v1)) (ite b (e2^v2) (e2^v)) }>
+      <{ ~if [b] then (ite b (e1^v) (e1^v1)) else (ite b (e2^v2) (e2^v)) }>
 | SAppOADT X τ e v :
     val v ->
     Σ !! X = Some (DOADT τ e) ->
@@ -234,7 +210,7 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
 we can check [v1] and [v2] are oblivious values in this rule. *)
 | SMux b v1 v2 :
     val v1 -> val v2 ->
-    <{ mux [b] v1 v2 }> -->! <{ ite b v1 v2 }>
+    <{ ~if [b] then v1 else v2 }> -->! <{ ite b v1 v2 }>
 | SProj b v1 v2 :
     val v1 -> val v2 ->
     <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
@@ -243,9 +219,6 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
     <{ unfold<X> (fold <X'> v) }> -->! v
 | SSec b :
     <{ s𝔹 b }> -->! <{ [b] }>
-(** Delimited release [b] *)
-| SRet b :
-    <{ r𝔹 [b] }> -->! <{ b }>
 (** Step under evaluation context *)
 | SCtx ℇ e e' :
     ectx ℇ ->

@@ -40,12 +40,10 @@ Qed.
 expressions later. *)
 Inductive whnf {Σ : gctx} : expr -> Prop :=
 | WUnitT : whnf <{ 𝟙 }>
-| WBool : whnf <{ 𝔹 }>
-| WOBool : whnf <{ ~𝔹 }>
+| WBool{l} : whnf <{ 𝔹{l} }>
 | WPi τ1 τ2 : whnf <{ Π:τ1, τ2 }>
 | WProd τ1 τ2 : whnf <{ τ1 * τ2 }>
-| WSum τ1 τ2 : whnf <{ τ1 + τ2 }>
-| WOSum τ1 τ2 : whnf <{ τ1 ~+ τ2 }>
+| WSum l τ1 τ2 : whnf <{ τ1 +{l} τ2 }>
 | WADT X τ :
     Σ !! X = Some (DADT τ) ->
     whnf <{ gvar X }>
@@ -57,8 +55,7 @@ Hint Constructors whnf : whnf.
 always assumes that the two type arguments are already in [whnf]. *)
 Inductive whnf_equiv {Σ : gctx} : expr -> expr -> Prop :=
 | WEqUnitT : whnf_equiv <{ 𝟙 }> <{ 𝟙 }>
-| WEqBool : whnf_equiv <{ 𝔹 }> <{ 𝔹 }>
-| WEqOBool : whnf_equiv <{ ~𝔹 }> <{ ~𝔹 }>
+| WEqBool l : whnf_equiv <{ 𝔹{l} }> <{ 𝔹{l} }>
 | WEqPi τ1 τ2 τ1' τ2' :
     Σ ⊢ τ1 ≡ τ1' ->
     Σ ⊢ τ2 ≡ τ2' ->
@@ -67,14 +64,10 @@ Inductive whnf_equiv {Σ : gctx} : expr -> expr -> Prop :=
     Σ ⊢ τ1 ≡ τ1' ->
     Σ ⊢ τ2 ≡ τ2' ->
     whnf_equiv <{ τ1 * τ2 }> <{ τ1' * τ2' }>
-| WEqSum τ1 τ2 τ1' τ2' :
+| WEqSum l τ1 τ2 τ1' τ2' :
     Σ ⊢ τ1 ≡ τ1' ->
     Σ ⊢ τ2 ≡ τ2' ->
-    whnf_equiv <{ τ1 + τ2 }> <{ τ1' + τ2' }>
-| WEqOSum τ1 τ2 τ1' τ2' :
-    Σ ⊢ τ1 ≡ τ1' ->
-    Σ ⊢ τ2 ≡ τ2' ->
-    whnf_equiv <{ τ1 ~+ τ2 }> <{ τ1' ~+ τ2' }>
+    whnf_equiv <{ τ1 +{l} τ2 }> <{ τ1' +{l} τ2' }>
 | WEqADT X : whnf_equiv <{ gvar X }> <{ gvar X }>
 .
 Arguments whnf_equiv : clear implicits.
@@ -216,7 +209,7 @@ Tactic Notation "kind_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?τ :: _ -> _ => remember τ
   end;
-  induction 1; subst; simp_hyps; try scongruence;
+  induction 1; subst; simp_hyps; simplify_eq;
   tac.
 
 Tactic Notation "kind_inv_solver" :=
@@ -286,9 +279,10 @@ Proof.
   kind_inv_solver.
 Qed.
 
-Lemma kind_inv_ite Σ Γ e0 τ1 τ2 κ :
-  Σ; Γ ⊢ if e0 then τ1 else τ2 :: κ ->
+Lemma kind_inv_ite Σ Γ l e0 τ1 τ2 κ :
+  Σ; Γ ⊢ if{l} e0 then τ1 else τ2 :: κ ->
   <{ *@O }> ⊑ κ /\
+  l = ⊥ /\
   Σ; Γ ⊢ e0 : 𝔹 /\
   Σ; Γ ⊢ τ1 :: *@O /\
   Σ; Γ ⊢ τ2 :: *@O.
@@ -306,9 +300,10 @@ Proof.
   kind_inv_solver.
 Qed.
 
-Lemma kind_inv_case Σ Γ e0 τ1 τ2 κ :
-  Σ; Γ ⊢ case e0 of τ1 | τ2 :: κ ->
+Lemma kind_inv_case Σ Γ l e0 τ1 τ2 κ :
+  Σ; Γ ⊢ case{l} e0 of τ1 | τ2 :: κ ->
   <{ *@O }> ⊑ κ /\
+  l = ⊥ /\
   exists τ1' τ2' L1 L2,
     Σ; Γ ⊢ e0 : τ1' + τ2' /\
     (forall x, x ∉ L1 -> Σ; (<[x:=τ1']> Γ) ⊢ τ1^x :: *@O) /\
@@ -318,19 +313,13 @@ Proof.
 Qed.
 
 Lemma kind_inv_mux Σ Γ e0 e1 e2 κ :
-  Σ; Γ ⊢ mux e0 e1 e2 :: κ -> False.
+  Σ; Γ ⊢ ~if e0 then e1 else e2 :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_sec Σ Γ e κ :
   Σ; Γ ⊢ s𝔹 e :: κ -> False.
-Proof.
-  kind_inv_solver.
-Qed.
-
-Lemma kind_inv_ret Σ Γ e κ :
-  Σ; Γ ⊢ r𝔹 e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
@@ -347,14 +336,8 @@ Proof.
   kind_inv_solver.
 Qed.
 
-Lemma kind_inv_inj Σ Γ b τ e κ :
-  Σ; Γ ⊢ inj@b<τ> e :: κ -> False.
-Proof.
-  kind_inv_solver.
-Qed.
-
-Lemma kind_inv_oinj Σ Γ b τ e κ :
-  Σ; Γ ⊢ ~inj@b<τ> e :: κ -> False.
+Lemma kind_inv_inj Σ Γ l b τ e κ :
+  Σ; Γ ⊢ inj{l}@b<τ> e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
@@ -387,16 +370,14 @@ Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ _ + _ :: _ => tac kind_inv_sum
   | _; _ ⊢ _ ~+ _ :: _ => tac kind_inv_osum
   | _; _ ⊢ gvar _ :: _ => tac kind_inv_gvar
-  | _; _ ⊢ if _ then _ else _ :: _ => tac kind_inv_ite
-  | _; _ ⊢ case _ of _ | _ :: _ => tac kind_inv_case
-  | _; _ ⊢ mux _ _ _ :: _ => apply kind_inv_mux in H; elim H
+  | _; _ ⊢ ~if _ then _ else _ :: _ => apply kind_inv_mux in H; elim H
+  | _; _ ⊢ if{_} _ then _ else _ :: _ => tac kind_inv_ite
+  | _; _ ⊢ ~case _ of _ | _ :: _ => apply kind_inv_ocase in H; elim H
+  | _; _ ⊢ case{_} _ of _ | _ :: _ => tac kind_inv_case
   | _; _ ⊢ s𝔹 _ :: _ => apply kind_inv_sec in H; elim H
-  | _; _ ⊢ r𝔹 _ :: _ => apply kind_inv_ret in H; elim H
   | _; _ ⊢ (_, _) :: _ => apply kind_inv_pair in H; elim H
   | _; _ ⊢ π@_ _ :: _ => apply kind_inv_proj in H; elim H
-  | _; _ ⊢ inj@_<_> _ :: _ => apply kind_inv_inj in H; elim H
-  | _; _ ⊢ ~inj@_<_> _ :: _ => apply kind_inv_oinj in H; elim H
-  | _; _ ⊢ ~case _ of _ | _ :: _ => apply kind_inv_ocase in H; elim H
+  | _; _ ⊢ inj{_}@_<_> _ :: _ => apply kind_inv_inj in H; elim H
   | _; _ ⊢ fold<_> _ :: _ => apply kind_inv_fold in H; elim H
   | _; _ ⊢ unfold<_> _ :: _ => apply kind_inv_unfold in H; elim H
   end.
@@ -415,7 +396,7 @@ Tactic Notation "type_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?e : _ -> _ => remember e
   end;
-  induction 1; subst; simp_hyps; try scongruence;
+  induction 1; subst; simp_hyps; simplify_eq;
   tac.
 
 Tactic Notation "type_inv_solver" :=
@@ -464,24 +445,13 @@ Proof.
   type_inv_solver.
 Qed.
 
-Lemma type_inv_inj Σ Γ b e τ' τ :
-  Σ; Γ ⊢ inj@b<τ'> e : τ ->
+Lemma type_inv_inj Σ Γ l b e τ' τ :
+  Σ; Γ ⊢ inj{l}@b<τ'> e : τ ->
   exists τ1 τ2,
-    τ' = <{ τ1 + τ2 }> /\
-    Σ; Γ ⊢ τ1 + τ2 :: *@P /\
+    τ' = <{ τ1 +{l} τ2 }> /\
+    Σ; Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P /\
     Σ; Γ ⊢ e : ite b τ1 τ2 /\
-    Σ ⊢ τ ≡ τ1 + τ2.
-Proof.
-  type_inv_solver.
-Qed.
-
-Lemma type_inv_oinj Σ Γ b e τ' τ :
-  Σ; Γ ⊢ ~inj@b<τ'> e : τ ->
-  exists τ1 τ2,
-    τ' = <{ τ1 ~+ τ2 }> /\
-    Σ; Γ ⊢ τ1 ~+ τ2 :: *@O /\
-    Σ; Γ ⊢ e : ite b τ1 τ2 /\
-    Σ ⊢ τ ≡ τ1 ~+ τ2.
+    Σ ⊢ τ ≡ τ1 +{l} τ2.
 Proof.
   type_inv_solver.
 Qed.
@@ -514,6 +484,18 @@ Proof.
                            ctrs: oval inv: oval.
 Qed.
 
+Lemma type_inv_case Σ Γ l e0 e1 e2 τ :
+  Σ; Γ ⊢ case{l} e0 of e1 | e2 : τ ->
+  exists τ1 τ2 τ' κ L1 L2,
+    Σ; Γ ⊢ τ' :: κ /\
+    Σ; Γ ⊢ e0 : τ1 +{l} τ2 /\
+    (forall x, x ∉ L1 -> Σ; (<[x:=τ1]> Γ) ⊢ e1^x : τ') /\
+    (forall x, x ∉ L2 -> Σ; (<[x:=τ2]> Γ) ⊢ e2^x : τ') /\
+    Σ ⊢ τ ≡ τ'.
+Proof.
+  type_inv_solver.
+Qed.
+
 Lemma type_inv_ocase Σ Γ e0 e1 e2 τ :
   Σ; Γ ⊢ ~case e0 of e1 | e2 : τ ->
   exists τ1 τ2 τ' L1 L2,
@@ -532,8 +514,8 @@ Proof.
   type_inv_solver.
 Qed.
 
-Lemma type_inv_osum Σ Γ τ1 τ2 τ :
-  Σ; Γ ⊢ τ1 ~+ τ2 : τ -> False.
+Lemma type_inv_sum Σ Γ l τ1 τ2 τ :
+  Σ; Γ ⊢ τ1 +{l} τ2 : τ -> False.
 Proof.
   type_inv_solver.
 Qed.
@@ -566,16 +548,10 @@ Proof.
   type_inv_solver.
 Qed.
 
-Lemma type_inv_ret Σ Γ e τ :
-  Σ; Γ ⊢ r𝔹 e : τ -> False.
-Proof.
-  type_inv_solver.
-Qed.
-
-Lemma type_inv_ite Σ Γ e0 e1 e2 τ :
-  Σ; Γ ⊢ if e0 then e1 else e2 : τ ->
+Lemma type_inv_ite Σ Γ l e0 e1 e2 τ :
+  Σ; Γ ⊢ if{l} e0 then e1 else e2 : τ ->
   exists τ',
-    Σ; Γ ⊢ e0 : 𝔹 /\
+    Σ; Γ ⊢ e0 : 𝔹{l} /\
     Σ; Γ ⊢ e1 : τ' /\
     Σ; Γ ⊢ e2 : τ' /\
     Σ ⊢ τ ≡ τ'.
@@ -584,7 +560,7 @@ Proof.
 Qed.
 
 Lemma type_inv_mux Σ Γ e0 e1 e2 τ :
-  Σ; Γ ⊢ mux e0 e1 e2 : τ ->
+  Σ; Γ ⊢ ~if e0 then e1 else e2 : τ ->
   exists τ',
     Σ; Γ ⊢ e0 : ~𝔹 /\
     Σ; Γ ⊢ e1 : τ' /\
@@ -600,18 +576,6 @@ Lemma type_inv_proj Σ Γ b e τ :
   exists τ1 τ2,
     Σ; Γ ⊢ e : τ1 * τ2 /\
     Σ ⊢ τ ≡ ite b τ1 τ2.
-Proof.
-  type_inv_solver.
-Qed.
-
-Lemma type_inv_case Σ Γ e0 e1 e2 τ :
-  Σ; Γ ⊢ case e0 of e1 | e2 : τ ->
-  exists τ1 τ2 τ' κ L1 L2,
-    Σ; Γ ⊢ τ' :: κ /\
-    Σ; Γ ⊢ e0 : τ1 + τ2 /\
-    (forall x, x ∉ L1 -> Σ; (<[x:=τ1]> Γ) ⊢ e1^x : τ') /\
-    (forall x, x ∉ L2 -> Σ; (<[x:=τ2]> Γ) ⊢ e2^x : τ') /\
-    Σ ⊢ τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
@@ -636,20 +600,18 @@ Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ let _ in _ : _ => tac type_inv_let
   | _; _ ⊢ (_, _) : _ => tac type_inv_pair
   | _; _ ⊢ s𝔹 _ : _ => tac type_inv_sec
-  | _; _ ⊢ r𝔹 _ : _ => apply type_inv_ret in H; elim H
   | _; _ ⊢ π@_ _ : _ => tac type_inv_proj
-  | _; _ ⊢ inj@_<_> _ : _ => tac type_inv_inj
-  | _; _ ⊢ ~inj@_<_> _ : _ => tac type_inv_oinj
+  | _; _ ⊢ inj{_}@_<_> _ : _ => tac type_inv_inj
+  | _; _ ⊢ ~if _ then _ else _ : _ => tac type_inv_mux
   | _; _ ⊢ if _ then _ else _ : _ => tac type_inv_ite
-  | _; _ ⊢ mux _ _ _ : _ => tac type_inv_mux
-  | _; _ ⊢ case _ of _ | _ : _ => tac type_inv_case
   | _; _ ⊢ ~case _ of _ | _ : _ => tac type_inv_ocase
+  | _; _ ⊢ case{_} _ of _ | _ : _ => tac type_inv_case
   | _; _ ⊢ fold<_> _ : _ => tac type_inv_fold
   | _; _ ⊢ unfold<_> _ : _ => tac type_inv_unfold
   | _; _ ⊢ [_] : _ => tac type_inv_boxedlit
   | _; _ ⊢ [inj@_<_> _] : _ => tac type_inv_boxedinj
   | _; _ ⊢ _ * _ : _ => apply type_inv_prod in H; elim H
-  | _; _ ⊢ _ ~+ _ : _ => apply type_inv_osum in H; elim H
+  | _; _ ⊢ _ +{_} _ : _ => apply type_inv_sum in H; elim H
   end.
 
 Tactic Notation "apply_type_inv" hyp(H) :=

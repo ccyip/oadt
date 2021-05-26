@@ -61,7 +61,15 @@ Section set.
 
 End set.
 
+(** * More Instances *)
+
+Instance bool_top : Top bool := true.
+Arguments bool_top /.
+Instance bool_bot : Bottom bool := false.
+Arguments bool_bot /.
+
 
 (** * Custom Grammar *)
+
 Declare Custom Entry oadt.
 Declare Custom Entry oadt_def.

@@ -122,33 +122,42 @@ Inductive typing (Σ : gctx) : tctx -> expr -> expr -> Prop :=
 | TSec Γ e :
     Γ ⊢ e : 𝔹 ->
     Γ ⊢ s𝔹 e : ~𝔹
-| TPair Γ e1 e2 τ1 τ2 :
-    Γ ⊢ e1 : τ1 ->
-    Γ ⊢ e2 : τ2 ->
-    Γ ⊢ (e1, e2) : τ1 * τ2
+(* TODO: Propagate the conditions. *)
+| TIte Γ e0 e1 e2 τ :
+    Γ ⊢ e0 : 𝔹 ->
+    Γ ⊢ e1 : τ ->
+    Γ ⊢ e2 : τ ->
+    Γ ⊢ if e0 then e1 else e2 : τ
 | TMux Γ e0 e1 e2 τ :
     Γ ⊢ e0 : ~𝔹 ->
     Γ ⊢ e1 : τ ->
     Γ ⊢ e2 : τ ->
     Γ ⊢ τ :: *@O ->
-    Γ ⊢ mux e0 e1 e2 : τ
-| TProj Γ b e τ1 τ2 :
-    Γ ⊢ e : τ1 * τ2 ->
-    Γ ⊢ π@b e : ite b τ1 τ2
-| TInj Γ b e τ1 τ2 :
+    Γ ⊢ ~if e0 then e1 else e2 : τ
+| TInj Γ l b e τ1 τ2 :
     Γ ⊢ e : ite b τ1 τ2 ->
-    Γ ⊢ τ1 + τ2 :: *@P ->
-    Γ ⊢ inj@b<τ1 + τ2> e : τ1 + τ2
-| TOInj Γ b e τ1 τ2 :
-    Γ ⊢ e : ite b τ1 τ2 ->
-    Γ ⊢ τ1 ~+ τ2 :: *@O ->
-    Γ ⊢ ~inj@b<τ1 ~+ τ2> e : τ1 ~+ τ2
+    Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P ->
+    Γ ⊢ inj{l}@b<τ1 +{l} τ2> e : τ1 +{l} τ2
+(* TODO: Propagate the conditions. *)
+| TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
+    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+    Γ ⊢ e0 : τ1 + τ2 ->
+    Γ ⊢ τ :: κ ->
+    Γ ⊢ case e0 of e1 | e2 : τ
 | TOCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
     (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
     (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
     Γ ⊢ e0 : τ1 ~+ τ2 ->
     Γ ⊢ τ :: *@O ->
     Γ ⊢ ~case e0 of e1 | e2 : τ
+| TPair Γ e1 e2 τ1 τ2 :
+    Γ ⊢ e1 : τ1 ->
+    Γ ⊢ e2 : τ2 ->
+    Γ ⊢ (e1, e2) : τ1 * τ2
+| TProj Γ b e τ1 τ2 :
+    Γ ⊢ e : τ1 * τ2 ->
+    Γ ⊢ π@b e : ite b τ1 τ2
 | TFold Γ X e τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e : τ ->
@@ -157,19 +166,6 @@ Inductive typing (Σ : gctx) : tctx -> expr -> expr -> Prop :=
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e : gvar X ->
     Γ ⊢ unfold<X> e : τ
-(* TODO: [TIte] and [TCase] are not expressive enough. Need to infer the motive
-and do substitution in [τ]. *)
-| TIte Γ e0 e1 e2 τ :
-    Γ ⊢ e0 : 𝔹 ->
-    Γ ⊢ e1 : τ ->
-    Γ ⊢ e2 : τ ->
-    Γ ⊢ if e0 then e1 else e2 : τ
-| TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
-    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
-    Γ ⊢ e0 : τ1 + τ2 ->
-    Γ ⊢ τ :: κ ->
-    Γ ⊢ case e0 of e1 | e2 : τ
 (** Typing for runtime expressions is for metatheories. These expressions do not
 appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
@@ -189,8 +185,7 @@ with kinding (Σ : gctx) : tctx -> expr -> kind -> Prop :=
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ gvar X :: *@P
 | KUnit Γ : Γ ⊢ 𝟙 :: *@A
-| KBool Γ : Γ ⊢ 𝔹 :: *@P
-| KOBool Γ : Γ ⊢ ~𝔹 :: *@O
+| KBool Γ l : Γ ⊢ 𝔹{l} :: ite l *@O *@P
 | KPi Γ τ1 τ2 κ1 κ2 L :
     (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ τ2^x :: κ2) ->
     Γ ⊢ τ1 :: κ1 ->

@@ -356,6 +356,34 @@ Proof.
   qauto use: progress solve: val_step_absurd.
 Qed.
 
+Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
+  lazymatch type of H with
+  | _; _ ⊢ Π:_, _ :: _ => tac kind_inv_pi
+  | _; _ ⊢ 𝔹 :: _ => tac kind_inv_bool
+  | _; _ ⊢ _ _ :: _ => tac kind_inv_app
+  | _; _ ⊢ let _ in _ :: _ => tac kind_inv_let
+  | _; _ ⊢ _ * _ :: _ => tac kind_inv_prod
+  | _; _ ⊢ _ + _ :: _ => tac kind_inv_sum
+  | _; _ ⊢ _ ~+ _ :: _ => tac kind_inv_osum
+  | _; _ ⊢ gvar _ :: _ => tac kind_inv_gvar
+  | _; _ ⊢ ~if _ then _ else _ :: _ => apply kind_inv_mux in H; elim H
+  | _; _ ⊢ if _ then _ else _ :: _ => tac kind_inv_ite
+  | _; _ ⊢ ~case _ of _ | _ :: _ => apply kind_inv_ocase in H; elim H
+  | _; _ ⊢ case{_} _ of _ | _ :: _ => tac kind_inv_case
+  | _; _ ⊢ s𝔹 _ :: _ => apply kind_inv_sec in H; elim H
+  | _; _ ⊢ (_, _) :: _ => apply kind_inv_pair in H; elim H
+  | _; _ ⊢ π@_ _ :: _ => apply kind_inv_proj in H; elim H
+  | _; _ ⊢ inj{_}@_<_> _ :: _ => apply kind_inv_inj in H; elim H
+  | _; _ ⊢ fold<_> _ :: _ => apply kind_inv_fold in H; elim H
+  | _; _ ⊢ unfold<_> _ :: _ => apply kind_inv_unfold in H; elim H
+  end.
+
+Tactic Notation "apply_kind_inv" hyp(H) :=
+  apply_kind_inv H by (fun lem => apply lem in H; try simp_hyp H).
+
+Tactic Notation "apply_kind_inv" :=
+  do_hyps (fun H => try apply_kind_inv H).
+
 Theorem indistinguishable_deterministic Σ e1 e1' e2 e2' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
@@ -391,8 +419,7 @@ Proof.
       try qauto rew: off use: indistinguishable_open solve: reflexivity.
 
   (* Step from oblivious case to mux *)
-  -
-    repeat
+  - repeat
       match goal with
       | H : oval ?v _ |- _ => head_constructor v; sinvert H
       end.

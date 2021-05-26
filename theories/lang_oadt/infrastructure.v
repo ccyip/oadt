@@ -31,32 +31,23 @@ Inductive lc : expr -> Prop :=
 | LCLet e1 e2 L :
     (forall x, x ∉ L -> lc <{ e2^x }>) ->
     lc e1 -> lc <{ let e1 in e2 }>
-| LCCase e0 e1 e2 L1 L2 :
+| LCCase l e0 e1 e2 L1 L2 :
     (forall x, x ∉ L1 -> lc <{ e1^x }>) ->
     (forall x, x ∉ L2 -> lc <{ e2^x }>) ->
-    lc e0 -> lc <{ case e0 of e1 | e2 }>
-| LCOCase e0 e1 e2 L1 L2 :
-    (forall x, x ∉ L1 -> lc <{ e1^x }>) ->
-    (forall x, x ∉ L2 -> lc <{ e2^x }>) ->
-    lc e0 -> lc <{ ~case e0 of e1 | e2 }>
+    lc e0 -> lc <{ case{l} e0 of e1 | e2 }>
 (** Congruence rules *)
 | LCUnitT : lc <{ 𝟙 }>
-| LCBool : lc <{ 𝔹 }>
-| LCOBool : lc <{ ~𝔹 }>
+| LCBool l : lc <{ 𝔹{l} }>
 | LCProd τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 * τ2 }>
-| LCSum τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 + τ2 }>
-| LCOSum τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 ~+ τ2 }>
+| LCSum l τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 +{l} τ2 }>
 | LCApp e1 e2 : lc e1 -> lc e2 -> lc <{ e1 e2 }>
 | LCUnitV : lc <{ () }>
 | LCLit b : lc <{ lit b }>
 | LCSec e : lc e -> lc <{ s𝔹 e }>
-| LCRet e : lc e -> lc <{ r𝔹 e }>
-| LCIte e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if e0 then e1 else e2 }>
-| LCMux e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ mux e0 e1 e2 }>
+| LCIte l e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if{l} e0 then e1 else e2 }>
 | LCPair e1 e2 : lc e1 -> lc e2 -> lc <{ (e1, e2) }>
 | LCProj b e : lc e -> lc <{ π@b e }>
-| LCInj b τ e : lc τ -> lc e -> lc <{ inj@b<τ> e }>
-| LCOInj b τ e : lc τ -> lc e -> lc <{ ~inj@b<τ> e }>
+| LCInj l b τ e : lc τ -> lc e -> lc <{ inj{l}@b<τ> e }>
 | LCFold X e : lc e -> lc <{ fold<X> e }>
 | LCUnfold X e : lc e -> lc <{ unfold<X> e }>
 | LCBoxedLit b : lc <{ [b] }>
@@ -69,17 +60,15 @@ Fixpoint fv (e : expr) : aset :=
   match e with
   | <{ fvar x }> => {[x]}
   (* Congruence rules *)
-  | <{ \:τ => e }>
-  | <{ inj@_<τ> e }> | <{ ~inj@_<τ> e }> | <{ [inj@_<τ> e] }> =>
+  | <{ \:τ => e }> | <{ inj{_}@_<τ> e }> | <{ [inj@_<τ> e] }> =>
     fv τ ∪ fv e
-  | <{ Π:τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 + τ2 }> | <{ τ1 ~+ τ2 }> =>
+  | <{ Π:τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 +{_} τ2 }> =>
     fv τ1 ∪ fv τ2
   | <{ let e1 in e2 }> | <{ (e1, e2) }> | <{ e1 e2 }> =>
     fv e1 ∪ fv e2
-  | <{ case e0 of e1 | e2 }> | <{ ~case e0 of e1 | e2 }>
-  | <{ if e0 then e1 else e2 }> | <{ mux e0 e1 e2 }> =>
+  | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }> =>
     fv e0 ∪ fv e1 ∪ fv e2
-  | <{ s𝔹 e }> | <{ r𝔹 e }> | <{ π@_ e }>
+  | <{ s𝔹 e }> | <{ π@_ e }>
   | <{ fold<_> e }> | <{ unfold<_> e }> =>
     fv e
   | _ => ∅
@@ -305,7 +294,7 @@ Proof.
 Qed.
 
 (** The type of well-typed expression is also locally closed. *)
-Lemma typing_kind_lc Σ Γ e τ :
+Lemma typing_type_lc Σ Γ e τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ e : τ ->
   lc τ.
