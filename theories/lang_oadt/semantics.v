@@ -189,8 +189,6 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
     <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
 (** The most interesting rule *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
-    (* TODO: do we need these 3 assumptions? *)
-    otval ω1 -> otval ω2 -> val v ->
     oval v1 ω1 -> oval v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
       <{ ~if [b] then (ite b (e1^v) (e1^v1)) else (ite b (e2^v2) (e2^v)) }>
