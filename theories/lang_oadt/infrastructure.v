@@ -1,13 +1,13 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.typing.
 
 (** * Infrastructure *)
 (** Definitions and lemmas related to locally nameless representation and free
 variables. *)
 
-Module M (atom_sig : AtomSig).
+Module M (sig : OADTSig).
 
-Include typing.M atom_sig.
+Include typing.M sig.
 Import syntax_notations.
 Import semantics_notations.
 Import typing_notations.
@@ -98,13 +98,13 @@ Definition gctx_wf (Σ : gctx) :=
   map_Forall (fun _ D =>
                 match D with
                 | DADT τ =>
-                  Σ; ∅ ⊢ τ :: *@P
+                  Σ; ∅; ∅ ⊢ τ :: *@P
                 | DOADT τ e =>
-                  Σ; ∅ ⊢ τ :: *@P /\
-                  exists L, forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O
+                  Σ; ∅; ∅ ⊢ τ :: *@P /\
+                  exists L, forall x, x ∉ L -> Σ; ∅; ({[x:=τ]}) ⊢ e^x :: *@O
                 | DFun τ e =>
-                  Σ; ∅ ⊢ e : τ /\
-                  exists κ, Σ; ∅ ⊢ τ :: κ
+                  Σ; ∅; ∅ ⊢ e : τ /\
+                  exists κ, Σ; ∅; ∅ ⊢ τ :: κ
                 end) Σ.
 
 (** ** Properties of openness *)
@@ -240,11 +240,11 @@ Proof.
 Qed.
 
 (** Well-typed and well-kinded expressions are locally closed. *)
-Lemma typing_lc Σ Γ e τ :
-  Σ; Γ ⊢ e : τ ->
+Lemma typing_lc Σ Φ Γ e τ :
+  Σ; Φ; Γ ⊢ e : τ ->
   lc e
-with kinding_lc  Σ Γ τ κ :
-  Σ; Γ ⊢ τ :: κ ->
+with kinding_lc Σ Φ Γ τ κ :
+  Σ; Φ; Γ ⊢ τ :: κ ->
   lc τ.
 Proof.
   all: destruct 1; try hauto q: on rew: off ctrs: lc use: oval_lc;
@@ -294,9 +294,9 @@ Proof.
 Qed.
 
 (** The type of well-typed expression is also locally closed. *)
-Lemma typing_type_lc Σ Γ e τ :
+Lemma typing_type_lc Σ Φ Γ e τ :
   gctx_wf Σ ->
-  Σ; Γ ⊢ e : τ ->
+  Σ; Φ; Γ ⊢ e : τ ->
   lc τ.
 Proof.
   intros Hwf.
@@ -305,7 +305,7 @@ Proof.
       lazymatch goal with
       | H : Σ !! _ = Some _ |- _ =>
         apply Hwf in H; simp_hyps; eauto using kinding_lc
-      | H : _; _ ⊢ _ : _ |- _ => apply typing_lc in H
+      | H : _; _; _ ⊢ _ : _ |- _ => apply typing_lc in H
       | H : oval _ _ |- _ => apply oval_lc in H
       end;
     qauto use: lc_open_atom_lc inv: lc simp: simpl_cofin?.
@@ -536,26 +536,26 @@ Smpl Add simpl_fv_core : fv.
 
 (** Well-typed and well-kinded terms are closed under typing context. *)
 Lemma typing_kinding_fv Σ :
-  (forall Γ e τ,
-      Σ; Γ ⊢ e : τ ->
+  (forall Φ Γ e τ,
+      Σ; Φ; Γ ⊢ e : τ ->
       fv e ⊆ dom aset Γ) /\
-  (forall Γ τ κ,
-      Σ; Γ ⊢ τ :: κ ->
+  (forall Φ Γ τ κ,
+      Σ; Φ; Γ ⊢ τ :: κ ->
       fv τ ⊆ dom aset Γ).
 Proof.
   apply typing_kinding_mutind; intros; simpl in *;
     simpl_cofin?; simpl_fv; fast_set_solver*!.
 Qed.
 
-Lemma typing_fv Σ Γ e τ :
-  Σ; Γ ⊢ e : τ ->
+Lemma typing_fv Σ Φ Γ e τ :
+  Σ; Φ; Γ ⊢ e : τ ->
   fv e ⊆ dom aset Γ.
 Proof.
   qauto use: typing_kinding_fv.
 Qed.
 
-Lemma kinding_fv Σ Γ τ κ :
-  Σ; Γ ⊢ τ :: κ ->
+Lemma kinding_fv Σ Φ Γ τ κ :
+  Σ; Φ; Γ ⊢ τ :: κ ->
   fv τ ⊆ dom aset Γ.
 Proof.
   qauto use: typing_kinding_fv.
@@ -563,9 +563,9 @@ Qed.
 
 Ltac simpl_typing_kinding_fv :=
   match goal with
-  | H : _; _ ⊢ _ : _ |- _ =>
+  | H : _; _; _ ⊢ _ : _ |- _ =>
     dup_hyp! H (fun H => apply typing_fv in H)
-  | H : _; _ ⊢ _ :: _ |- _ =>
+  | H : _; _; _ ⊢ _ :: _ |- _ =>
     dup_hyp! H (fun H => apply kinding_fv in H)
   end.
 Smpl Add simpl_typing_kinding_fv : fv.
@@ -592,9 +592,9 @@ Ltac simpl_wf_fv :=
 Smpl Add simpl_wf_fv : fv.
 
 (** Lemmas about the free variables in the type of a well-typed term. *)
-Lemma typing_type_fv Σ Γ e τ :
+Lemma typing_type_fv Σ Φ Γ e τ :
   gctx_wf Σ ->
-  Σ; Γ ⊢ e : τ ->
+  Σ; Φ; Γ ⊢ e : τ ->
   fv τ ⊆ dom aset Γ.
 Proof.
   intros Hwf.
@@ -604,7 +604,7 @@ Qed.
 
 Ltac simpl_typing_type_fv :=
   match goal with
-  | H : ?Σ; ?Γ ⊢ _ : _, Hwf : gctx_wf ?Σ |- _ =>
+  | H : ?Σ; _; ?Γ ⊢ _ : _, Hwf : gctx_wf ?Σ |- _ =>
     dup_hyp! H (fun H => apply typing_type_fv in H; [| apply Hwf])
               with (fun H => simpl in H)
   end.

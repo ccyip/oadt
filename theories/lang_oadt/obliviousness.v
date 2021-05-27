@@ -1,12 +1,12 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.preservation.
 
 (** * Obliviousness *)
 (** The obliviousness metatheorem. Essentially a noninterference property. *)
 
-Module M (atom_sig : AtomSig).
+Module M (sig : OADTSig).
 
-Include preservation.M atom_sig.
+Include preservation.M sig.
 Import syntax_notations.
 Import semantics_notations.
 Import typing_notations.
@@ -89,10 +89,10 @@ Proof.
   qauto l: on ctrs: val inv: val, expr_wf use: oval_elim.
 Qed.
 
-Lemma indistinguishable_val v v' Σ Γ τ :
+Lemma indistinguishable_val v v' Σ Φ Γ τ :
   v ≈ v' ->
   val v ->
-  Σ; Γ ⊢ v' : τ ->
+  Σ; Φ; Γ ⊢ v' : τ ->
   val v'.
 Proof.
   qauto use: indistinguishable_val_, typing_expr_wf.
@@ -186,11 +186,11 @@ Ltac apply_canonical_form_ H τ :=
 (* This tactic is destructive. *)
 Tactic Notation "apply_canonical_form" "by" tactic3(tac) :=
   match goal with
-  | H : val ?e, H' : _; _ ⊢ ?e : ?τ |- _ =>
+  | H : val ?e, H' : _; _; _ ⊢ ?e : ?τ |- _ =>
     first [ apply_canonical_form_ H τ
           | match goal with
-            | H' : _ ⊢ τ ≡ ?τ' |- _ => apply_canonical_form_ H τ'
-            | H' : _ ⊢ ?τ' ≡ τ |- _ => apply_canonical_form_ H τ'
+            | H' : _; _ ⊢ τ ≡ ?τ' |- _ => apply_canonical_form_ H τ'
+            | H' : _; _ ⊢ ?τ' ≡ τ |- _ => apply_canonical_form_ H τ'
             end ];
       [ try simp_hyp H
       | tac ]
@@ -205,13 +205,13 @@ Tactic Notation "apply_canonical_form" :=
 
 Ltac apply_obliv_type_preserve :=
   simpl_cofin?;
-  try select! (_; _ ⊢ _ : _)
+  try select! (_; _; _ ⊢ _ : _)
       (fun H => dup_hyp H (fun H => eapply regularity in H;
                                 [ simp_hyp H | eauto ]));
   apply_type_inv;
   repeat
     match goal with
-    | H : _ ⊢ ?τ ≡ _, H' : _; _ ⊢ ?τ :: _ |- _ =>
+    | H : _; _ ⊢ ?τ ≡ _, H' : _; _; _ ⊢ ?τ :: _ |- _ =>
       eapply expr_equiv_obliv_type_preserve in H;
       [| eassumption | apply H' | eauto; kinding_intro; eauto; fast_set_solver!! ]
     end;
@@ -222,13 +222,13 @@ Ltac apply_obliv_type_preserve :=
     end;
   apply_kind_inv.
 
-Lemma indistinguishable_obliv_val Σ Γ v1 v2 τ :
+Lemma indistinguishable_obliv_val Σ Φ Γ v1 v2 τ :
   gctx_wf Σ ->
   val v1 ->
   val v2 ->
-  Σ; Γ ⊢ v1 : τ ->
-  Σ; Γ ⊢ v2 : τ ->
-  Σ; Γ ⊢ τ :: *@O ->
+  Σ; Φ; Γ ⊢ v1 : τ ->
+  Σ; Φ; Γ ⊢ v2 : τ ->
+  Σ; Φ; Γ ⊢ τ :: *@O ->
   v1 ≈ v2.
 Proof.
   intros Hwf H. revert Γ v2 τ.
@@ -239,14 +239,14 @@ Proof.
     eauto with indistinguishable.
 
   (* Pair *)
-  - select (_ ⊢ _ ≡ _) (fun H => dup_hyp H (fun H => revert H)).
+  - select (_; _ ⊢ _ ≡ _) (fun H => dup_hyp H (fun H => revert H)).
     apply_obliv_type_preserve.
     intros.
     apply_canonical_form by (eapply TConv; eauto;
                              kinding_intro; eauto).
     apply_type_inv.
     match goal with
-    | H1 : _ ⊢ ?τ ≡ _, H2 : _ ⊢ ?τ ≡ _ |- _ =>
+    | H1 : _; _ ⊢ ?τ ≡ _, H2 : _; _ ⊢ ?τ ≡ _ |- _ =>
       rewrite H1 in H2
     end.
     simpl_whnf_equiv.
@@ -257,7 +257,7 @@ Proof.
                              qauto use: otval_well_kinded).
     apply_type_inv.
     match goal with
-    | H1 : _ ⊢ ?τ ≡ _, H2 : _ ⊢ ?τ ≡ _ |- _ =>
+    | H1 : _; _ ⊢ ?τ ≡ _, H2 : _; _ ⊢ ?τ ≡ _ |- _ =>
       rewrite H1 in H2
     end.
     match goal with
@@ -267,14 +267,14 @@ Proof.
     eauto with indistinguishable.
 Qed.
 
-Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' τ τ' :
+Lemma indistinguishable_val_obliv_type_equiv Σ Φ Γ v v' τ τ' :
   gctx_wf Σ ->
   val v ->
   v ≈ v' ->
-  Σ; Γ ⊢ v : τ ->
-  Σ; Γ ⊢ v' : τ' ->
-  Σ; Γ ⊢ τ :: *@O ->
-  Σ ⊢ τ ≡ τ'.
+  Σ; Φ; Γ ⊢ v : τ ->
+  Σ; Φ; Γ ⊢ v' : τ' ->
+  Σ; Φ; Γ ⊢ τ :: *@O ->
+  Σ; Φ ⊢ τ ≡ τ'.
 Proof.
   intros Hwf H. revert Γ v' τ τ'.
   induction H; intros; subst;
@@ -286,8 +286,8 @@ Proof.
   (* Product *)
   - repeat
       match goal with
-      | H : _ ⊢ ?τ ≡ _ |- _ ⊢ ?τ ≡ _ => rewrite H
-      | H : _ ⊢ ?τ ≡ _ |- _ ⊢ _ ≡ ?τ => rewrite H
+      | H : _; _ ⊢ ?τ ≡ _ |- _; _ ⊢ ?τ ≡ _ => rewrite H
+      | H : _; _ ⊢ ?τ ≡ _ |- _; _ ⊢ _ ≡ ?τ => rewrite H
       end.
     apply_obliv_type_preserve.
     apply expr_equiv_iff_whnf_equiv; [ solve [eauto with whnf]
@@ -295,7 +295,7 @@ Proof.
                                      | econstructor; eauto ];
     (* Apply the right induction hypothesis. *)
     match goal with
-    | H : context [?v ≈ _ -> _], H' : _; _ ⊢ ?v : ?τ |- _ ⊢ ?τ ≡ _ =>
+    | H : context [?v ≈ _ -> _], H' : _; _; _ ⊢ ?v : ?τ |- _; _ ⊢ ?τ ≡ _ =>
       eapply H
     end;
     try (goal_is (_ ≈ _); eauto); eauto;
@@ -310,14 +310,14 @@ Qed.
 (* This lemma can be strengthened so that we drop the typing assumption for
 [v']. In order for that, we have to prove [v'] can be typed which should be
 provable. But this version is good enough for the main theorem. *)
-Lemma indistinguishable_val_type Σ Γ v v' τ τ' :
+Lemma indistinguishable_val_type Σ Φ Γ v v' τ τ' :
   gctx_wf Σ ->
   val v ->
   v ≈ v' ->
-  Σ; Γ ⊢ v : τ ->
-  Σ; Γ ⊢ v' : τ' ->
-  Σ; Γ ⊢ τ :: *@O ->
-  Σ; Γ ⊢ v' : τ.
+  Σ; Φ; Γ ⊢ v : τ ->
+  Σ; Φ; Γ ⊢ v' : τ' ->
+  Σ; Φ; Γ ⊢ τ :: *@O ->
+  Σ; Φ; Γ ⊢ v' : τ.
 Proof.
   intros.
   eapply TConv; eauto.
@@ -348,49 +348,21 @@ Theorem indistinguishable_step Σ e1 e1' e2 τ τ' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
   e1 ≈ e1' ->
-  Σ; ∅ ⊢ e1 : τ ->
-  Σ; ∅ ⊢ e1' : τ' ->
+  Σ; ∅; ∅ ⊢ e1 : τ ->
+  Σ; ∅; ∅ ⊢ e1' : τ' ->
   exists e2', Σ ⊨ e1' -->! e2'.
 Proof.
   intros.
   qauto use: progress solve: val_step_absurd.
 Qed.
 
-Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
-  lazymatch type of H with
-  | _; _ ⊢ Π:_, _ :: _ => tac kind_inv_pi
-  | _; _ ⊢ 𝔹 :: _ => tac kind_inv_bool
-  | _; _ ⊢ _ _ :: _ => tac kind_inv_app
-  | _; _ ⊢ let _ in _ :: _ => tac kind_inv_let
-  | _; _ ⊢ _ * _ :: _ => tac kind_inv_prod
-  | _; _ ⊢ _ + _ :: _ => tac kind_inv_sum
-  | _; _ ⊢ _ ~+ _ :: _ => tac kind_inv_osum
-  | _; _ ⊢ gvar _ :: _ => tac kind_inv_gvar
-  | _; _ ⊢ ~if _ then _ else _ :: _ => apply kind_inv_mux in H; elim H
-  | _; _ ⊢ if _ then _ else _ :: _ => tac kind_inv_ite
-  | _; _ ⊢ ~case _ of _ | _ :: _ => apply kind_inv_ocase in H; elim H
-  | _; _ ⊢ case{_} _ of _ | _ :: _ => tac kind_inv_case
-  | _; _ ⊢ s𝔹 _ :: _ => apply kind_inv_sec in H; elim H
-  | _; _ ⊢ (_, _) :: _ => apply kind_inv_pair in H; elim H
-  | _; _ ⊢ π@_ _ :: _ => apply kind_inv_proj in H; elim H
-  | _; _ ⊢ inj{_}@_<_> _ :: _ => apply kind_inv_inj in H; elim H
-  | _; _ ⊢ fold<_> _ :: _ => apply kind_inv_fold in H; elim H
-  | _; _ ⊢ unfold<_> _ :: _ => apply kind_inv_unfold in H; elim H
-  end.
-
-Tactic Notation "apply_kind_inv" hyp(H) :=
-  apply_kind_inv H by (fun lem => apply lem in H; try simp_hyp H).
-
-Tactic Notation "apply_kind_inv" :=
-  do_hyps (fun H => try apply_kind_inv H).
-
 Theorem indistinguishable_deterministic Σ e1 e1' e2 e2' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
   Σ ⊨ e1' -->! e2' ->
   e1 ≈ e1' ->
-  ((exists τ τ', Σ; ∅ ⊢ e1 : τ /\ Σ; ∅ ⊢ e1' : τ') \/
-   (exists κ κ', Σ; ∅ ⊢ e1 :: κ /\ Σ; ∅ ⊢ e1' :: κ')) ->
+  ((exists τ τ', Σ; ∅; ∅ ⊢ e1 : τ /\ Σ; ∅; ∅ ⊢ e1' : τ') \/
+   (exists κ κ', Σ; ∅; ∅ ⊢ e1 :: κ /\ Σ; ∅; ∅ ⊢ e1' :: κ')) ->
   e2 ≈ e2'.
 Proof.
   intros Hwf H. revert e1' e2'.
@@ -449,8 +421,8 @@ Corollary obliviousness_step Σ e1 e1' e2 τ τ' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
   e1 ≈ e1' ->
-  Σ; ∅ ⊢ e1 : τ ->
-  Σ; ∅ ⊢ e1' : τ' ->
+  Σ; ∅; ∅ ⊢ e1 : τ ->
+  Σ; ∅; ∅ ⊢ e1' : τ' ->
   (exists e2', Σ ⊨ e1' -->! e2') /\
   (forall e2', Σ ⊨ e1' -->! e2' -> e2 ≈ e2').
 Proof.

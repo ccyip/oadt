@@ -1,16 +1,24 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.semantics.
 
 (** * Typing *)
 
-Module M (atom_sig : AtomSig).
+Module M (sig : OADTSig).
 
-Include semantics.M atom_sig.
+Include semantics.M sig.
 Import syntax_notations.
 Import semantics_notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
+
+#[local]
+Open Scope type_scope.
+
+(** ** Assumptions (Φ) *)
+(** An assumption has the form [e ≡ e']. *)
+Notation asm := (expr * expr).
+Definition actx := fset asm.
 
 (** ** Kinds (κ) *)
 (** Essentially a kind is a security label. We do not need kind abstraction. *)
@@ -81,163 +89,169 @@ Coercion EFVar : atom >-> expr.
 
 (** ** Expression equivalence *)
 (** Type equivalence is a placeholder for now. *)
-Parameter expr_equiv : gctx -> expr -> expr -> Prop.
+Parameter expr_equiv : gctx -> actx -> expr -> expr -> Prop.
 
-Notation "Σ '⊢' e '≡' e'" := (expr_equiv Σ e e')
-                               (at level 40,
-                                e custom oadt at level 99,
-                                e' custom oadt at level 99).
+Notation "Σ ; Φ '⊢' e '≡' e'" := (expr_equiv Σ Φ e e')
+                                   (at level 40,
+                                    Φ constr at level 0,
+                                    e custom oadt at level 99,
+                                    e' custom oadt at level 99).
 
 (** ** Expression typing and kinding *)
 (** They are mutually defined. *)
-Reserved Notation "Γ '⊢' e ':' τ" (at level 40,
-                                   e custom oadt at level 99,
-                                   τ custom oadt at level 99).
-Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
-                                    τ custom oadt at level 99,
-                                    κ custom oadt at level 99).
+Reserved Notation "Φ ; Γ '⊢' e ':' τ" (at level 40,
+                                       Γ constr at level 0,
+                                       e custom oadt at level 99,
+                                       τ custom oadt at level 99).
+Reserved Notation "Φ ; Γ '⊢' τ '::' κ" (at level 40,
+                                        Γ constr at level 0,
+                                        τ custom oadt at level 99,
+                                        κ custom oadt at level 99).
 
-Inductive typing (Σ : gctx) : tctx -> expr -> expr -> Prop :=
-| TFVar Γ x τ κ :
+Inductive typing (Σ : gctx) : actx -> tctx -> expr -> expr -> Prop :=
+| TFVar Φ Γ x τ κ :
     Γ !! x = Some τ ->
-    Γ ⊢ τ :: κ ->
-    Γ ⊢ fvar x : τ
-| TGVar Γ x τ e :
+    Φ; Γ ⊢ τ :: κ ->
+    Φ; Γ ⊢ fvar x : τ
+| TGVar Φ Γ x τ e :
     Σ !! x = Some (DFun τ e) ->
-    Γ ⊢ gvar x : τ
-| TAbs Γ e τ1 τ2 κ L :
-    (forall x, x ∉ L -> <[x:=τ2]>Γ ⊢ e^x : τ1^x) ->
-    Γ ⊢ τ2 :: κ ->
-    Γ ⊢ \:τ2 => e : (Π:τ2, τ1)
-| TLet Γ e1 e2 τ1 τ2 L :
-    (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ e2^x : τ2^x) ->
-    Γ ⊢ e1 : τ1 ->
-    Γ ⊢ let e1 in e2 : τ2^e1
-| TApp Γ e1 e2 τ1 τ2 :
-    Γ ⊢ e1 : (Π:τ2, τ1) ->
-    Γ ⊢ e2 : τ2 ->
-    Γ ⊢ e1 e2 : τ1^e2
-| TUnit Γ : Γ ⊢ () : 𝟙
-| TLit Γ b : Γ ⊢ lit b : 𝔹
-| TSec Γ e :
-    Γ ⊢ e : 𝔹 ->
-    Γ ⊢ s𝔹 e : ~𝔹
+    Φ; Γ ⊢ gvar x : τ
+| TAbs Φ Γ e τ1 τ2 κ L :
+    (forall x, x ∉ L -> Φ; <[x:=τ2]>Γ ⊢ e^x : τ1^x) ->
+    Φ; Γ ⊢ τ2 :: κ ->
+    Φ; Γ ⊢ \:τ2 => e : (Π:τ2, τ1)
+| TLet Φ Γ e1 e2 τ1 τ2 L :
+    (forall x, x ∉ L -> Φ; <[x:=τ1]>Γ ⊢ e2^x : τ2^x) ->
+    Φ; Γ ⊢ e1 : τ1 ->
+    Φ; Γ ⊢ let e1 in e2 : τ2^e1
+| TApp Φ Γ e1 e2 τ1 τ2 :
+    Φ; Γ ⊢ e1 : (Π:τ2, τ1) ->
+    Φ; Γ ⊢ e2 : τ2 ->
+    Φ; Γ ⊢ e1 e2 : τ1^e2
+| TUnit Φ Γ : Φ; Γ ⊢ () : 𝟙
+| TLit Φ Γ b : Φ; Γ ⊢ lit b : 𝔹
+| TSec Φ Γ e :
+    Φ; Γ ⊢ e : 𝔹 ->
+    Φ; Γ ⊢ s𝔹 e : ~𝔹
 (* TODO: Propagate the conditions. *)
-| TIte Γ e0 e1 e2 τ :
-    Γ ⊢ e0 : 𝔹 ->
-    Γ ⊢ e1 : τ ->
-    Γ ⊢ e2 : τ ->
-    Γ ⊢ if e0 then e1 else e2 : τ
-| TMux Γ e0 e1 e2 τ :
-    Γ ⊢ e0 : ~𝔹 ->
-    Γ ⊢ e1 : τ ->
-    Γ ⊢ e2 : τ ->
-    Γ ⊢ τ :: *@O ->
-    Γ ⊢ ~if e0 then e1 else e2 : τ
-| TInj Γ l b e τ1 τ2 :
-    Γ ⊢ e : ite b τ1 τ2 ->
-    Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P ->
-    Γ ⊢ inj{l}@b<τ1 +{l} τ2> e : τ1 +{l} τ2
+| TIte Φ Γ e0 e1 e2 τ :
+    Φ; Γ ⊢ e0 : 𝔹 ->
+    Φ; Γ ⊢ e1 : τ ->
+    Φ; Γ ⊢ e2 : τ ->
+    Φ; Γ ⊢ if e0 then e1 else e2 : τ
+| TMux Φ Γ e0 e1 e2 τ :
+    Φ; Γ ⊢ e0 : ~𝔹 ->
+    Φ; Γ ⊢ e1 : τ ->
+    Φ; Γ ⊢ e2 : τ ->
+    Φ; Γ ⊢ τ :: *@O ->
+    Φ; Γ ⊢ ~if e0 then e1 else e2 : τ
+| TInj Φ Γ l b e τ1 τ2 :
+    Φ; Γ ⊢ e : ite b τ1 τ2 ->
+    Φ; Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P ->
+    Φ; Γ ⊢ inj{l}@b<τ1 +{l} τ2> e : τ1 +{l} τ2
 (* TODO: Propagate the conditions. *)
-| TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
-    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
-    Γ ⊢ e0 : τ1 + τ2 ->
-    Γ ⊢ τ :: κ ->
-    Γ ⊢ case e0 of e1 | e2 : τ
-| TOCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
-    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
-    Γ ⊢ e0 : τ1 ~+ τ2 ->
-    Γ ⊢ τ :: *@O ->
-    Γ ⊢ ~case e0 of e1 | e2 : τ
-| TPair Γ e1 e2 τ1 τ2 :
-    Γ ⊢ e1 : τ1 ->
-    Γ ⊢ e2 : τ2 ->
-    Γ ⊢ (e1, e2) : τ1 * τ2
-| TProj Γ b e τ1 τ2 :
-    Γ ⊢ e : τ1 * τ2 ->
-    Γ ⊢ π@b e : ite b τ1 τ2
-| TFold Γ X e τ :
+| TCase Φ Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+    (forall x, x ∉ L1 -> Φ; <[x:=τ1]>Γ ⊢ e1^x : τ) ->
+    (forall x, x ∉ L2 -> Φ; <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+    Φ; Γ ⊢ e0 : τ1 + τ2 ->
+    Φ; Γ ⊢ τ :: κ ->
+    Φ; Γ ⊢ case e0 of e1 | e2 : τ
+| TOCase Φ Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
+    (forall x, x ∉ L1 -> Φ; <[x:=τ1]>Γ ⊢ e1^x : τ) ->
+    (forall x, x ∉ L2 -> Φ; <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+    Φ; Γ ⊢ e0 : τ1 ~+ τ2 ->
+    Φ; Γ ⊢ τ :: *@O ->
+    Φ; Γ ⊢ ~case e0 of e1 | e2 : τ
+| TPair Φ Γ e1 e2 τ1 τ2 :
+    Φ; Γ ⊢ e1 : τ1 ->
+    Φ; Γ ⊢ e2 : τ2 ->
+    Φ; Γ ⊢ (e1, e2) : τ1 * τ2
+| TProj Φ Γ b e τ1 τ2 :
+    Φ; Γ ⊢ e : τ1 * τ2 ->
+    Φ; Γ ⊢ π@b e : ite b τ1 τ2
+| TFold Φ Γ X e τ :
     Σ !! X = Some (DADT τ) ->
-    Γ ⊢ e : τ ->
-    Γ ⊢ fold<X> e : gvar X
-| TUnfold Γ X e τ :
+    Φ; Γ ⊢ e : τ ->
+    Φ; Γ ⊢ fold<X> e : gvar X
+| TUnfold Φ Γ X e τ :
     Σ !! X = Some (DADT τ) ->
-    Γ ⊢ e : gvar X ->
-    Γ ⊢ unfold<X> e : τ
+    Φ; Γ ⊢ e : gvar X ->
+    Φ; Γ ⊢ unfold<X> e : τ
 (** Typing for runtime expressions is for metatheories. These expressions do not
 appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
-| TBoxedLit Γ b : Γ ⊢ [b] : ~𝔹
-| TBoxedInj Γ b v ω :
+| TBoxedLit Φ Γ b : Φ; Γ ⊢ [b] : ~𝔹
+| TBoxedInj Φ Γ b v ω :
     oval <{ [inj@b<ω> v] }> ω ->
-    Γ ⊢ [inj@b<ω> v] : ω
+    Φ; Γ ⊢ [inj@b<ω> v] : ω
 (** Type conversion *)
-| TConv Γ e τ τ' κ :
-    Γ ⊢ e : τ' ->
-    Γ ⊢ τ :: κ ->
-    Σ ⊢ τ' ≡ τ ->
-    Γ ⊢ e : τ
+| TConv Φ Γ e τ τ' κ :
+    Φ; Γ ⊢ e : τ' ->
+    Φ; Γ ⊢ τ :: κ ->
+    Σ; Φ ⊢ τ' ≡ τ ->
+    Φ; Γ ⊢ e : τ
 
-with kinding (Σ : gctx) : tctx -> expr -> kind -> Prop :=
-| KVarADT Γ X τ :
+with kinding (Σ : gctx) : actx -> tctx -> expr -> kind -> Prop :=
+| KVarADT Φ Γ X τ :
     Σ !! X = Some (DADT τ) ->
-    Γ ⊢ gvar X :: *@P
-| KUnit Γ : Γ ⊢ 𝟙 :: *@A
-| KBool Γ l : Γ ⊢ 𝔹{l} :: ite l *@O *@P
-| KPi Γ τ1 τ2 κ1 κ2 L :
-    (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ τ2^x :: κ2) ->
-    Γ ⊢ τ1 :: κ1 ->
-    Γ ⊢ (Π:τ1, τ2) :: *@M
-| KApp Γ e' e τ X :
+    Φ; Γ ⊢ gvar X :: *@P
+| KUnit Φ Γ : Φ; Γ ⊢ 𝟙 :: *@A
+| KBool Φ Γ l : Φ; Γ ⊢ 𝔹{l} :: ite l *@O *@P
+| KPi Φ Γ τ1 τ2 κ1 κ2 L :
+    (forall x, x ∉ L -> Φ; <[x:=τ1]>Γ ⊢ τ2^x :: κ2) ->
+    Φ; Γ ⊢ τ1 :: κ1 ->
+    Φ; Γ ⊢ (Π:τ1, τ2) :: *@M
+| KApp Φ Γ e' e τ X :
     Σ !! X = Some (DOADT τ e') ->
-    Γ ⊢ e : τ ->
-    Γ ⊢ (gvar X) e :: *@O
-| KProd Γ τ1 τ2 κ :
-    Γ ⊢ τ1 :: κ ->
-    Γ ⊢ τ2 :: κ ->
-    Γ ⊢ τ1 * τ2 :: κ
-| KSum Γ τ1 τ2 κ :
-    Γ ⊢ τ1 :: κ ->
-    Γ ⊢ τ2 :: κ ->
-    Γ ⊢ τ1 + τ2 :: (κ ⊔ *@P)
-| KOSum Γ τ1 τ2 :
-    Γ ⊢ τ1 :: *@O ->
-    Γ ⊢ τ2 :: *@O ->
-    Γ ⊢ τ1 ~+ τ2 :: *@O
-| KIte Γ e0 τ1 τ2 :
-    Γ ⊢ e0 : 𝔹 ->
-    Γ ⊢ τ1 :: *@O ->
-    Γ ⊢ τ2 :: *@O ->
-    Γ ⊢ if e0 then τ1 else τ2 :: *@O
-| KCase Γ e0 τ1 τ2 τ1' τ2' L1 L2 :
-    (forall x, x ∉ L1 -> <[x:=τ1']>Γ ⊢ τ1^x :: *@O) ->
-    (forall x, x ∉ L2 -> <[x:=τ2']>Γ ⊢ τ2^x :: *@O) ->
-    Γ ⊢ e0 : τ1' + τ2' ->
-    Γ ⊢ case e0 of τ1 | τ2 :: *@O
-| KLet Γ e τ τ' L :
-    (forall x, x ∉ L -> <[x:=τ']>Γ ⊢ τ^x :: *@O) ->
-    Γ ⊢ e : τ' ->
-    Γ ⊢ let e in τ :: *@O
-| KSub Γ τ κ κ' :
-    Γ ⊢ τ :: κ' ->
+    Φ; Γ ⊢ e : τ ->
+    Φ; Γ ⊢ (gvar X) e :: *@O
+| KProd Φ Γ τ1 τ2 κ :
+    Φ; Γ ⊢ τ1 :: κ ->
+    Φ; Γ ⊢ τ2 :: κ ->
+    Φ; Γ ⊢ τ1 * τ2 :: κ
+| KSum Φ Γ τ1 τ2 κ :
+    Φ; Γ ⊢ τ1 :: κ ->
+    Φ; Γ ⊢ τ2 :: κ ->
+    Φ; Γ ⊢ τ1 + τ2 :: (κ ⊔ *@P)
+| KOSum Φ Γ τ1 τ2 :
+    Φ; Γ ⊢ τ1 :: *@O ->
+    Φ; Γ ⊢ τ2 :: *@O ->
+    Φ; Γ ⊢ τ1 ~+ τ2 :: *@O
+| KIte Φ Γ e0 τ1 τ2 :
+    Φ; Γ ⊢ e0 : 𝔹 ->
+    Φ; Γ ⊢ τ1 :: *@O ->
+    Φ; Γ ⊢ τ2 :: *@O ->
+    Φ; Γ ⊢ if e0 then τ1 else τ2 :: *@O
+| KCase Φ Γ e0 τ1 τ2 τ1' τ2' L1 L2 :
+    (forall x, x ∉ L1 -> Φ; <[x:=τ1']>Γ ⊢ τ1^x :: *@O) ->
+    (forall x, x ∉ L2 -> Φ; <[x:=τ2']>Γ ⊢ τ2^x :: *@O) ->
+    Φ; Γ ⊢ e0 : τ1' + τ2' ->
+    Φ; Γ ⊢ case e0 of τ1 | τ2 :: *@O
+| KLet Φ Γ e τ τ' L :
+    (forall x, x ∉ L -> Φ; <[x:=τ']>Γ ⊢ τ^x :: *@O) ->
+    Φ; Γ ⊢ e : τ' ->
+    Φ; Γ ⊢ let e in τ :: *@O
+| KSub Φ Γ τ κ κ' :
+    Φ; Γ ⊢ τ :: κ' ->
     κ' ⊑ κ ->
-    Γ ⊢ τ :: κ
+    Φ; Γ ⊢ τ :: κ
 
-where "Γ '⊢' e ':' τ" := (typing _ Γ e τ) and "Γ '⊢' τ '::' κ" := (kinding _ Γ τ κ)
+where "Φ ; Γ '⊢' e ':' τ" := (typing _ Φ Γ e τ) and
+      "Φ ; Γ '⊢' τ '::' κ" := (kinding _ Φ Γ τ κ)
 .
 
-Notation "Σ ; Γ '⊢' e ':' τ" := (typing Σ Γ e τ)
-                                  (at level 40,
-                                   Γ constr at level 0,
-                                   e custom oadt at level 99,
-                                   τ custom oadt at level 99).
-Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
-                                   (at level 40,
-                                    Γ constr at level 0,
-                                    τ custom oadt at level 99,
-                                    κ custom oadt at level 99).
+Notation "Σ ; Φ ; Γ '⊢' e ':' τ" := (typing Σ Φ Γ e τ)
+                                      (at level 40,
+                                       Φ constr at level 0,
+                                       Γ constr at level 0,
+                                       e custom oadt at level 99,
+                                       τ custom oadt at level 99).
+Notation "Σ ; Φ ; Γ '⊢' τ '::' κ" := (kinding Σ Φ Γ τ κ)
+                                       (at level 40,
+                                        Φ constr at level 0,
+                                        Γ constr at level 0,
+                                        τ custom oadt at level 99,
+                                        κ custom oadt at level 99).
 
 (** ** Global definitions typing *)
 Reserved Notation "Σ '=[' D ']=>' Σ'" (at level 40,
@@ -246,17 +260,17 @@ Reserved Notation "Σ '=[' D ']=>' Σ'" (at level 40,
 Inductive gdef_typing : gctx -> (atom * gdef) -> gctx -> Prop :=
 | TADT Σ X τ :
     Σ !! X = None ->
-    <[X:=DADT τ]>Σ ; ∅ ⊢ τ :: *@P ->
+    <[X:=DADT τ]>Σ; ∅; ∅ ⊢ τ :: *@P ->
     Σ =[ data X := τ ]=> <[X:=DADT τ]>Σ
 | TOADT Σ X τ e L :
     Σ !! X = None ->
-    Σ; ∅ ⊢ τ :: *@P ->
-    (forall x, x ∉ L -> <[X:=DOADT τ e]>Σ ; ({[x:=τ]}) ⊢ e^x :: *@O) ->
+    Σ; ∅; ∅ ⊢ τ :: *@P ->
+    (forall x, x ∉ L -> <[X:=DOADT τ e]>Σ; ∅; ({[x:=τ]}) ⊢ e^x :: *@O) ->
     Σ =[ obliv X (:τ) := e ]=> <[X:=DOADT τ e]>Σ
 | TFun Σ X τ e κ :
     Σ !! X = None ->
-    Σ; ∅ ⊢ τ :: κ ->
-    <[X:=DFun τ e]>Σ ; ∅ ⊢ e : τ ->
+    Σ; ∅; ∅ ⊢ τ :: κ ->
+    <[X:=DFun τ e]>Σ; ∅; ∅ ⊢ e : τ ->
     Σ =[ def X : τ := e ]=> <[X:=DFun τ e]>Σ
 
 where "Σ '=[' D ']=>' Σ'" := (gdef_typing Σ D Σ')
@@ -277,7 +291,7 @@ where "Σ '={' Ds '}=>' Σ'" := (gdefs_typing Σ Ds Σ')
 
 (** ** Program typing *)
 Definition program_typing (Ds : gdefs) (e : expr) (Σ : gctx) (τ : expr) :=
-  ∅ ={ Ds }=> Σ /\ Σ; ∅ ⊢ e : τ.
+  ∅ ={ Ds }=> Σ /\ Σ; ∅; ∅ ⊢ e : τ.
 
 End typing.
 
@@ -300,21 +314,24 @@ Module typing_notations.
 
 Export kind_notations.
 
-Notation "Σ '⊢' e '≡' e'" := (expr_equiv Σ e e')
-                               (at level 40,
-                                e custom oadt at level 99,
-                                e' custom oadt at level 99).
-
-Notation "Σ ; Γ '⊢' e ':' τ" := (typing Σ Γ e τ)
-                                  (at level 40,
-                                   Γ constr at level 0,
-                                   e custom oadt at level 99,
-                                   τ custom oadt at level 99).
-Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
+Notation "Σ ; Φ '⊢' e '≡' e'" := (expr_equiv Σ Φ e e')
                                    (at level 40,
-                                    Γ constr at level 0,
-                                    τ custom oadt at level 99,
-                                    κ custom oadt at level 99).
+                                    Φ constr at level 0,
+                                    e custom oadt at level 99,
+                                    e' custom oadt at level 99).
+
+Notation "Σ ; Φ ; Γ '⊢' e ':' τ" := (typing Σ Φ Γ e τ)
+                                      (at level 40,
+                                       Φ constr at level 0,
+                                       Γ constr at level 0,
+                                       e custom oadt at level 99,
+                                       τ custom oadt at level 99).
+Notation "Σ ; Φ ; Γ '⊢' τ '::' κ" := (kinding Σ Φ Γ τ κ)
+                                       (at level 40,
+                                        Φ constr at level 0,
+                                        Γ constr at level 0,
+                                        τ custom oadt at level 99,
+                                        κ custom oadt at level 99).
 
 Notation "Σ '=[' D ']=>' Σ'" := (gdef_typing Σ D Σ')
                                   (at level 40,

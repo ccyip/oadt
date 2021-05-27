@@ -1,12 +1,12 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.obliviousness.
 
 (** * Metatheories *)
 (** The high level metatheories. *)
 
-Module M (atom_sig : AtomSig).
+Module M (sig : OADTSig).
 
-Include obliviousness.M atom_sig.
+Include obliviousness.M sig.
 Import syntax_notations.
 Import semantics_notations.
 Import typing_notations.

@@ -1,10 +1,10 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 
 (** * Syntax *)
 
-Module M (atom_sig : AtomSig).
+Module M (sig : OADTSig).
 
-Export atom_sig.
+Export sig.
 
 Implicit Types (b : bool).
 
@@ -46,6 +46,11 @@ condition *)
 | EBoxedInj (b : bool) (τ e : expr)
 .
 
+Instance expr_eq : EqDecision expr.
+Proof.
+  solve_decision.
+Defined.
+
 (** ** GLobal definitions (D) *)
 Variant gdef :=
 | DADT (e : expr)
@@ -62,7 +67,6 @@ Notation program := (gdefs * expr).
 (** ** Global context (Σ) *)
 (** It is used in operational semantics and typing. *)
 Notation gctx := (amap gdef).
-
 
 (** ** Notations for expressions *)
 Module expr_notations.

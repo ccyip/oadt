@@ -1,9 +1,9 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.metatheories.
 
-Module M (atom_sig : AtomSig).
+Module M (sig : OADTSig).
 
-Include metatheories.M atom_sig.
+Include metatheories.M sig.
 
 Module notations.
   Export syntax_notations.

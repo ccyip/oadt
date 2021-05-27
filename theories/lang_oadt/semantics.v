@@ -1,11 +1,11 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 
 (** * Dynamic semantics *)
 
-Module M (atom_sig : AtomSig).
+Module M (sig : OADTSig).
 
-Include syntax.M atom_sig.
+Include syntax.M sig.
 Import syntax_notations.
 
 Implicit Types (b : bool).

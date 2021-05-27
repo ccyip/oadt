@@ -61,15 +61,24 @@ Section set.
 
 End set.
 
+(** * More Classes *)
+
+(** Polymorphic finite set *)
+Class PolyFinSet (S : forall A, EqDecision A -> Type) := {
+  poly_finset_elem_of :> forall A H, ElemOf A (S A H);
+  poly_finset_empty :> forall A H, Empty (S A H);
+  poly_finset_singleton :> forall A H, Singleton A (S A H);
+  poly_finset_union :> forall A H, Union (S A H);
+  poly_finset_intersection :> forall A H, Intersection (S A H);
+  poly_finset_difference :> forall A H, Difference (S A H);
+  poly_finset_elements :> forall A H, Elements A (S A H);
+
+  poly_finset :> forall A H, FinSet A (S A H);
+}.
+
 (** * More Instances *)
 
 Instance bool_top : Top bool := true.
 Arguments bool_top /.
 Instance bool_bot : Bottom bool := false.
 Arguments bool_bot /.
-
-
-(** * Custom Grammar *)
-
-Declare Custom Entry oadt.
-Declare Custom Entry oadt_def.
