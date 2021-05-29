@@ -59,22 +59,77 @@ Section set.
     set_solver.
   Qed.
 
+  #[global]
+  Instance set_Forall_proper :
+    Proper ((pointwise_relation _ iff) ==> (≡) ==> iff) (set_Forall (A:=A) (C:=C)).
+  Proof.
+    sfirstorder.
+  Qed.
+
 End set.
 
-(** * More Classes *)
+(** * Finite Set *)
 
 (** Polymorphic finite set *)
-Class PolyFinSet (S : forall A, EqDecision A -> Type) := {
-  poly_finset_elem_of :> forall A H, ElemOf A (S A H);
-  poly_finset_empty :> forall A H, Empty (S A H);
-  poly_finset_singleton :> forall A H, Singleton A (S A H);
-  poly_finset_union :> forall A H, Union (S A H);
-  poly_finset_intersection :> forall A H, Intersection (S A H);
-  poly_finset_difference :> forall A H, Difference (S A H);
-  poly_finset_elements :> forall A H, Elements A (S A H);
+Class PolyFinSet (M : Type -> Type) := {
+  poly_finset_elem_of A `{EqDecision A} :> ElemOf A (M A);
+  poly_finset_empty A `{EqDecision A} :> Empty (M A);
+  poly_finset_singleton A `{EqDecision A} :> Singleton A (M A);
+  poly_finset_union A `{EqDecision A} :> Union (M A);
+  poly_finset_intersection A `{EqDecision A} :> Intersection (M A);
+  poly_finset_difference A `{EqDecision A} :>Difference (M A);
+  poly_finset_elements A `{EqDecision A} :> Elements A (M A);
 
-  poly_finset :> forall A H, FinSet A (S A H);
+  poly_finset A `{EqDecision A} :> FinSet A (M A);
 }.
+
+Definition set_insert `{Singleton A C} `{Union C} (x : A) (X : C) : C := {[x]} ∪ X.
+
+Section map.
+
+  Context `{FinSet A C}.
+
+  Lemma set_map_id X : set_map (C:=C) id X ≡ X.
+  Proof.
+    set_solver.
+  Qed.
+
+  #[global]
+  Instance set_insert_proper : Proper ((=) ==> (≡) ==> (≡)) (set_insert (A:=A) (C:=C)).
+  Proof.
+    solve_proper.
+  Qed.
+
+  Lemma set_Forall_insert P (x : A) (X : C) :
+    set_Forall P (set_insert x X) <-> P x /\ set_Forall P X.
+  Proof.
+    unfold set_insert.
+    unfold set_Forall.
+    set_solver.
+  Qed.
+
+  Lemma set_Forall_insert_1 P (x : A) (X : C) :
+    set_Forall P (set_insert x X) -> P x /\ set_Forall P X.
+  Proof.
+    hauto use: set_Forall_insert.
+  Qed.
+
+  Lemma set_Forall_insert_2 (P : A -> Prop) (x : A) (X : C) :
+    P x -> set_Forall P X -> set_Forall P (set_insert x X).
+  Proof.
+    hauto use: set_Forall_insert.
+  Qed.
+
+  Context `{Set_ B D}.
+
+  Lemma set_map_insert (f : A -> B) (X : C) (x : A) :
+    set_map (D:=D) f (set_insert x X) ≡ set_insert (f x) (set_map (D:=D) f X).
+  Proof.
+    set_solver.
+  Qed.
+
+End map.
+
 
 (** * More Instances *)
 

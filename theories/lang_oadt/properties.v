@@ -35,6 +35,15 @@ Proof.
   split; try reflexivity; repeat intros []; auto.
 Qed.
 
+(** ** Properities of [actx] *)
+Lemma actx_map_insert e1 e2 Φ f :
+  actx_map f (set_insert (e1, e2) Φ) ≡ set_insert (f e1, f e2) (actx_map f Φ).
+Proof.
+  unfold actx_map.
+  rewrite set_map_insert.
+  reflexivity.
+Qed.
+
 (** ** Weak head normal form *)
 (** We only define weak head normal form for types, but may extend it for other
 expressions later. *)
@@ -94,6 +103,11 @@ Lemma expr_equiv_iff_whnf_equiv Σ Φ τ1 τ2 :
 Proof.
 Admitted.
 
+Instance expr_equiv_actx_iff_proper :
+  Proper ((=) ==> (≡) ==> (=) ==> (=) ==> iff) expr_equiv.
+Proof.
+Admitted.
+
 (* NOTE: Be aware of circular proofs! In case we need [gctx_wf] as a side
 condition, as we need this lemma to prove [gctx_wf] for well-typed global
 context. *)
@@ -110,13 +124,6 @@ Admitted.
 Lemma expr_equiv_step Σ Φ e e' :
   Σ ⊨ e -->! e' ->
   Σ; Φ ⊢ e ≡ e'.
-Proof.
-Admitted.
-
-Lemma expr_equiv_subst Σ Φ τ τ' e e' x :
-  Σ; Φ ⊢ τ ≡ τ' ->
-  Σ; Φ ⊢ e ≡ e' ->
-  Σ; Φ ⊢ {x↦e}τ ≡ {x↦e'}τ'.
 Proof.
 Admitted.
 
@@ -148,34 +155,34 @@ Proof.
   qauto use: expr_equiv_obliv_type_preserve_ solve: lattice_naive_solver.
 Qed.
 
-Lemma expr_equiv_rename Σ Φ τ τ' x y :
-  Σ; Φ ⊢ τ ≡ τ' ->
-  Σ; Φ ⊢ {x↦y}τ ≡ {x↦y}τ'.
-Proof.
-  qauto use: expr_equiv_subst solve: equiv_naive_solver.
-Qed.
-
 Lemma expr_equiv_subst1 Σ Φ τ τ' x s :
   Σ; Φ ⊢ τ ≡ τ' ->
-  Σ; Φ ⊢ {x↦s}τ ≡ {x↦s}τ'.
+  Σ; (actx_map ({x↦s}) Φ) ⊢ {x↦s}τ ≡ {x↦s}τ'.
 Proof.
-  qauto use: expr_equiv_subst solve: equiv_naive_solver.
-Qed.
+Admitted.
 
 Lemma expr_equiv_subst2 Σ Φ τ x e e' :
   Σ; Φ ⊢ e ≡ e' ->
   Σ; Φ ⊢ {x↦e}τ ≡ {x↦e'}τ.
 Proof.
-  qauto use: expr_equiv_subst solve: equiv_naive_solver.
+Admitted.
+
+Lemma expr_equiv_rename Σ Φ τ τ' x y :
+  Σ; Φ ⊢ τ ≡ τ' ->
+  Σ; (actx_map ({x↦y}) Φ) ⊢ {x↦y}τ ≡ {x↦y}τ'.
+Proof.
+  eauto using expr_equiv_subst1.
 Qed.
 
 Lemma expr_equiv_open1 Σ Φ τ1 τ2 e :
   Σ; Φ ⊢ τ1 ≡ τ2 ->
   Σ; Φ ⊢ τ1^e ≡ τ2^e.
 Proof.
-  destruct (exist_fresh (fv τ1 ∪ fv τ2)) as [x ?].
+  intros.
+  destruct (exist_fresh (fv τ1 ∪ fv τ2 ∪ actx_fv Φ)) as [x ?].
   erewrite (subst_intro τ1 e x) by fast_set_solver!!.
   erewrite (subst_intro τ2 e x) by fast_set_solver!!.
+  erewrite <- (subst_actx_fresh Φ x e) by fast_set_solver!!.
   eauto using expr_equiv_subst1, expr_equiv_open_atom.
 Qed.
 
@@ -203,6 +210,44 @@ Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
 Tactic Notation "simpl_whnf_equiv" :=
   simpl_whnf_equiv by eauto using otval_whnf with whnf.
 
+(** * Equivariant Lemmas *)
+
+Lemma typing_kinding_actx_equiv Σ :
+  (forall Φ1 Γ e τ,
+      Σ; Φ1; Γ ⊢ e : τ ->
+      forall Φ2,
+        Φ1 ≡ Φ2 ->
+        Σ; Φ2; Γ ⊢ e : τ) /\
+  (forall Φ1 Γ τ κ,
+      Σ; Φ1; Γ ⊢ τ :: κ ->
+      forall Φ2,
+        Φ1 ≡ Φ2 ->
+        Σ; Φ2; Γ ⊢ τ :: κ).
+Proof.
+  apply typing_kinding_mutind; intros;
+    try hauto l:on rew:off ctrs: typing, kinding.
+
+  (* [TIf] and [TCase] *)
+  1-2: econstructor; eauto; simpl_cofin?; auto_apply; fast_set_solver*!!.
+
+  (* [TConv] *)
+  econstructor; eauto.
+  select (_ ≡ _) (fun H => rewrite <- H). auto.
+Qed.
+
+Instance typing_actx_iff_proper :
+  Proper ((=) ==> (≡) ==> (=) ==> (=) ==> (=) ==> iff) typing.
+Proof.
+  unfold Proper, respectful.
+  qauto use: typing_kinding_actx_equiv.
+Qed.
+
+Instance kinding_actx_iff_proper :
+  Proper ((=) ==> (≡) ==> (=) ==> (=) ==> (=) ==> iff) kinding.
+Proof.
+  unfold Proper, respectful.
+  qauto use: typing_kinding_actx_equiv.
+Qed.
 
 (** * Inversion Lemmas *)
 
@@ -486,13 +531,13 @@ Proof.
                            ctrs: oval inv: oval.
 Qed.
 
-Lemma type_inv_case Σ Φ Γ l e0 e1 e2 τ :
-  Σ; Φ; Γ ⊢ case{l} e0 of e1 | e2 : τ ->
+Lemma type_inv_case Σ Φ Γ e0 e1 e2 τ :
+  Σ; Φ; Γ ⊢ case e0 of e1 | e2 : τ ->
   exists τ1 τ2 τ' κ L1 L2,
     Σ; Φ; Γ ⊢ τ' :: κ /\
-    Σ; Φ; Γ ⊢ e0 : τ1 +{l} τ2 /\
-    (forall x, x ∉ L1 -> Σ; Φ; (<[x:=τ1]> Γ) ⊢ e1^x : τ') /\
-    (forall x, x ∉ L2 -> Σ; Φ; (<[x:=τ2]> Γ) ⊢ e2^x : τ') /\
+    Σ; Φ; Γ ⊢ e0 : τ1 + τ2 /\
+    (forall x, x ∉ L1 -> Σ; ({{e0 ≡ inl<(τ1 + τ2)> x}} Φ); (<[x:=τ1]> Γ) ⊢ e1^x : τ') /\
+    (forall x, x ∉ L2 -> Σ; ({{e0 ≡ inr<(τ1 + τ2)> x}} Φ); (<[x:=τ2]> Γ) ⊢ e2^x : τ') /\
     Σ; Φ ⊢ τ ≡ τ'.
 Proof.
   type_inv_solver.
@@ -508,6 +553,18 @@ Lemma type_inv_ocase Σ Φ Γ e0 e1 e2 τ :
     Σ; Φ ⊢ τ ≡ τ'.
 Proof.
   type_inv_solver.
+Qed.
+
+Lemma type_inv_case_ Σ Φ Γ l e0 e1 e2 τ :
+  Σ; Φ; Γ ⊢ case{l} e0 of e1 | e2 : τ ->
+  exists τ1 τ2 τ' κ L1 L2,
+    Σ; Φ; Γ ⊢ τ' :: κ /\
+    Σ; Φ; Γ ⊢ e0 : τ1 +{l} τ2 /\
+    (forall x, x ∉ L1 -> exists Φ', Σ; Φ'; (<[x:=τ1]> Γ) ⊢ e1^x : τ') /\
+    (forall x, x ∉ L2 -> exists Φ', Σ; Φ'; (<[x:=τ2]> Γ) ⊢ e2^x : τ') /\
+    Σ; Φ ⊢ τ ≡ τ'.
+Proof.
+  type_inv_solver by (repeat (esplit; eauto); equiv_naive_solver).
 Qed.
 
 Lemma type_inv_prod Σ Φ Γ τ1 τ2 τ :
@@ -550,12 +607,12 @@ Proof.
   type_inv_solver.
 Qed.
 
-Lemma type_inv_ite Σ Φ Γ l e0 e1 e2 τ :
-  Σ; Φ; Γ ⊢ if{l} e0 then e1 else e2 : τ ->
+Lemma type_inv_ite Σ Φ Γ e0 e1 e2 τ :
+  Σ; Φ; Γ ⊢ if e0 then e1 else e2 : τ ->
   exists τ',
-    Σ; Φ; Γ ⊢ e0 : 𝔹{l} /\
-    Σ; Φ; Γ ⊢ e1 : τ' /\
-    Σ; Φ; Γ ⊢ e2 : τ' /\
+    Σ; Φ; Γ ⊢ e0 : 𝔹 /\
+    Σ; ({{e0 ≡ lit true}} Φ); Γ ⊢ e1 : τ' /\
+    Σ; ({{e0 ≡ lit false}} Φ); Γ ⊢ e2 : τ' /\
     Σ; Φ ⊢ τ ≡ τ'.
 Proof.
   type_inv_solver.
@@ -607,7 +664,8 @@ Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
   | _; _; _ ⊢ ~if _ then _ else _ : _ => tac type_inv_mux
   | _; _; _ ⊢ if _ then _ else _ : _ => tac type_inv_ite
   | _; _; _ ⊢ ~case _ of _ | _ : _ => tac type_inv_ocase
-  | _; _; _ ⊢ case{_} _ of _ | _ : _ => tac type_inv_case
+  | _; _; _ ⊢ case _ of _ | _ : _ => tac type_inv_case
+  | _; _; _ ⊢ case{_} _ of _ | _ : _ => tac type_inv_case_
   | _; _; _ ⊢ fold<_> _ : _ => tac type_inv_fold
   | _; _; _ ⊢ unfold<_> _ : _ => tac type_inv_unfold
   | _; _; _ ⊢ [_] : _ => tac type_inv_boxedlit

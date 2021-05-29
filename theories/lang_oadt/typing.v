@@ -18,7 +18,9 @@ Open Scope type_scope.
 (** ** Assumptions (Φ) *)
 (** An assumption has the form [e ≡ e']. *)
 Notation asm := (expr * expr).
-Definition actx := fset asm.
+Notation actx := (fset asm).
+
+Definition actx_map (f : expr -> expr) (Φ : actx) : actx := set_map (prod_map f f) Φ.
 
 (** ** Kinds (κ) *)
 (** Essentially a kind is a security label. We do not need kind abstraction. *)
@@ -97,6 +99,12 @@ Notation "Σ ; Φ '⊢' e '≡' e'" := (expr_equiv Σ Φ e e')
                                     e custom oadt at level 99,
                                     e' custom oadt at level 99).
 
+Notation "'{{' e1 ≡ e2 '}}' Φ " := (set_insert (e1, e2) Φ)
+                                    (at level 30,
+                                     e1 custom oadt at level 99,
+                                     e2 custom oadt at level 99,
+                                     Φ constr at level 0).
+
 (** ** Expression typing and kinding *)
 (** They are mutually defined. *)
 Reserved Notation "Φ ; Γ '⊢' e ':' τ" (at level 40,
@@ -133,11 +141,11 @@ Inductive typing (Σ : gctx) : actx -> tctx -> expr -> expr -> Prop :=
 | TSec Φ Γ e :
     Φ; Γ ⊢ e : 𝔹 ->
     Φ; Γ ⊢ s𝔹 e : ~𝔹
-(* TODO: Propagate the conditions. *)
+(* Collect the path conditions on discriminee *)
 | TIte Φ Γ e0 e1 e2 τ :
     Φ; Γ ⊢ e0 : 𝔹 ->
-    Φ; Γ ⊢ e1 : τ ->
-    Φ; Γ ⊢ e2 : τ ->
+    {{e0 ≡ lit true}}Φ; Γ ⊢ e1 : τ ->
+    {{e0 ≡ lit false}}Φ; Γ ⊢ e2 : τ ->
     Φ; Γ ⊢ if e0 then e1 else e2 : τ
 | TMux Φ Γ e0 e1 e2 τ :
     Φ; Γ ⊢ e0 : ~𝔹 ->
@@ -149,10 +157,10 @@ Inductive typing (Σ : gctx) : actx -> tctx -> expr -> expr -> Prop :=
     Φ; Γ ⊢ e : ite b τ1 τ2 ->
     Φ; Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P ->
     Φ; Γ ⊢ inj{l}@b<τ1 +{l} τ2> e : τ1 +{l} τ2
-(* TODO: Propagate the conditions. *)
+(* Collect the path conditions on discriminee *)
 | TCase Φ Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
-    (forall x, x ∉ L1 -> Φ; <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L2 -> Φ; <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+    (forall x, x ∉ L1 -> {{e0 ≡ inl<τ1 + τ2> x}}Φ; <[x:=τ1]>Γ ⊢ e1^x : τ) ->
+    (forall x, x ∉ L2 -> {{e0 ≡ inr<τ1 + τ2> x}}Φ; <[x:=τ2]>Γ ⊢ e2^x : τ) ->
     Φ; Γ ⊢ e0 : τ1 + τ2 ->
     Φ; Γ ⊢ τ :: κ ->
     Φ; Γ ⊢ case e0 of e1 | e2 : τ
@@ -319,6 +327,12 @@ Notation "Σ ; Φ '⊢' e '≡' e'" := (expr_equiv Σ Φ e e')
                                     Φ constr at level 0,
                                     e custom oadt at level 99,
                                     e' custom oadt at level 99).
+
+Notation "'{{' e1 ≡ e2 '}}' Φ " := (set_insert (e1, e2) Φ)
+                                    (at level 30,
+                                     e1 custom oadt at level 99,
+                                     e2 custom oadt at level 99,
+                                     Φ constr at level 0).
 
 Notation "Σ ; Φ ; Γ '⊢' e ':' τ" := (typing Σ Φ Γ e τ)
                                       (at level 40,

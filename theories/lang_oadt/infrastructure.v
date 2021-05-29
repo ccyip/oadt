@@ -74,10 +74,13 @@ Fixpoint fv (e : expr) : aset :=
   | _ => ∅
   end.
 
+Definition closed e := fv e ≡ ∅.
+
 Definition tctx_fv : tctx -> aset :=
   map_fold (fun x τ S => fv τ ∪ S) ∅.
 
-Definition closed e := fv e ≡ ∅.
+Definition actx_fv : actx -> aset :=
+  set_fold (fun a S => fv a.1 ∪ fv a.2 ∪ S) ∅.
 
 Instance atom_stale : @Stale aset atom := singleton.
 Arguments atom_stale /.
@@ -90,6 +93,9 @@ Arguments expr_stale /.
 
 Instance tctx_stale : Stale tctx := fun Γ => dom aset Γ ∪ tctx_fv Γ.
 Arguments tctx_stale /.
+
+Instance actx_stale : Stale actx := actx_fv.
+Arguments actx_stale /.
 
 Arguments stale /.
 
@@ -209,6 +215,18 @@ Proof.
   rewrite <- map_fmap_id.
   apply map_fmap_ext.
   scongruence use: subst_id.
+Qed.
+
+Lemma subst_actx_id x Φ :
+  actx_map ({x↦x}) Φ ≡ Φ.
+Proof.
+  unfold actx_map.
+  etrans. all : cycle 1.
+  rewrite <- set_map_id. reflexivity.
+  apply set_map_proper; eauto.
+  hnf. intros.
+  unfold prod_map.
+  scongruence use: subst_id, surjective_pairing.
 Qed.
 
 (** We may prove this one using [subst_open_distr] and [subst_fresh], but a
@@ -411,6 +429,57 @@ Proof.
   hauto use: tctx_fv_consistent solve: fast_set_solver.
 Qed.
 
+Ltac induction_set_fold :=
+  (* Massage the goal so it is ready for [set_fold_ind]. *)
+  match goal with
+  | |- context [ set_fold ?f ?b ?m ] =>
+    let a := fresh "a" in
+    set (set_fold f b m) as a; pattern a, m; subst a
+  end;
+  apply set_fold_ind.
+
+Lemma actx_fv_consistent Φ x :
+  x # Φ <-> set_Forall (fun a => x # a.1 /\ x # a.2) Φ.
+Proof.
+  simpl. unfold actx_fv.
+  split; induction_set_fold;
+    match goal with
+    | |- Proper _ _ =>
+      solve_proper_prepare; select (_ ≡ _) (fun H => rewrite <- H); auto
+    | |- _ =>
+      unfold set_Forall; fast_set_solver*
+    end.
+Qed.
+
+Lemma actx_fv_insert Φ e1 e2 :
+  actx_fv ({{e1 ≡ e2}}Φ) ≡ fv e1 ∪ fv e2 ∪ actx_fv Φ.
+Proof.
+  split; intros H; apply dec_stable; contradict H.
+  - apply actx_fv_consistent.
+    apply set_Forall_insert_2.
+    fast_set_solver.
+    apply actx_fv_consistent.
+    fast_set_solver.
+  - apply actx_fv_consistent in H.
+    apply set_Forall_insert_1 in H.
+    destruct H as [H' H].
+    apply actx_fv_consistent in H.
+    fast_set_solver.
+Qed.
+
+Lemma subst_actx_fresh Φ x s :
+  x # Φ ->
+  actx_map ({x↦s}) Φ ≡ Φ.
+Proof.
+  intros H. apply actx_fv_consistent in H. unfold set_Forall in H.
+  unfold actx_map, prod_map.
+  set_unfold.
+  intros.
+  split; intros; simp_hyps;
+    repeat esplit; eauto;
+      rewrite !subst_fresh by fast_set_solver*; eauto.
+Qed.
+
 Lemma otval_closed ω :
   otval ω ->
   closed ω.
@@ -431,12 +500,16 @@ Tactic Notation "fv_rewrite" constr(T) :=
   match T with
   | context [dom aset (<[_:=_]>_)] =>
     rewrite dom_insert
+  | context [actx_fv ({{_ ≡ _}}_)] =>
+    rewrite actx_fv_insert
   end.
 
 Tactic Notation "fv_rewrite" constr(T) "in" hyp(H) :=
   match T with
   | context [dom aset (<[_:=_]>_)] =>
     rewrite dom_insert in H
+  | context [actx_fv ({{_ ≡ _}}_)] =>
+    rewrite actx_fv_insert in H
   end.
 
 Tactic Notation "fv_rewrite_l" constr(T) :=

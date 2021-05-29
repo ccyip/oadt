@@ -7,8 +7,6 @@ Module Type OADTSig.
   #[export]
   Hint Resolve is_atom : typeclass_instances.
 
-  Parameter fset : forall A, EqDecision A -> Type.
-  Arguments fset _ {_}.
   Context `(is_polyfinset : PolyFinSet fset).
 
   #[export]
