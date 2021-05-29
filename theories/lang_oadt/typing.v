@@ -142,10 +142,11 @@ Inductive typing (Σ : gctx) : actx -> tctx -> expr -> expr -> Prop :=
     Φ; Γ ⊢ e : 𝔹 ->
     Φ; Γ ⊢ s𝔹 e : ~𝔹
 (* Collect the path conditions on discriminee *)
-| TIte Φ Γ e0 e1 e2 τ :
+| TIte Φ Γ e0 e1 e2 τ κ :
     Φ; Γ ⊢ e0 : 𝔹 ->
     {{e0 ≡ lit true}}Φ; Γ ⊢ e1 : τ ->
     {{e0 ≡ lit false}}Φ; Γ ⊢ e2 : τ ->
+    Φ; Γ ⊢ τ :: κ ->
     Φ; Γ ⊢ if e0 then e1 else e2 : τ
 | TMux Φ Γ e0 e1 e2 τ :
     Φ; Γ ⊢ e0 : ~𝔹 ->

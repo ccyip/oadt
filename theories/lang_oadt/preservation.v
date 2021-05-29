@@ -855,12 +855,9 @@ Proof.
               | eexists; qauto use: kinding_open_preservation
                                solve: fast_set_solver!! ].
 
-  (* [if] *)
-  shelve.
-
   (* Boxed injection case *)
   sfirstorder use: otval_well_kinded, oval_elim.
-Admitted.
+Qed.
 
 (** Oblivious type can not be typed. *)
 Lemma obliv_type_not_typed Σ Φ X τ e Γ τ' :

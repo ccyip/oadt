@@ -609,10 +609,11 @@ Qed.
 
 Lemma type_inv_ite Σ Φ Γ e0 e1 e2 τ :
   Σ; Φ; Γ ⊢ if e0 then e1 else e2 : τ ->
-  exists τ',
+  exists τ' κ,
     Σ; Φ; Γ ⊢ e0 : 𝔹 /\
     Σ; ({{e0 ≡ lit true}} Φ); Γ ⊢ e1 : τ' /\
     Σ; ({{e0 ≡ lit false}} Φ); Γ ⊢ e2 : τ' /\
+    Σ; Φ; Γ ⊢ τ' :: κ /\
     Σ; Φ ⊢ τ ≡ τ'.
 Proof.
   type_inv_solver.
