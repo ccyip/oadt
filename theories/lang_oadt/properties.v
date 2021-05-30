@@ -84,7 +84,8 @@ Qed.
 
 Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
 Proof.
-Admitted.
+  split; hnf; qauto ctrs: expr_equiv.
+Qed.
 
 (** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
 Lemma expr_equiv_iff_whnf_equiv Σ τ1 τ2 :
