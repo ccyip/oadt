@@ -100,6 +100,12 @@ Section map.
     solve_proper.
   Qed.
 
+  Lemma set_insert_comm x y X :
+    set_insert (C:=C) x (set_insert y X) ≡ set_insert y (set_insert x X).
+  Proof.
+    set_solver.
+  Qed.
+
   Lemma set_Forall_insert P (x : A) (X : C) :
     set_Forall P (set_insert x X) <-> P x /\ set_Forall P X.
   Proof.

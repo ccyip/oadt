@@ -797,6 +797,24 @@ Proof.
   fast_set_solver!!.
 Qed.
 
+Lemma subst_preservation_alt Σ Φ x s τ' Γ e e1 e2 τ :
+  gctx_wf Σ ->
+  Σ; ({{e1 ≡ e2}}Φ); (<[x:=τ']>Γ) ⊢ e : τ ->
+  Σ; Φ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ∪ actx_fv Φ ->
+  Σ; ({{({x↦s}e1) ≡ ({x↦s}e2)}}Φ); Γ ⊢ {x↦s}e : {x↦s}τ.
+Proof.
+  intros.
+  rewrite <- (subst_tctx_fresh Γ x s) by fast_set_solver!!.
+  relax_actx by shelve.
+  eapply subst_preservation_; eauto using typing_lc, weakening_actx_insert.
+  fast_set_solver!!.
+
+  Unshelve.
+  rewrite actx_map_insert. f_equiv.
+  rewrite subst_actx_fresh by fast_set_solver!!. reflexivity.
+Qed.
+
 Lemma open_preservation Σ Φ x s τ' Γ e τ :
   gctx_wf Σ ->
   Σ; Φ; (<[x:=τ']>Γ) ⊢ e^x : τ^x ->
@@ -837,6 +855,33 @@ Proof.
   eapply open_preservation; eauto.
 Qed.
 
+Lemma open_preservation_alt Σ Φ x s τ' Γ e e1 e2 τ :
+  gctx_wf Σ ->
+  Σ; ({{e1 ≡ e2}}Φ); (<[x:=τ']>Γ) ⊢ e^x : τ^x ->
+  Σ; Φ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ∪ actx_fv Φ ->
+  Σ; ({{({x↦s}e1) ≡ ({x↦s}e2)}}Φ); Γ ⊢ e^s : τ^s.
+Proof.
+  intros.
+  rewrite (subst_intro e s x) by fast_set_solver!!.
+  rewrite (subst_intro τ s x) by fast_set_solver!!.
+  eapply subst_preservation_alt; eauto.
+  fast_set_solver!!.
+Qed.
+
+Lemma open_preservation_lc_alt Σ Φ x s τ' Γ e e1 e2 τ :
+  gctx_wf Σ ->
+  Σ; ({{e1 ≡ e2}}Φ); (<[x:=τ']>Γ) ⊢ e^x : τ ->
+  Σ; Φ; Γ ⊢ s : τ' ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ∪ actx_fv Φ ->
+  Σ; ({{({x↦s}e1) ≡ ({x↦s}e2)}}Φ); Γ ⊢ e^s : τ.
+Proof.
+  intros Hwf H. intros.
+  erewrite <- (open_lc_intro τ s) by eauto using typing_type_lc.
+  erewrite <- (open_lc_intro τ x) in H by eauto using typing_type_lc.
+  eapply open_preservation_alt; eauto.
+Qed.
+
 (** Types of well-typed expressions are well-kinded *)
 Lemma regularity Σ Φ Γ e τ :
   gctx_wf Σ ->
@@ -870,6 +915,20 @@ Proof.
   scongruence.
 Qed.
 
+Lemma typing_actx_cut_subst Σ Φ Γ e e' e1 e2 τ :
+  Σ; ({{e1 ≡ e'}}Φ); Γ ⊢ e : τ ->
+  Σ; Φ ⊢ e1 ≡ e2 ->
+  Σ; ({{e2 ≡ e'}}Φ); Γ ⊢ e : τ.
+Proof.
+  intros.
+  eapply typing_actx_cut; eauto.
+  rewrite set_insert_comm.
+  eauto using weakening_actx_insert.
+  etrans.
+  - eauto using expr_equiv_weakening_actx_insert.
+  - eauto using expr_equiv_actx_id.
+Qed.
+
 (** ** Preservation *)
 
 Ltac case_ite_expr :=
@@ -898,11 +957,6 @@ Theorem preservation_ Σ :
 Proof.
   intros Hwf.
   apply typing_kinding_mutind; intros; subst;
-    (* The tricky cases: [if] and [case] *)
-    try lazymatch goal with
-        | _ : _ ⊨ <{ if _ then _ else _ }> -->! _ |- _; _; _ ⊢ _ : _ => shelve
-        | _ : _ ⊨ <{ case _ of _ | _ }> -->! _ |- _; _; _ ⊢ _ : _ => shelve
-        end;
     (* Repeatedly perform inversion on [step], but only if we know how to step
     it (i.e. the initial expression has a constructor for its head). *)
     repeat
@@ -961,6 +1015,11 @@ Proof.
     lemmas. *)
     simpl_cofin?;
     simplify_eq;
+    (* [TIf] and [TCase] are tricker. Let's deal with them later. *)
+    try lazymatch goal with
+        | _ : _; ({{_ ≡ _}}_); _ ⊢ _ : _ |- _ =>
+          shelve
+        end;
     (* Repeatedly apply substitution (open) preservation lemmas and typing
     rules. *)
     repeat
@@ -1007,12 +1066,45 @@ Proof.
 
   (* The case when we apply oblivious type to its argument: [SAppOADT] *)
   eapply kinding_open_preservation; eauto.
-  - eapply kinding_weakening; eauto.
-    fast_set_solver!!.
-    rewrite insert_union_singleton_l.
-    apply map_union_subseteq_l.
-  - fast_set_solver!!.
-Admitted.
+  eapply kinding_weakening; eauto.
+  fast_set_solver!!.
+  qauto use: insert_union_singleton_l, map_union_subseteq_l.
+  fast_set_solver!!.
+
+  (* Handle the trickier [if] and [case] *)
+  Unshelve.
+
+  (* [SIte] *)
+  - hauto use: typing_actx_cut_refl.
+
+  (* The discriminee of [if] takes a step *)
+  - qauto ctrs: typing use: typing_actx_cut_subst, expr_equiv_step.
+
+  (* [SCase] *)
+  - case_split;
+    (eapply typing_actx_cut;
+     [ eapply open_preservation_lc_alt; eauto;
+       lazymatch goal with
+       | |- _; _; _ ⊢ _ : _ =>
+         typing_intro; eauto; equiv_naive_solver
+       | |- _ ∉ _ =>
+         fast_set_solver!!
+       end
+     (* [actx] equivalence *)
+     | simpl; rewrite !subst_fresh by fast_set_solver!!;
+       rewrite decide_True; eauto;
+       repeat (eapply expr_equiv_iff_whnf_equiv; econstructor);
+       equiv_naive_solver ]).
+
+  (* The discriminee of [case] takes a step *)
+  - typing_intro; eauto;
+      lazymatch goal with
+      | |- _; _; _ ⊢ _ : _ =>
+        qauto use: typing_actx_cut_subst, expr_equiv_step
+      | |- _ ∉ _ =>
+        fast_set_solver!!
+      end.
+Qed.
 
 Theorem preservation Σ Φ Γ e e' τ :
   gctx_wf Σ ->

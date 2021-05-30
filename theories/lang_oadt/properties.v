@@ -45,8 +45,9 @@ Proof.
 Qed.
 
 (** ** Weak head normal form *)
-(** We only define weak head normal form for types, but may extend it for other
-expressions later. *)
+(** I only use weak head normal form as a machinery for proofs right now, so
+only the necessary cases are defined. But I may extend it with other expressions
+later. *)
 Inductive whnf {Σ : gctx} : expr -> Prop :=
 | WUnitT : whnf <{ 𝟙 }>
 | WBool{l} : whnf <{ 𝔹{l} }>
@@ -56,12 +57,13 @@ Inductive whnf {Σ : gctx} : expr -> Prop :=
 | WADT X τ :
     Σ !! X = Some (DADT τ) ->
     whnf <{ gvar X }>
+| WInj b τ e : whnf <{ inj@b<τ> e }>
 .
 Arguments whnf : clear implicits.
 Hint Constructors whnf : whnf.
 
 (** Type equivalence for the weak head normal form fragments. This relation
-always assumes that the two type arguments are already in [whnf]. *)
+always assumes that the two arguments are already in [whnf]. *)
 Inductive whnf_equiv {Σ : gctx} {Φ : actx} : expr -> expr -> Prop :=
 | WEqUnitT : whnf_equiv <{ 𝟙 }> <{ 𝟙 }>
 | WEqBool l : whnf_equiv <{ 𝔹{l} }> <{ 𝔹{l} }>
@@ -78,6 +80,10 @@ Inductive whnf_equiv {Σ : gctx} {Φ : actx} : expr -> expr -> Prop :=
     Σ; Φ ⊢ τ2 ≡ τ2' ->
     whnf_equiv <{ τ1 +{l} τ2 }> <{ τ1' +{l} τ2' }>
 | WEqADT X : whnf_equiv <{ gvar X }> <{ gvar X }>
+| WEqInj b τ e τ' e' :
+    Σ; Φ ⊢ τ ≡ τ' ->
+    Σ; Φ ⊢ e ≡ e' ->
+    whnf_equiv <{ inj@b<τ> e }> <{ inj@b<τ'> e' }>
 .
 Arguments whnf_equiv : clear implicits.
 Hint Constructors whnf_equiv : whnf_equiv.
@@ -96,6 +102,8 @@ Proof.
 Admitted.
 
 (** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
+(* FIXME: this is NOT provable with the [actx]. But one direction should still
+be provable and another direction can be fixed by assuming an empty [actx]. *)
 Lemma expr_equiv_iff_whnf_equiv Σ Φ τ1 τ2 :
   whnf Σ τ1 -> whnf Σ τ2 ->
   Σ; Φ ⊢ τ1 ≡ τ2 <->
@@ -103,8 +111,22 @@ Lemma expr_equiv_iff_whnf_equiv Σ Φ τ1 τ2 :
 Proof.
 Admitted.
 
-Instance expr_equiv_actx_iff_proper :
-  Proper ((=) ==> (≡) ==> (=) ==> (=) ==> iff) expr_equiv.
+Lemma expr_equiv_actx_equiv Σ Φ1 Φ2 τ1 τ2 :
+  Φ1 ≡ Φ2 ->
+  Σ; Φ1 ⊢ τ1 ≡ τ2 ->
+  Σ; Φ2 ⊢ τ1 ≡ τ2.
+Proof.
+Admitted.
+
+Lemma expr_equiv_actx_id Σ Φ e1 e2 :
+  Σ; ({{e1 ≡ e2}}Φ) ⊢ e1 ≡ e2.
+Proof.
+Admitted.
+
+Lemma expr_equiv_actx_cut Σ Φ e1 e2 τ1 τ2 :
+  Σ; Φ ⊢ e1 ≡ e2 ->
+  Σ; ({{e1 ≡ e2}}Φ) ⊢ τ1 ≡ τ2 ->
+  Σ; Φ ⊢ τ1 ≡ τ2.
 Proof.
 Admitted.
 
@@ -119,7 +141,7 @@ Lemma expr_equiv_weakening Σ Φ τ τ' :
     Σ'; Φ' ⊢ τ ≡ τ'.
 Admitted.
 
-(* Some side conditions may be needed for the next few lemmas. *)
+(* TODO: some side conditions may be needed for the next few lemmas. *)
 
 Lemma expr_equiv_step Σ Φ e e' :
   Σ ⊨ e -->! e' ->
@@ -167,6 +189,13 @@ Lemma expr_equiv_subst2 Σ Φ τ x e e' :
 Proof.
 Admitted.
 
+Instance expr_equiv_actx_iff_proper :
+  Proper ((=) ==> (≡) ==> (=) ==> (=) ==> iff) expr_equiv.
+Proof.
+  solve_proper_prepare.
+  split; eapply expr_equiv_actx_equiv; equiv_naive_solver.
+Qed.
+
 Lemma expr_equiv_rename Σ Φ τ τ' x y :
   Σ; Φ ⊢ τ ≡ τ' ->
   Σ; (actx_map ({x↦y}) Φ) ⊢ {x↦y}τ ≡ {x↦y}τ'.
@@ -196,6 +225,14 @@ Proof.
   eauto using expr_equiv_subst2.
 Qed.
 
+Lemma expr_equiv_weakening_actx_insert Σ Φ e1 e2 τ1 τ2 :
+  Σ; Φ ⊢ τ1 ≡ τ2 ->
+  Σ; ({{e1 ≡ e2}}Φ) ⊢ τ1 ≡ τ2.
+Proof.
+  intros. eapply expr_equiv_weakening; eauto.
+  fast_set_solver!!.
+Qed.
+
 (** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
 two equivalent types in [whnf] have different head. *)
 Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
@@ -210,7 +247,7 @@ Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
 Tactic Notation "simpl_whnf_equiv" :=
   simpl_whnf_equiv by eauto using otval_whnf with whnf.
 
-(** * Equivariant Lemmas *)
+(** ** Equivariant Lemmas *)
 
 Lemma typing_kinding_actx_equiv Σ :
   (forall Φ1 Γ e τ,
@@ -247,6 +284,52 @@ Instance kinding_actx_iff_proper :
 Proof.
   unfold Proper, respectful.
   qauto use: typing_kinding_actx_equiv.
+Qed.
+
+(** ** Cut Lemma *)
+(** NOTE: this is one of the most crucial lemmas for preservation *)
+Lemma typing_kinding_actx_cut_ Σ e1 e2 :
+  (forall Φ' Γ e τ,
+      Σ; Φ'; Γ ⊢ e : τ ->
+      forall Φ,
+        Φ' ≡ {{e1 ≡ e2}}Φ ->
+        Σ; Φ ⊢ e1 ≡ e2 ->
+        Σ; Φ; Γ ⊢ e : τ) /\
+  (forall Φ' Γ τ κ,
+      Σ; Φ'; Γ ⊢ τ :: κ ->
+      forall Φ,
+        Φ' ≡ {{e1 ≡ e2}}Φ ->
+        Σ; Φ ⊢ e1 ≡ e2 ->
+        Σ; Φ; Γ ⊢ τ :: κ).
+Proof.
+  apply typing_kinding_mutind; intros; subst;
+    try hauto l: on ctrs: typing, kinding.
+
+  (* [TIf] and [TCase] *)
+  1-2: econstructor; eauto; simpl_cofin?; auto_apply;
+    eauto using expr_equiv_weakening_actx_insert;
+    fast_set_solver*!!.
+
+  (* [TConv] *)
+  qauto ctrs: typing use: expr_equiv_actx_cut, expr_equiv_actx_equiv.
+Qed.
+
+Lemma typing_actx_cut Σ Φ Γ e e1 e2 τ :
+  Σ; ({{e1 ≡ e2}}Φ); Γ ⊢ e : τ ->
+  Σ; Φ ⊢ e1 ≡ e2 ->
+  Σ; Φ; Γ ⊢ e : τ.
+Proof.
+  intros.
+  eapply typing_kinding_actx_cut_; eauto.
+Qed.
+
+Lemma typing_actx_cut_refl Σ Φ Γ e e' τ :
+  Σ; ({{e' ≡ e'}}Φ); Γ ⊢ e : τ ->
+  Σ; Φ; Γ ⊢ e : τ.
+Proof.
+  intros.
+  eapply typing_actx_cut; eauto.
+  reflexivity.
 Qed.
 
 (** * Inversion Lemmas *)
