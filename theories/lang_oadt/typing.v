@@ -89,21 +89,117 @@ Import kind_notations.
 #[local]
 Coercion EFVar : atom >-> expr.
 
+Notation "'{{' e1 ≡ e2 '}}' Φ " := (set_insert (e1, e2) Φ)
+                                    (at level 30,
+                                     e1 custom oadt at level 99,
+                                     e2 custom oadt at level 99,
+                                     Φ constr at level 0).
+
 (** ** Expression equivalence *)
-(** Type equivalence is a placeholder for now. *)
-Parameter expr_equiv : gctx -> actx -> expr -> expr -> Prop.
+
+Inductive expr_equiv (Σ : gctx) (Φ : actx) : expr -> expr -> Prop :=
+| QRefl e : e ≡ e
+| QSymm e1 e2 :
+    e1 ≡ e2 ->
+    e2 ≡ e1
+| QTrans e1 e2 e3 :
+    e1 ≡ e2 ->
+    e2 ≡ e3 ->
+    e1 ≡ e3
+| QAsm e1 e2 :
+    (e1, e2) ∈ Φ ->
+    e1 ≡ e2
+| QApp τ e1 e2 :
+    <{ (\:τ => e2) e1 }> ≡ <{ e2^e1 }>
+| QLet e1 e2 :
+    <{ let e1 in e2 }> ≡ <{ e2^e1 }>
+| QAppOADT X τ e1 e2 :
+    Σ !! X = Some (DOADT τ e2) ->
+    <{ (gvar X) e1 }> ≡ <{ e2^e1 }>
+| QAppFun x τ e :
+    Σ !! x = Some (DFun τ e) ->
+    <{ gvar x }> ≡ <{ e }>
+| QProj b e1 e2 :
+    <{ π@b (e1, e2) }> ≡ <{ ite b e1 e2 }>
+| QFold X X' e :
+    <{ unfold<X> (fold<X'> e) }> ≡ e
+| QIte b e1 e2 :
+    <{ if b then e1 else e2 }> ≡ <{ ite b e1 e2 }>
+| QMux b e1 e2 :
+    <{ ~if [b] then e1 else e2 }> ≡ <{ ite b e1 e2 }>
+| QCase b τ e0 e1 e2 :
+    <{ case inj@b<τ> e0 of e1 | e2 }> ≡ <{ ite b (e1^e0) (e2^e0) }>
+| QOCase b τ e0 e1 e2 :
+    <{ ~case [inj@b<τ> e0] of e1 | e2 }> ≡ <{ ite b (e1^e0) (e2^e0) }>
+| QSec b :
+    <{ s𝔹 b }> ≡ <{ [b] }>
+| QOInj b τ e :
+    <{ ~inj@b<τ> e }> ≡ <{ [inj@b<τ> e] }>
+(* Congruence rules *)
+| QCongProd τ1 τ2 τ1' τ2' :
+    τ1 ≡ τ1' ->
+    τ2 ≡ τ2' ->
+    <{ τ1 * τ2 }> ≡ <{ τ1' * τ2' }>
+| QCongSum l τ1 τ2 τ1' τ2' :
+    τ1 ≡ τ1' ->
+    τ2 ≡ τ2' ->
+    <{ τ1 +{l} τ2 }> ≡ <{ τ1' +{l} τ2' }>
+| QCongPi τ1 τ2 τ1' τ2' :
+    τ1 ≡ τ1' ->
+    τ2 ≡ τ2' ->
+    <{ Π:τ1, τ2 }> ≡ <{ Π:τ1', τ2' }>
+(* Technically not needed *)
+| QCongAbs τ e τ' e' :
+    e ≡ e' ->
+    τ ≡ τ' ->
+    <{ \:τ => e }> ≡ <{ \:τ' => e' }>
+| QCongApp e1 e2 e1' e2' :
+    e1 ≡ e1' ->
+    e2 ≡ e2' ->
+    <{ e1 e2 }> ≡ <{ e1' e2' }>
+| QCongLet e1 e2 e1' e2' :
+    e1 ≡ e1' ->
+    e2 ≡ e2' ->
+    <{ let e1 in e2 }> ≡ <{ let e1' in e2' }>
+| QCongSec e e' :
+    e ≡ e' ->
+    <{ s𝔹 e }> ≡ <{ s𝔹 e' }>
+| QCongProj b e e' :
+    e ≡ e' ->
+    <{ π@b e }> ≡ <{ π@b e' }>
+| QCongFold X e e' :
+    e ≡ e' ->
+    <{ fold<X> e }> ≡ <{ fold<X> e' }>
+| QCongUnfold X e e' :
+    e ≡ e' ->
+    <{ unfold<X> e }> ≡ <{ unfold<X> e' }>
+| QCongPair e1 e2 e1' e2' :
+    e1 ≡ e1' ->
+    e2 ≡ e2' ->
+    <{ (e1, e2) }> ≡ <{ (e1', e2') }>
+| QCongInj l b τ e τ' e' :
+    e ≡ e' ->
+    τ ≡ τ' ->
+    <{ inj{l}@b<τ> e }> ≡ <{ inj{l}@b<τ'> e' }>
+| QCongIte l e0 e1 e2 e0' e1' e2' :
+    e0 ≡ e0' ->
+    e1 ≡ e1' ->
+    e2 ≡ e2' ->
+    <{ if{l} e0 then e1 else e2 }> ≡ <{ if{l} e0' then e1' else e2' }>
+| QCongCase l e0 e1 e2 e0' e1' e2' :
+    e0 ≡ e0' ->
+    e1 ≡ e1' ->
+    e2 ≡ e2' ->
+    <{ case{l} e0 of e1 | e2 }> ≡ <{ case{l} e0' of e1' | e2' }>
+
+where "e1 '≡' e2" := (expr_equiv _ _ e1 e2)
+.
 
 Notation "Σ ; Φ '⊢' e '≡' e'" := (expr_equiv Σ Φ e e')
                                    (at level 40,
                                     Φ constr at level 0,
                                     e custom oadt at level 99,
                                     e' custom oadt at level 99).
-
-Notation "'{{' e1 ≡ e2 '}}' Φ " := (set_insert (e1, e2) Φ)
-                                    (at level 30,
-                                     e1 custom oadt at level 99,
-                                     e2 custom oadt at level 99,
-                                     Φ constr at level 0).
 
 (** ** Expression typing and kinding *)
 (** They are mutually defined. *)
@@ -311,11 +407,12 @@ Combined Scheme typing_kinding_mutind
          from typing_kinding_ind, kinding_typing_ind.
 
 (** ** Hints *)
+Hint Constructors expr_equiv : expr_equiv.
+Remove Hints QSymm QTrans : expr_equiv.
 Hint Constructors typing : typing.
 Hint Constructors kinding : kinding.
 Hint Constructors gdef_typing : gdef_typing.
 Hint Constructors gdefs_typing : gdefs_typing.
-
 
 (** ** Notations *)
 (* Unfortunately I have to copy-paste all notations here again. *)

@@ -99,7 +99,8 @@ Qed.
 
 Instance expr_equiv_is_equiv Σ Φ : Equivalence (expr_equiv Σ Φ).
 Proof.
-Admitted.
+  split; hnf; qauto ctrs: expr_equiv.
+Qed.
 
 (** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
 (* FIXME: this is NOT provable with the [actx]. But one direction should still
