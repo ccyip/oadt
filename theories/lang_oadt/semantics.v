@@ -1,12 +1,9 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 
 (** * Dynamic semantics *)
 
-Module M (atom_sig : AtomSig).
-
-Include syntax.M atom_sig.
-Import syntax_notations.
+Import syntax.notations.
 
 Implicit Types (b : bool).
 
@@ -229,7 +226,7 @@ End step.
 Hint Constructors step : step.
 
 (** Notations *)
-Module semantics_notations.
+Module notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,
                                                 e constr at level 0,
@@ -240,6 +237,4 @@ Notation "Σ '⊨' e '-->*' e'" := (clos_refl_trans_1n _ (step Σ) e e')
                                    e constr at level 0,
                                    e' constr at level 0).
 
-End semantics_notations.
-
-End M.
+End notations.

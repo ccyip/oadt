@@ -1,15 +1,15 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
+From oadt Require Import lang_oadt.syntax.
+From oadt Require Import lang_oadt.semantics.
+From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 
 (** * Properties *)
 (** Lemmas for various definitions. *)
 
-Module M (atom_sig : AtomSig).
-
-Include infrastructure.M atom_sig.
-Import syntax_notations.
-Import semantics_notations.
-Import typing_notations.
+Import syntax.notations.
+Import semantics.notations.
+Import typing.notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -730,5 +730,3 @@ Proof.
   - srewrite join_bot_iff. easy.
   - eauto using bot_inv.
 Qed.
-
-End M.

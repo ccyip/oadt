@@ -1,15 +1,19 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
+From oadt Require Import lang_oadt.syntax.
+From oadt Require Import lang_oadt.semantics.
+From oadt Require Import lang_oadt.typing.
+From oadt Require Import lang_oadt.infrastructure.
+From oadt Require Import lang_oadt.properties.
+From oadt Require Import lang_oadt.progress.
+From oadt Require Import lang_oadt.preservation.
 From oadt Require Import lang_oadt.obliviousness.
 
 (** * Metatheories *)
 (** The high level metatheories. *)
 
-Module M (atom_sig : AtomSig).
-
-Include obliviousness.M atom_sig.
-Import syntax_notations.
-Import semantics_notations.
-Import typing_notations.
+Import syntax.notations.
+Import semantics.notations.
+Import typing.notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -32,5 +36,3 @@ Qed.
 
 (** ** Obliviousness *)
 (* TODO: the obliviousness corollary for trace. *)
-
-End M.

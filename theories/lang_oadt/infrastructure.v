@@ -1,16 +1,15 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
+From oadt Require Import lang_oadt.syntax.
+From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 
 (** * Infrastructure *)
 (** Definitions and lemmas related to locally nameless representation and free
 variables. *)
 
-Module M (atom_sig : AtomSig).
-
-Include typing.M atom_sig.
-Import syntax_notations.
-Import semantics_notations.
-Import typing_notations.
+Import syntax.notations.
+Import semantics.notations.
+Import typing.notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -609,5 +608,3 @@ Ltac simpl_typing_type_fv :=
               with (fun H => simpl in H)
   end.
 Smpl Add simpl_typing_type_fv : fv.
-
-End M.

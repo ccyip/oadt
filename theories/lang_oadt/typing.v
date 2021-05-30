@@ -1,13 +1,11 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
+From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 
 (** * Typing *)
 
-Module M (atom_sig : AtomSig).
-
-Include semantics.M atom_sig.
-Import syntax_notations.
-Import semantics_notations.
+Import syntax.notations.
+Import semantics.notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -296,7 +294,7 @@ Hint Constructors gdefs_typing : gdefs_typing.
 
 (** ** Notations *)
 (* Unfortunately I have to copy-paste all notations here again. *)
-Module typing_notations.
+Module notations.
 
 Export kind_notations.
 
@@ -329,6 +327,4 @@ Notation "Σ '={' Ds '}=>' Σ'" := (gdefs_typing Σ Ds Σ')
 (*                                   Σ constr at level 0, *)
 (*                                   τ custom oadt at level 99). *)
 
-End typing_notations.
-
-End M.
+End notations.

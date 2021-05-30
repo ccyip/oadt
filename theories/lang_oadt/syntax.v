@@ -1,12 +1,11 @@
-From oadt Require Import prelude.
+From oadt Require Import lang_oadt.base.
 
 (** * Syntax *)
 
-Module M (atom_sig : AtomSig).
-
-Export atom_sig.
-
 Implicit Types (b : bool).
+
+Declare Custom Entry oadt.
+Declare Custom Entry oadt_def.
 
 (** ** Expressions (e, τ) *)
 Inductive expr :=
@@ -418,7 +417,7 @@ Definition open s e := open_ 0 s e.
 Hint Constructors indistinguishable : indistinguishable.
 
 (** ** Notations *)
-Module syntax_notations.
+Module notations.
 
 Export expr_notations.
 
@@ -434,6 +433,4 @@ Notation "{ x '↦' s }" := (subst x s) (at level 20).
 
 Notation "x # s" := (x ∉ stale s) (at level 40).
 
-End syntax_notations.
-
-End M.
+End notations.
