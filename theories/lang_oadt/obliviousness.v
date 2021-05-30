@@ -1,15 +1,18 @@
 From oadt Require Import lang_oadt.base.
+From oadt Require Import lang_oadt.syntax.
+From oadt Require Import lang_oadt.semantics.
+From oadt Require Import lang_oadt.typing.
+From oadt Require Import lang_oadt.infrastructure.
+From oadt Require Import lang_oadt.properties.
+From oadt Require Import lang_oadt.progress.
 From oadt Require Import lang_oadt.preservation.
 
 (** * Obliviousness *)
 (** The obliviousness metatheorem. Essentially a noninterference property. *)
 
-Module M (sig : OADTSig).
-
-Include preservation.M sig.
-Import syntax_notations.
-Import semantics_notations.
-Import typing_notations.
+Import syntax.notations.
+Import semantics.notations.
+Import typing.notations.
 
 Implicit Types (x X y Y : atom) (L : aset).
 Implicit Types (b : bool).
@@ -428,5 +431,3 @@ Corollary obliviousness_step Σ e1 e1' e2 τ τ' :
 Proof.
   qauto use: indistinguishable_step, indistinguishable_deterministic.
 Qed.
-
-End M.
