@@ -44,6 +44,13 @@ Proof.
   reflexivity.
 Qed.
 
+Lemma actx_map_in e1 e2 Φ f :
+  (e1, e2) ∈ Φ ->
+  (f e1, f e2) ∈ (actx_map f Φ).
+Proof.
+  unfold actx_map.
+  intros. eapply elem_of_map_2_alt; eauto.
+Qed.
 (** ** Weak head normal form *)
 (** I only use weak head normal form as a machinery for proofs right now, so
 only the necessary cases are defined. But I may extend it with other expressions
@@ -65,22 +72,22 @@ Hint Constructors whnf : whnf.
 (** Type equivalence for the weak head normal form fragments. This relation
 always assumes that the two arguments are already in [whnf]. *)
 Inductive whnf_equiv {Σ : gctx} {Φ : actx} : expr -> expr -> Prop :=
-| WEqUnitT : whnf_equiv <{ 𝟙 }> <{ 𝟙 }>
-| WEqBool l : whnf_equiv <{ 𝔹{l} }> <{ 𝔹{l} }>
-| WEqPi τ1 τ2 τ1' τ2' :
+| WQUnitT : whnf_equiv <{ 𝟙 }> <{ 𝟙 }>
+| WQBool l : whnf_equiv <{ 𝔹{l} }> <{ 𝔹{l} }>
+| WQPi τ1 τ2 τ1' τ2' L :
     Σ; Φ ⊢ τ1 ≡ τ1' ->
-    Σ; Φ ⊢ τ2 ≡ τ2' ->
+    (forall x, x ∉ L -> Σ; Φ ⊢ τ2^x ≡ τ2'^x) ->
     whnf_equiv <{ Π:τ1, τ2 }> <{ Π:τ1', τ2' }>
-| WEqProd τ1 τ2 τ1' τ2' :
+| WQProd τ1 τ2 τ1' τ2' :
     Σ; Φ ⊢ τ1 ≡ τ1' ->
     Σ; Φ ⊢ τ2 ≡ τ2' ->
     whnf_equiv <{ τ1 * τ2 }> <{ τ1' * τ2' }>
-| WEqSum l τ1 τ2 τ1' τ2' :
+| WQSum l τ1 τ2 τ1' τ2' :
     Σ; Φ ⊢ τ1 ≡ τ1' ->
     Σ; Φ ⊢ τ2 ≡ τ2' ->
     whnf_equiv <{ τ1 +{l} τ2 }> <{ τ1' +{l} τ2' }>
-| WEqADT X : whnf_equiv <{ gvar X }> <{ gvar X }>
-| WEqInj b τ e τ' e' :
+| WQADT X : whnf_equiv <{ gvar X }> <{ gvar X }>
+| WQInj b τ e τ' e' :
     Σ; Φ ⊢ τ ≡ τ' ->
     Σ; Φ ⊢ e ≡ e' ->
     whnf_equiv <{ inj@b<τ> e }> <{ inj@b<τ'> e' }>
@@ -102,57 +109,149 @@ Proof.
   split; hnf; qauto ctrs: expr_equiv.
 Qed.
 
-(** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
-(* FIXME: this is NOT provable with the [actx]. But one direction should still
-be provable and another direction can be fixed by assuming an empty [actx]. *)
-Lemma expr_equiv_iff_whnf_equiv Σ Φ τ1 τ2 :
-  whnf Σ τ1 -> whnf Σ τ2 ->
-  Σ; Φ ⊢ τ1 ≡ τ2 <->
-  whnf_equiv Σ Φ τ1 τ2.
-Proof.
-Admitted.
-
 Lemma expr_equiv_actx_equiv Σ Φ1 Φ2 τ1 τ2 :
-  Φ1 ≡ Φ2 ->
   Σ; Φ1 ⊢ τ1 ≡ τ2 ->
+  Φ1 ≡ Φ2 ->
   Σ; Φ2 ⊢ τ1 ≡ τ2.
 Proof.
-Admitted.
+  induction 1; intros; eauto with expr_equiv; try equiv_naive_solver.
+  apply QAsm. set_solver.
+Qed.
 
 Lemma expr_equiv_actx_id Σ Φ e1 e2 :
   Σ; ({{e1 ≡ e2}}Φ) ⊢ e1 ≡ e2.
 Proof.
-Admitted.
+  apply QAsm.
+  set_solver.
+Qed.
 
 Lemma expr_equiv_actx_cut Σ Φ e1 e2 τ1 τ2 :
-  Σ; Φ ⊢ e1 ≡ e2 ->
   Σ; ({{e1 ≡ e2}}Φ) ⊢ τ1 ≡ τ2 ->
+  Σ; Φ ⊢ e1 ≡ e2 ->
   Σ; Φ ⊢ τ1 ≡ τ2.
 Proof.
-Admitted.
+  remember ({{e1 ≡ e2}}Φ) as Φ'.
+  induction 1; intros; subst; eauto with expr_equiv; try equiv_naive_solver.
+  select (_ ∈ _) (fun H => set_unfold; destruct H);
+    simp_hyps; eauto with expr_equiv.
+Qed.
 
-(* NOTE: Be aware of circular proofs! In case we need [gctx_wf] as a side
-condition, as we need this lemma to prove [gctx_wf] for well-typed global
-context. *)
 Lemma expr_equiv_weakening Σ Φ τ τ' :
   Σ; Φ ⊢ τ ≡ τ' ->
   forall Σ' Φ',
     Σ ⊆ Σ' ->
     Φ ⊆ Φ' ->
     Σ'; Φ' ⊢ τ ≡ τ'.
-Admitted.
+Proof.
+  induction 1; intros; eauto using lookup_weaken with expr_equiv;
+    try equiv_naive_solver.
+Qed.
 
-(* TODO: some side conditions may be needed for the next few lemmas. *)
+Lemma expr_equiv_subst1 Σ Φ τ τ' x s :
+  gctx_wf Σ ->
+  lc s ->
+  Σ; Φ ⊢ τ ≡ τ' ->
+  Σ; (actx_map ({x↦s}) Φ) ⊢ {x↦s}τ ≡ {x↦s}τ'.
+Proof.
+  intros Hwf Hlc.
+  induction 1; intros; simpl;
+    rewrite ?subst_ite_distr;
+    rewrite ?subst_open_distr by eauto;
+    eauto with expr_equiv; try equiv_naive_solver.
+
+  (* [QAppOADT] and [QFun] *)
+  1-2: econstructor; rewrite subst_fresh; eauto;
+    select (Σ !! _ = _) (fun H => apply Hwf in H; simp_hyp H);
+    simpl_cofin?; simpl_fv; fast_set_solver*!!.
+
+  (* [QOCase] and [QOInj] *)
+  1-2: match goal with
+       | H : oval ?v ?ω |- _ =>
+         rewrite ?(subst_fresh v); rewrite ?(subst_fresh ω)
+       end; [ econstructor | .. ]; eauto;
+    simpl_fv; fast_set_solver!!.
+
+  (* Cases with binders *)
+  1-4:
+  econstructor; eauto;
+  simpl_cofin;
+  rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
+
+  (* [QAsm] *)
+  apply QAsm.
+  eauto using actx_map_in.
+Qed.
+
+Lemma expr_equiv_subst2 Σ Φ τ x e e' :
+  lc e ->
+  lc e' ->
+  lc τ ->
+  Σ; Φ ⊢ e ≡ e' ->
+  Σ; Φ ⊢ {x↦e}τ ≡ {x↦e'}τ.
+Proof.
+  intros Hlc1 Hlc2.
+  induction 1; intros; simpl; try case_decide; eauto with expr_equiv.
+
+  all: econstructor; eauto;
+    simpl_cofin;
+    rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
+Qed.
+
+Instance expr_equiv_actx_iff_proper :
+  Proper ((=) ==> (≡) ==> (=) ==> (=) ==> iff) expr_equiv.
+Proof.
+  solve_proper_prepare.
+  split; intros; eapply expr_equiv_actx_equiv; equiv_naive_solver.
+Qed.
+
+Lemma expr_equiv_rename Σ Φ τ τ' x y :
+  gctx_wf Σ ->
+  Σ; Φ ⊢ τ ≡ τ' ->
+  Σ; (actx_map ({x↦y}) Φ) ⊢ {x↦y}τ ≡ {x↦y}τ'.
+Proof.
+  eauto using expr_equiv_subst1 with lc.
+Qed.
+
+Lemma expr_equiv_open1 Σ Φ τ1 τ2 x e :
+  gctx_wf Σ ->
+  lc e ->
+  Σ; Φ ⊢ τ1^x ≡ τ2^x ->
+  x ∉ fv τ1 ∪ fv τ2 ∪ actx_fv Φ ->
+  Σ; Φ ⊢ τ1^e ≡ τ2^e.
+Proof.
+  intros.
+  erewrite (subst_intro τ1 e x) by fast_set_solver!!.
+  erewrite (subst_intro τ2 e x) by fast_set_solver!!.
+  erewrite <- (subst_actx_fresh Φ x e) by fast_set_solver!!.
+  eapply expr_equiv_subst1; eauto.
+Qed.
+
+Lemma expr_equiv_open2 Σ Φ τ e1 e2 :
+  lc e1 ->
+  lc e2 ->
+  (exists L, forall x, x ∉ L -> lc <{ τ^x }>) ->
+  Σ; Φ ⊢ e1 ≡ e2 ->
+  Σ; Φ ⊢ τ^e1 ≡ τ^e2.
+Proof.
+  intros.
+  simp_hyps.
+  simpl_cofin.
+  erewrite (subst_intro τ e1 x) by eassumption.
+  erewrite (subst_intro τ e2 x) by eassumption.
+  eauto using expr_equiv_subst2.
+Qed.
+
+Lemma expr_equiv_weakening_actx_insert Σ Φ e1 e2 τ1 τ2 :
+  Σ; Φ ⊢ τ1 ≡ τ2 ->
+  Σ; ({{e1 ≡ e2}}Φ) ⊢ τ1 ≡ τ2.
+Proof.
+  intros. eapply expr_equiv_weakening; eauto.
+  fast_set_solver!!.
+Qed.
 
 Lemma expr_equiv_step Σ Φ e e' :
   Σ ⊨ e -->! e' ->
   Σ; Φ ⊢ e ≡ e'.
-Proof.
-Admitted.
-
-Lemma expr_equiv_open_atom Σ Φ τ1 τ2 x :
-  Σ; Φ ⊢ τ1 ≡ τ2 ->
-  Σ; Φ ⊢ τ1^x ≡ τ2^x.
 Proof.
 Admitted.
 
@@ -178,61 +277,14 @@ Proof.
   qauto use: expr_equiv_obliv_type_preserve_ solve: lattice_naive_solver.
 Qed.
 
-Lemma expr_equiv_subst1 Σ Φ τ τ' x s :
-  Σ; Φ ⊢ τ ≡ τ' ->
-  Σ; (actx_map ({x↦s}) Φ) ⊢ {x↦s}τ ≡ {x↦s}τ'.
+(** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
+(* FIXME: this is NOT provable with [actx]. *)
+Lemma expr_equiv_iff_whnf_equiv Σ Φ τ1 τ2 :
+  whnf Σ τ1 -> whnf Σ τ2 ->
+  Σ; Φ ⊢ τ1 ≡ τ2 <->
+  whnf_equiv Σ Φ τ1 τ2.
 Proof.
 Admitted.
-
-Lemma expr_equiv_subst2 Σ Φ τ x e e' :
-  Σ; Φ ⊢ e ≡ e' ->
-  Σ; Φ ⊢ {x↦e}τ ≡ {x↦e'}τ.
-Proof.
-Admitted.
-
-Instance expr_equiv_actx_iff_proper :
-  Proper ((=) ==> (≡) ==> (=) ==> (=) ==> iff) expr_equiv.
-Proof.
-  solve_proper_prepare.
-  split; eapply expr_equiv_actx_equiv; equiv_naive_solver.
-Qed.
-
-Lemma expr_equiv_rename Σ Φ τ τ' x y :
-  Σ; Φ ⊢ τ ≡ τ' ->
-  Σ; (actx_map ({x↦y}) Φ) ⊢ {x↦y}τ ≡ {x↦y}τ'.
-Proof.
-  eauto using expr_equiv_subst1.
-Qed.
-
-Lemma expr_equiv_open1 Σ Φ τ1 τ2 e :
-  Σ; Φ ⊢ τ1 ≡ τ2 ->
-  Σ; Φ ⊢ τ1^e ≡ τ2^e.
-Proof.
-  intros.
-  destruct (exist_fresh (fv τ1 ∪ fv τ2 ∪ actx_fv Φ)) as [x ?].
-  erewrite (subst_intro τ1 e x) by fast_set_solver!!.
-  erewrite (subst_intro τ2 e x) by fast_set_solver!!.
-  erewrite <- (subst_actx_fresh Φ x e) by fast_set_solver!!.
-  eauto using expr_equiv_subst1, expr_equiv_open_atom.
-Qed.
-
-Lemma expr_equiv_open2 Σ Φ τ e1 e2 :
-  Σ; Φ ⊢ e1 ≡ e2 ->
-  Σ; Φ ⊢ τ^e1 ≡ τ^e2.
-Proof.
-  destruct (exist_fresh (fv τ)) as [x ?].
-  erewrite (subst_intro τ e1 x) by eassumption.
-  erewrite (subst_intro τ e2 x) by eassumption.
-  eauto using expr_equiv_subst2.
-Qed.
-
-Lemma expr_equiv_weakening_actx_insert Σ Φ e1 e2 τ1 τ2 :
-  Σ; Φ ⊢ τ1 ≡ τ2 ->
-  Σ; ({{e1 ≡ e2}}Φ) ⊢ τ1 ≡ τ2.
-Proof.
-  intros. eapply expr_equiv_weakening; eauto.
-  fast_set_solver!!.
-Qed.
 
 (** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
 two equivalent types in [whnf] have different head. *)

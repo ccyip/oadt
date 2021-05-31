@@ -96,17 +96,6 @@ Notation "'{{' e1 ≡ e2 '}}' Φ " := (set_insert (e1, e2) Φ)
 (** ** Expression equivalence *)
 
 Inductive expr_equiv (Σ : gctx) (Φ : actx) : expr -> expr -> Prop :=
-| QRefl e : e ≡ e
-| QSymm e1 e2 :
-    e1 ≡ e2 ->
-    e2 ≡ e1
-| QTrans e1 e2 e3 :
-    e1 ≡ e2 ->
-    e2 ≡ e3 ->
-    e1 ≡ e3
-| QAsm e1 e2 :
-    (e1, e2) ∈ Φ ->
-    e1 ≡ e2
 | QApp τ e1 e2 :
     <{ (\:τ => e2) e1 }> ≡ <{ e2^e1 }>
 | QLet e1 e2 :
@@ -123,16 +112,20 @@ Inductive expr_equiv (Σ : gctx) (Φ : actx) : expr -> expr -> Prop :=
     <{ unfold<X> (fold<X'> e) }> ≡ e
 | QIte b e1 e2 :
     <{ if b then e1 else e2 }> ≡ <{ ite b e1 e2 }>
-| QMux b e1 e2 :
-    <{ ~if [b] then e1 else e2 }> ≡ <{ ite b e1 e2 }>
 | QCase b τ e0 e1 e2 :
     <{ case inj@b<τ> e0 of e1 | e2 }> ≡ <{ ite b (e1^e0) (e2^e0) }>
-| QOCase b τ e0 e1 e2 :
-    <{ ~case [inj@b<τ> e0] of e1 | e2 }> ≡ <{ ite b (e1^e0) (e2^e0) }>
+(* The equivalence rules for oblivous constructs are solely for convenience.
+They are not needed because they are not involved in type-level computation. *)
+| QMux b e1 e2 :
+    <{ ~if [b] then e1 else e2 }> ≡ <{ ite b e1 e2 }>
+| QOCase b ω v e1 e2 :
+    oval v ω ->
+    <{ ~case [inj@b<ω> v] of e1 | e2 }> ≡ <{ ite b (e1^v) (e2^v) }>
 | QSec b :
     <{ s𝔹 b }> ≡ <{ [b] }>
-| QOInj b τ e :
-    <{ ~inj@b<τ> e }> ≡ <{ [inj@b<τ> e] }>
+| QOInj b ω v :
+    oval v ω ->
+    <{ ~inj@b<ω> v }> ≡ <{ [inj@b<ω> v] }>
 (* Congruence rules *)
 | QCongProd τ1 τ2 τ1' τ2' :
     τ1 ≡ τ1' ->
@@ -142,22 +135,22 @@ Inductive expr_equiv (Σ : gctx) (Φ : actx) : expr -> expr -> Prop :=
     τ1 ≡ τ1' ->
     τ2 ≡ τ2' ->
     <{ τ1 +{l} τ2 }> ≡ <{ τ1' +{l} τ2' }>
-| QCongPi τ1 τ2 τ1' τ2' :
+| QCongPi τ1 τ2 τ1' τ2' L :
     τ1 ≡ τ1' ->
-    τ2 ≡ τ2' ->
+    (forall x, x ∉ L -> <{ τ2^x }> ≡ <{ τ2'^x }>) ->
     <{ Π:τ1, τ2 }> ≡ <{ Π:τ1', τ2' }>
 (* Technically not needed *)
-| QCongAbs τ e τ' e' :
-    e ≡ e' ->
+| QCongAbs τ e τ' e' L :
     τ ≡ τ' ->
+    (forall x, x ∉ L -> <{ e^x }> ≡ <{ e'^x }>) ->
     <{ \:τ => e }> ≡ <{ \:τ' => e' }>
 | QCongApp e1 e2 e1' e2' :
     e1 ≡ e1' ->
     e2 ≡ e2' ->
     <{ e1 e2 }> ≡ <{ e1' e2' }>
-| QCongLet e1 e2 e1' e2' :
+| QCongLet e1 e2 e1' e2' L :
     e1 ≡ e1' ->
-    e2 ≡ e2' ->
+    (forall x, x ∉ L -> <{ e2^x }> ≡ <{ e2'^x }>) ->
     <{ let e1 in e2 }> ≡ <{ let e1' in e2' }>
 | QCongSec e e' :
     e ≡ e' ->
@@ -184,11 +177,24 @@ Inductive expr_equiv (Σ : gctx) (Φ : actx) : expr -> expr -> Prop :=
     e1 ≡ e1' ->
     e2 ≡ e2' ->
     <{ if{l} e0 then e1 else e2 }> ≡ <{ if{l} e0' then e1' else e2' }>
-| QCongCase l e0 e1 e2 e0' e1' e2' :
+| QCongCase l e0 e1 e2 e0' e1' e2' L1 L2 :
     e0 ≡ e0' ->
-    e1 ≡ e1' ->
-    e2 ≡ e2' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ≡ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ≡ <{ e2'^x }>) ->
     <{ case{l} e0 of e1 | e2 }> ≡ <{ case{l} e0' of e1' | e2' }>
+(* Equivalence rules *)
+| QRefl e : e ≡ e
+| QSymm e1 e2 :
+    e1 ≡ e2 ->
+    e2 ≡ e1
+| QTrans e1 e2 e3 :
+    e1 ≡ e2 ->
+    e2 ≡ e3 ->
+    e1 ≡ e3
+(* Assumption rule *)
+| QAsm e1 e2 :
+    (e1, e2) ∈ Φ ->
+    e1 ≡ e2
 
 where "e1 '≡' e2" := (expr_equiv _ _ e1 e2)
 .

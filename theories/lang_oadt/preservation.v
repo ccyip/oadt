@@ -604,8 +604,10 @@ Proof.
   qauto use: subst_tctx_typing_kinding_.
 Qed.
 
+(* The condition [lc s] might not be necessary. *)
 Lemma subst_actx_typing_kinding_ Σ x s :
   gctx_wf Σ ->
+  lc s ->
   (forall Φ Γ e τ,
       Σ; Φ; Γ ⊢ e : τ ->
       x ∉ fv τ ∪ dom aset Γ ->
@@ -615,7 +617,7 @@ Lemma subst_actx_typing_kinding_ Σ x s :
       x ∉ dom aset Γ ->
       Σ; (actx_map ({x↦s}) Φ); Γ ⊢ τ :: κ).
 Proof.
-  intros Hwf.
+  intros Hwf Hlc.
   apply typing_kinding_mutind; intros; subst; simpl in *;
     econstructor; eauto;
       simpl_cofin?;
@@ -655,6 +657,7 @@ Qed.
 
 Lemma subst_actx_typing Σ Φ Γ e τ x s :
   gctx_wf Σ ->
+  lc s ->
   Σ; Φ; Γ ⊢ e : τ ->
   x ∉ fv τ ∪ dom aset Γ ->
   Σ; (actx_map ({x↦s}) Φ); Γ ⊢ e : τ.
@@ -1040,12 +1043,19 @@ Proof.
          tryif is_evar τ
          then typing_intro
          else first [ typing_intro | eapply TConv ]
+       | |- _; _ ⊢ _^?e ≡ _^?e =>
+         is_var e; eapply expr_equiv_open1
+       | |- _; _ ⊢ ?τ^_ ≡ ?τ^_ =>
+         eapply expr_equiv_open2
        | |- _; _ ⊢ ?τ ≡ _ =>
          tryif (head_constructor τ)
          then apply expr_equiv_iff_whnf_equiv; econstructor
          else qauto l: on rew: off
                     solve: equiv_naive_solver
-                    use: expr_equiv_step, expr_equiv_open1, expr_equiv_open2
+                    use: expr_equiv_step
+       | |- lc _ => eauto using typing_lc
+       | |- exists _, forall _, _ -> lc _ =>
+         eexists; intros; eapply kinding_lc; eapply kinding_rename
        | |- _ ∉ _ => fast_set_solver!!
        end).
 
