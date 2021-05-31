@@ -122,7 +122,7 @@ Proof.
 
   (* [QOCase] and [QOInj] *)
   1-2: match goal with
-       | H : oval ?v ?ω |- _ =>
+       | H : oval ?v |- _ =>
          rewrite ?(subst_fresh v); rewrite ?(subst_fresh ω)
        end; [ econstructor | .. ]; eauto;
     simpl_fv; fast_set_solver!!.
@@ -510,11 +510,11 @@ Lemma type_inv_boxedinj Σ Γ b v ω τ :
   Σ; Γ ⊢ [inj@b<ω> v] : τ ->
   exists ω1 ω2,
     ω = <{ ω1 ~+ ω2 }> /\
-    oval <{ [inj@b<ω> v] }> ω /\
+    ovalty <{ [inj@b<ω> v] }> ω /\
     Σ ⊢ τ ≡ ω1 ~+ ω2.
 Proof.
   type_inv_solver by hauto lq: on solve: equiv_naive_solver
-                           ctrs: oval inv: oval.
+                           ctrs: ovalty inv: ovalty.
 Qed.
 
 Lemma type_inv_case Σ Γ l e0 e1 e2 τ :
@@ -694,7 +694,14 @@ Proof.
     simpl_cofin?; qauto l: on ctrs: expr_wf use: open_atom_expr_wf_inv.
 Qed.
 
-(** ** Properties of [otval] and [oval] *)
+(** ** Properties of oblivious values *)
+
+Lemma oval_val v :
+  oval v ->
+  val v.
+Proof.
+  induction 1; eauto with val.
+Qed.
 
 Lemma otval_well_kinded ω Σ Γ :
   otval ω ->
@@ -714,44 +721,59 @@ Proof.
     qauto l:on rew:off inv: otval.
 Qed.
 
-Lemma oval_elim v ω :
-  oval v ω ->
-  val v /\ otval ω /\ ∅; ∅ ⊢ v : ω.
+Lemma ovalty_elim v ω:
+  ovalty v ω ->
+  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
 Proof.
-  intros H. use H.
-  induction H; hauto lq:on ctrs: val, otval, typing.
+  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
 Qed.
 
-Lemma oval_intro v ω Σ Γ :
+Lemma ovalty_elim_alt v ω:
+  ovalty v ω ->
+  val v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
+Proof.
+  hauto use: ovalty_elim, oval_val.
+Qed.
+
+Lemma ovalty_intro_alt v ω Σ Γ :
   val v ->
   otval ω ->
   Σ; Γ ⊢ v : ω ->
-  oval v ω.
+  ovalty v ω.
 Proof.
   intros H. revert ω.
   induction H; inversion 1; intros; subst;
     apply_type_inv;
     simpl_whnf_equiv;
     try hauto lq: on rew: off
-              ctrs: oval, typing
+              ctrs: ovalty, typing
               use: otval_well_kinded
               solve: equiv_naive_solver.
 
   (* Case [inj@_<_> _] *)
   repeat match goal with
          | H : _ ⊢ ?ω1 ≡ ?ω2 |- _ =>
-           apply otval_uniq in H; try qauto l: on inv: otval
+           apply otval_uniq in H; try qauto l: on use: ovalty_elim inv: otval
          end.
 Qed.
 
-(** We can always find an inhabitant for any oblivious type value. *)
-Lemma oval_inhabited ω :
+Lemma ovalty_intro v ω Σ Γ :
+  oval v ->
   otval ω ->
-  exists v, oval v ω.
+  Σ; Γ ⊢ v : ω ->
+  ovalty v ω.
 Proof.
-  induction 1; try qauto ctrs: oval.
+  hauto use: ovalty_intro_alt, oval_val.
+Qed.
+
+(** We can always find an inhabitant for any oblivious type value. *)
+Lemma ovalty_inhabited ω :
+  otval ω ->
+  exists v, ovalty v ω.
+Proof.
+  induction 1; try qauto ctrs: ovalty.
   (* Case [~+]: we choose left injection as inhabitant. *)
-  sfirstorder use: (OVOSum true).
+  sfirstorder use: (OTOSum true).
 Qed.
 
 Lemma any_kind_otval Σ Γ τ :

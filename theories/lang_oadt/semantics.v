@@ -17,14 +17,41 @@ Inductive padt : expr -> Prop :=
 .
 Hint Constructors padt : padt.
 
-(** ** OADT values (ω) *)
+(** ** Oblivious type values (ω) *)
 Inductive otval : expr -> Prop :=
-| VUnitT : otval <{ 𝟙 }>
-| VOBool : otval <{ ~𝔹 }>
-| VProd ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 * ω2 }>
-| VOSum ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 ~+ ω2 }>
+| OVUnitT : otval <{ 𝟙 }>
+| OVOBool : otval <{ ~𝔹 }>
+| OVProd ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 * ω2 }>
+| OVOSum ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 ~+ ω2 }>
 .
 Hint Constructors otval : otval.
+
+(** ** Oblivious values (v) *)
+Inductive oval : expr -> Prop :=
+| OVUnitV : oval <{ () }>
+| OVBoxedLit b : oval <{ [b] }>
+| OVPair v1 v2 : oval v1 -> oval v2 -> oval <{ (v1, v2) }>
+| OVBoxedInj b ω v : otval ω -> oval v -> oval <{ [inj@b<ω> v] }>
+.
+Hint Constructors oval : oval.
+
+(** ** OADT value typing *)
+(** [ovalty v ω] means [v] is an oblivious value of oblivious type value [ω].
+This is essentially a subset of [typing], but we have it so that the dynamic
+semantics does not depend on typing. *)
+Inductive ovalty : expr -> expr -> Prop :=
+| OTUnitV : ovalty <{ () }> <{ 𝟙 }>
+| OTOBool b : ovalty <{ [b] }> <{ ~𝔹 }>
+| OTPair v1 v2 ω1 ω2 :
+    ovalty v1 ω1 -> ovalty v2 ω2 ->
+    ovalty <{ (v1, v2) }> <{ ω1 * ω2 }>
+| OTOSum b v ω1 ω2 :
+    ovalty v <{ ite b ω1 ω2 }> ->
+    (* Make sure the unused oblivious type is a value. *)
+    otval <{ ite b ω2 ω1 }> ->
+    ovalty <{ [inj@b<ω1 ~+ ω2> v] }> <{ ω1 ~+ ω2 }>
+.
+Hint Constructors ovalty : ovalty.
 
 (** ** Values (v) *)
 Inductive val : expr -> Prop :=
@@ -35,27 +62,9 @@ Inductive val : expr -> Prop :=
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
 | VFold X v : val v -> val <{ fold<X> v }>
 | VBoxedLit b : val <{ [b] }>
-| VBoxedInj b ω v : otval ω -> val v -> val <{ [inj@b<ω> v] }>
+| VBoxedInj b ω v : otval ω -> oval v -> val <{ [inj@b<ω> v] }>
 .
 Hint Constructors val : val.
-
-(** ** OADT value typing *)
-(** [oval v ω] means [v] is an oblivious value of oblivious type value [ω]. This
-is essentially a subset of [typing], but we have it so that the dynamic
-semantics does not depend on typing. *)
-Inductive oval : expr -> expr -> Prop :=
-| OVUnitV : oval <{ () }> <{ 𝟙 }>
-| OVOBool b : oval <{ [b] }> <{ ~𝔹 }>
-| OVPair v1 v2 ω1 ω2 :
-    oval v1 ω1 -> oval v2 ω2 ->
-    oval <{ (v1, v2) }> <{ ω1 * ω2 }>
-| OVOSum b v ω1 ω2 :
-    oval v <{ ite b ω1 ω2 }> ->
-    (* Make sure the unused oblivious type is a value. *)
-    otval <{ ite b ω2 ω1 }> ->
-    oval <{ [inj@b<ω1 ~+ ω2> v] }> <{ ω1 ~+ ω2 }>
-.
-Hint Constructors oval : oval.
 
 (** ** Syntactical well-formedness *)
 (** Intuitively it means the boxed injection must be a value and it can be typed
@@ -132,7 +141,7 @@ well-formed. But it is more convenient to do so for the current purposes. *)
     expr_wf <{ [b] }>
 (* The only interesting case *)
 | WfBoxedInj b ω v :
-    oval <{ [inj@b<ω> v] }> ω ->
+    ovalty <{ [inj@b<ω> v] }> ω ->
     expr_wf <{ [inj@b<ω> v] }>
 .
 Hint Constructors expr_wf: expr_wf.
@@ -186,7 +195,8 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
     <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
 (** The most interesting rule *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
-    oval v1 ω1 -> oval v2 ω2 ->
+    oval v ->
+    ovalty v1 ω1 -> ovalty v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
       <{ ~if [b] then (ite b (e1^v) (e1^v1)) else (ite b (e2^v2) (e2^v)) }>
 | SAppOADT X τ e v :
@@ -197,7 +207,7 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
     Σ !! x = Some (DFun τ e) ->
     <{ gvar x }> -->! <{ e }>
 | SOInj b ω v :
-    otval ω -> val v ->
+    otval ω -> oval v ->
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
 | SIte b e1 e2 :
     <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>

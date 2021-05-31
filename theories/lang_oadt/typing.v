@@ -103,12 +103,12 @@ They are not needed because they are not involved in type-level computation. *)
 | QMux b e1 e2 :
     <{ ~if [b] then e1 else e2 }> ≡ <{ ite b e1 e2 }>
 | QOCase b ω v e1 e2 :
-    oval v ω ->
+    oval v ->
     <{ ~case [inj@b<ω> v] of e1 | e2 }> ≡ <{ ite b (e1^v) (e2^v) }>
 | QSec b :
     <{ s𝔹 b }> ≡ <{ [b] }>
 | QOInj b ω v :
-    oval v ω ->
+    otval ω -> oval v ->
     <{ ~inj@b<ω> v }> ≡ <{ [inj@b<ω> v] }>
 (* Congruence rules *)
 | QCongProd τ1 τ2 τ1' τ2' :
@@ -267,7 +267,7 @@ appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
 | TBoxedLit Γ b : Γ ⊢ [b] : ~𝔹
 | TBoxedInj Γ b v ω :
-    oval <{ [inj@b<ω> v] }> ω ->
+    ovalty <{ [inj@b<ω> v] }> ω ->
     Γ ⊢ [inj@b<ω> v] : ω
 (** Type conversion *)
 | TConv Γ e τ τ' κ :

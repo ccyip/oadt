@@ -77,13 +77,14 @@ Qed.
 Lemma canonical_form_osum Σ Γ e τ1 τ2 :
   val e ->
   Σ; Γ ⊢ e : τ1 ~+ τ2 ->
-  exists b v ω1 ω2, val v /\ otval ω1 /\ otval ω2 /\
+  exists b v ω1 ω2, oval v /\ otval ω1 /\ otval ω2 /\
                e = <{ [inj@b<ω1 ~+ ω2> v] }>.
 Proof.
-  canonical_form_solver;
-    (* The cases when [e] is boxed injection. *)
-    select (otval _) (fun H => sinvert H);
-    repeat esplit; auto.
+  canonical_form_solver.
+
+  (* The cases when [e] is boxed injection. *)
+  select (otval _) (fun H => sinvert H);
+  repeat esplit; auto.
 Qed.
 
 (** Though it seems we should have a condition of [X] being an (public) ADT, this
@@ -96,6 +97,7 @@ Proof.
   inversion 1; inversion 1; intros; subst; eauto;
   apply_type_inv;
   apply_kind_inv;
+  simplify_eq;
   simpl_whnf_equiv.
 Qed.
 
@@ -166,15 +168,28 @@ Proof.
                        canonical_form_sum
           | idtac ].
 
+  (* Injection *)
+  - match goal with
+    | |- val <{ inj{?l}@_<_> _ }> \/ _ =>
+      destruct l; [| qauto q: on ctrs: val, step ]
+    end.
+    right. intuition; try qauto solve: step_ectx_solver.
+    (* Step to boxed injection *)
+    eexists. econstructor; eauto.
+    qauto l: on ctrs: otval inv: otval use: ovalty_elim, ovalty_intro_alt.
+
   (* [~case _ of _ | _] *)
   - right. intuition.
     (* Discriminee is value. *)
     + select (_; _ ⊢ _ : _) (fun H => apply canonical_form_osum in H); eauto.
       simp_hyps.
-      select! (otval _) (fun H => use (oval_inhabited _ H)).
+      select! (otval _) (fun H => use (ovalty_inhabited _ H)).
       hauto ctrs: step.
     (* Discriminee can take a step. *)
     + hauto solve: step_ectx_solver ctrs: step.
+
+  (* [[inj@_<_> _]] *)
+  - sfirstorder use: ovalty_elim_alt.
 
   (* [_ + _]. This case is impossible. *)
   - enough (<{ *@P }> ⊑ <{ *@O }>) by easy.

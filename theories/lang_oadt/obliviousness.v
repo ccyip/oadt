@@ -41,9 +41,9 @@ Proof.
     try case_decide; eauto with indistinguishable.
 Qed.
 
-Lemma indistinguishable_oval v v' ω :
-  oval v ω ->
-  oval v' ω ->
+Lemma indistinguishable_ovalty v v' ω :
+  ovalty v ω ->
+  ovalty v' ω ->
   v ≈ v'.
 Proof.
   intros H. revert v'.
@@ -51,15 +51,15 @@ Proof.
     eauto with indistinguishable.
 Qed.
 
-Lemma indistinguishable_oval_inv v v' ω ω' :
+Lemma indistinguishable_ovalty_inv v v' ω ω' :
   v ≈ v' ->
-  oval v ω ->
-  oval v' ω' ->
+  ovalty v ω ->
+  ovalty v' ω' ->
   ω = ω'.
 Proof.
   intros H. revert ω ω'.
   induction H; intros ??; inversion 1; subst; inversion 1; subst;
-    qauto l: on inv: oval.
+    qauto l: on inv: ovalty.
 Qed.
 
 Lemma indistinguishable_otval ω ω' :
@@ -89,7 +89,7 @@ Lemma indistinguishable_val_ v v' :
 Proof.
   induction 1; intros; try qauto l: on ctrs: val inv: val, expr_wf.
   (* The boxed injection case. *)
-  qauto l: on ctrs: val inv: val, expr_wf use: oval_elim.
+  qauto l: on ctrs: val inv: val, expr_wf use: ovalty_elim_alt.
 Qed.
 
 Lemma indistinguishable_val v v' Σ Γ τ :
@@ -411,6 +411,7 @@ Proof.
                head_constructor e; sinvert H
              end;
          try select (ectx _) (fun H => sinvert H); simplify_eq;
+         try select (oval _) (fun H => apply oval_val in H);
          try solve
              (* Discharge the impossible cases *)
              [ val_step_absurd
@@ -424,11 +425,11 @@ Proof.
   (* Step from oblivious case to mux *)
   - repeat
       match goal with
-      | H : oval ?v _ |- _ => head_constructor v; sinvert H
+      | H : ovalty ?v _ |- _ => head_constructor v; sinvert H
       end.
     econstructor; eauto with indistinguishable;
       case_splitting;
-      eauto using indistinguishable_open, indistinguishable_oval.
+      eauto using indistinguishable_open, indistinguishable_ovalty.
 
   (* Step from oblivious injection to boxed injection *)
   - match goal with
@@ -441,6 +442,7 @@ Proof.
   (* Step from mux *)
   - case_splitting;
       eauto using indistinguishable_obliv_val, indistinguishable_val_type.
+
 Qed.
 
 (** The one-step obliviousness theorem, which is essentially a noninterference

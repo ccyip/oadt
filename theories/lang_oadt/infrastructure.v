@@ -231,8 +231,15 @@ Proof.
   induction 1; hauto ctrs: lc.
 Qed.
 
-Lemma oval_lc v ω :
-  oval v ω ->
+Lemma oval_lc v :
+  oval v ->
+  lc v.
+Proof.
+  induction 1; hauto ctrs: lc use: otval_lc.
+Qed.
+
+Lemma ovalty_lc v ω :
+  ovalty v ω ->
   lc v /\ lc ω.
 Proof.
   induction 1; hauto ctrs: lc use: otval_lc.
@@ -246,7 +253,7 @@ with kinding_lc  Σ Γ τ κ :
   Σ; Γ ⊢ τ :: κ ->
   lc τ.
 Proof.
-  all: destruct 1; try hauto q: on rew: off ctrs: lc use: oval_lc;
+  all: destruct 1; try hauto q: on rew: off ctrs: lc use: ovalty_lc;
     econstructor; simpl_cofin; qauto.
 Qed.
 
@@ -305,7 +312,7 @@ Proof.
       | H : Σ !! _ = Some _ |- _ =>
         apply Hwf in H; simp_hyps; eauto using kinding_lc
       | H : _; _ ⊢ _ : _ |- _ => apply typing_lc in H
-      | H : oval _ _ |- _ => apply oval_lc in H
+      | H : ovalty _ _ |- _ => apply ovalty_lc in H
       end;
     qauto use: lc_open_atom_lc inv: lc simp: simpl_cofin?.
 Qed.
@@ -417,8 +424,15 @@ Proof.
   induction 1; set_solver.
 Qed.
 
-Lemma oval_closed v ω :
-  oval v ω ->
+Lemma oval_closed v :
+  oval v ->
+  closed v.
+Proof.
+  induction 1; qauto use: otval_closed solve: fast_set_solver*.
+Qed.
+
+Lemma ovalty_closed v ω :
+  ovalty v ω ->
   closed ω /\ closed v.
 Proof.
   induction 1; qauto use: otval_closed solve: fast_set_solver*.
@@ -516,8 +530,12 @@ Tactic Notation "simpl_fv" "*" :=
 
 Ltac simpl_fv_core :=
   match goal with
-  | H : oval _ _ |- _ =>
-    apply oval_closed in H; unfold closed in H; destruct H
+  | H : ovalty _ _ |- _ =>
+    apply ovalty_closed in H; unfold closed in H; destruct H
+  | H : oval _ |- _ =>
+    apply oval_closed in H; unfold closed in H
+  | H : otval _ |- _ =>
+    apply otval_closed in H; unfold closed in H
   | H : ?Σ !! _ = Some ?D, Hwf : gctx_wf ?Σ |- _ =>
     lazymatch D with
     (* Handle [DFun] later *)
