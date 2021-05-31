@@ -135,11 +135,3 @@ Section map.
   Qed.
 
 End map.
-
-
-(** * More Instances *)
-
-Instance bool_top : Top bool := true.
-Arguments bool_top /.
-Instance bool_bot : Bottom bool := false.
-Arguments bool_bot /.
