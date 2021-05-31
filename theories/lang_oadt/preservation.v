@@ -810,12 +810,19 @@ Proof.
          tryif is_evar τ
          then typing_intro
          else first [ typing_intro | eapply TConv ]
+       | |- _ ⊢ _^?e ≡ _^?e =>
+         is_var e; eapply expr_equiv_open1
+       | |- _ ⊢ ?τ^_ ≡ ?τ^_ =>
+         eapply expr_equiv_open2
        | |- _ ⊢ ?τ ≡ _ =>
          tryif (head_constructor τ)
          then apply expr_equiv_iff_whnf_equiv; econstructor
          else qauto l: on rew: off
                     solve: equiv_naive_solver
-                    use: expr_equiv_step, expr_equiv_open1, expr_equiv_open2
+                    use: expr_equiv_step
+       | |- lc _ => eauto using typing_lc
+       | |- forall _, _ -> lc _ =>
+         intros; eapply kinding_lc; eapply kinding_rename
        | |- _ ∉ _ => fast_set_solver!!
        end).
 
