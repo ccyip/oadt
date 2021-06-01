@@ -51,6 +51,7 @@ Proof.
   unfold actx_map.
   intros. eapply elem_of_map_2_alt; eauto.
 Qed.
+
 (** ** Weak head normal form *)
 (** I only use weak head normal form as a machinery for proofs right now, so
 only the necessary cases are defined. But I may extend it with other expressions
@@ -543,6 +544,12 @@ Proof.
   kind_inv_solver.
 Qed.
 
+Lemma kind_inv_abs Σ Φ Γ τ e κ :
+  Σ; Φ; Γ ⊢ \:τ => e :: κ -> False.
+Proof.
+  kind_inv_solver.
+Qed.
+
 Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   lazymatch type of H with
   | _; _; _ ⊢ Π:_, _ :: _ => tac kind_inv_pi
@@ -563,6 +570,7 @@ Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   | _; _; _ ⊢ inj{_}@_<_> _ :: _ => apply kind_inv_inj in H; elim H
   | _; _; _ ⊢ fold<_> _ :: _ => apply kind_inv_fold in H; elim H
   | _; _; _ ⊢ unfold<_> _ :: _ => apply kind_inv_unfold in H; elim H
+  | _; _; _ ⊢ \:_ => _ :: _ => apply kind_inv_unfold in H; elim H
   end.
 
 Tactic Notation "apply_kind_inv" hyp(H) :=
