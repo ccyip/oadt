@@ -457,6 +457,15 @@ Proof.
     end.
 Qed.
 
+Lemma actx_fv_empty :
+  actx_fv ∅ ≡ ∅.
+Proof.
+  split; intros H; apply dec_stable; contradict H.
+  - apply actx_fv_consistent.
+    eapply set_Forall_empty.
+  - set_solver.
+Qed.
+
 Lemma actx_fv_insert Φ e1 e2 :
   actx_fv ({{e1 ≡ e2}}Φ) ≡ fv e1 ∪ fv e2 ∪ actx_fv Φ.
 Proof.
@@ -515,6 +524,8 @@ Tactic Notation "fv_rewrite" constr(T) :=
     rewrite dom_insert
   | context [actx_fv ({{_ ≡ _}}_)] =>
     rewrite actx_fv_insert
+  | context [actx_fv ∅] =>
+    rewrite actx_fv_empty
   end.
 
 Tactic Notation "fv_rewrite" constr(T) "in" hyp(H) :=
@@ -523,6 +534,8 @@ Tactic Notation "fv_rewrite" constr(T) "in" hyp(H) :=
     rewrite dom_insert in H
   | context [actx_fv ({{_ ≡ _}}_)] =>
     rewrite actx_fv_insert in H
+  | context [actx_fv ∅] =>
+    rewrite actx_fv_empty in H
   end.
 
 Tactic Notation "fv_rewrite_l" constr(T) :=

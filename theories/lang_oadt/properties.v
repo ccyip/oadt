@@ -582,7 +582,7 @@ Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   | _; _; _ ⊢ inj{_}@_<_> _ :: _ => apply kind_inv_inj in H; elim H
   | _; _; _ ⊢ fold<_> _ :: _ => apply kind_inv_fold in H; elim H
   | _; _; _ ⊢ unfold<_> _ :: _ => apply kind_inv_unfold in H; elim H
-  | _; _; _ ⊢ \:_ => _ :: _ => apply kind_inv_unfold in H; elim H
+  | _; _; _ ⊢ \:_ => _ :: _ => apply kind_inv_abs in H; elim H
   end.
 
 Tactic Notation "apply_kind_inv" hyp(H) :=
@@ -969,3 +969,26 @@ Proof.
   - srewrite join_bot_iff. easy.
   - eauto using bot_inv.
 Qed.
+
+(** ** Tactics *)
+
+Ltac case_ite_expr :=
+  lazymatch goal with
+  | |- _; _; _ ⊢ ?e : _ =>
+    lazymatch e with
+    | context [<{ ite ?b _ _ }>] => destruct b
+    end
+  | |- _; _; _ ⊢ ?τ :: _ =>
+    lazymatch τ with
+    | context [<{ ite ?b _ _ }>] => destruct b
+    end
+  end.
+
+Ltac case_label :=
+  lazymatch goal with
+  | |- context [<{ inj{?l}@_<_> _ }>] => destruct l
+  | |- context [<{ if{?l} _ then _ else _ }>] => destruct l
+  | |- context [<{ case{?l} _ of _ | _ }>] => destruct l
+  | |- context [<{ 𝔹{?l} }>] => destruct l
+  | |- context [<{ _ +{?l} _ }>] => destruct l
+  end.
