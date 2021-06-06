@@ -13,6 +13,9 @@ Implicit Types (b : bool).
 #[local]
 Open Scope type_scope.
 
+#[local]
+Coercion EFVar : atom >-> expr.
+
 (** ** Assumptions (Φ) *)
 (** An assumption has the form [e ≡ e']. *)
 Notation asm := (expr * expr).
@@ -84,8 +87,6 @@ End kind_notations.
 Section typing.
 
 Import kind_notations.
-#[local]
-Coercion EFVar : atom >-> expr.
 
 Notation "'{{' e1 ≡ e2 '}}' Φ " := (set_insert (e1, e2) Φ)
                                     (at level 30,
@@ -404,6 +405,155 @@ Definition program_typing (Ds : gdefs) (e : expr) (Σ : gctx) (τ : expr) :=
 
 End typing.
 
+Section reduction.
+
+Context (Σ : gctx) (Φ : actx).
+
+(** ** Parallel Reduction *)
+
+Reserved Notation "e '==>!' e'" (at level 40,
+                                 e' constr at level 0).
+
+Inductive pared : expr -> expr -> Prop :=
+| RApp τ e1 e2 e1' e2' L :
+    e1 ==>! e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    <{ (\:τ => e2) e1 }> ==>! <{ e2'^e1' }>
+| RLet e1 e2 e1' e2' L :
+    e1 ==>! e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ==>! <{ e2'^e1' }>
+| RAppOADT X τ e1 e2 e1' :
+    Σ !! X = Some (DOADT τ e2) ->
+    e1 ==>! e1' ->
+    <{ (gvar X) e1 }> ==>! <{ e2^e1' }>
+| RAppFun x τ e :
+    Σ !! x = Some (DFun τ e) ->
+    <{ gvar x }> ==>! <{ e }>
+| RProj b e1 e2 e1' e2' :
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ π@b (e1, e2) }> ==>! <{ ite b e1' e2' }>
+| RFold X X' e e' :
+    e ==>! e' ->
+    <{ unfold<X> (fold<X'> e) }> ==>! e'
+| RIte b e1 e2 e1' e2' :
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ if b then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+| RCase b τ e0 e1 e2 e0' e1' e2' L1 L2 :
+    e0 ==>! e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    <{ case inj@b<τ> e0 of e1 | e2 }> ==>! <{ ite b (e1'^e0') (e2'^e0') }>
+| RMux b e1 e2 e1' e2' :
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ ~if [b] then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+| ROCase b ω v e1 e2 e1' e2' L1 L2 :
+    oval v ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    <{ ~case [inj@b<ω> v] of e1 | e2 }> ==>! <{ ite b (e1'^v) (e2'^v) }>
+| RSec b :
+    <{ s𝔹 b }> ==>! <{ [b] }>
+| ROInj b ω v :
+    otval ω -> oval v ->
+    <{ ~inj@b<ω> v }> ==>! <{ [inj@b<ω> v] }>
+(* Congruence rules *)
+| RCongProd τ1 τ2 τ1' τ2' :
+    τ1 ==>! τ1' ->
+    τ2 ==>! τ2' ->
+    <{ τ1 * τ2 }> ==>! <{ τ1' * τ2' }>
+| RCongSum l τ1 τ2 τ1' τ2' :
+    τ1 ==>! τ1' ->
+    τ2 ==>! τ2' ->
+    <{ τ1 +{l} τ2 }> ==>! <{ τ1' +{l} τ2' }>
+| RCongPi τ1 τ2 τ1' τ2' L :
+    τ1 ==>! τ1' ->
+    (forall x, x ∉ L -> <{ τ2^x }> ==>! <{ τ2'^x }>) ->
+    <{ Π:τ1, τ2 }> ==>! <{ Π:τ1', τ2' }>
+| RCongAbs τ e τ' e' L :
+    τ ==>! τ' ->
+    (forall x, x ∉ L -> <{ e^x }> ==>! <{ e'^x }>) ->
+    <{ \:τ => e }> ==>! <{ \:τ' => e' }>
+| RCongApp e1 e2 e1' e2' :
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ e1 e2 }> ==>! <{ e1' e2' }>
+| RCongLet e1 e2 e1' e2' L :
+    e1 ==>! e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ==>! <{ let e1' in e2' }>
+| RCongSec e e' :
+    e ==>! e' ->
+    <{ s𝔹 e }> ==>! <{ s𝔹 e' }>
+| RCongProj b e e' :
+    e ==>! e' ->
+    <{ π@b e }> ==>! <{ π@b e' }>
+| RCongFold X e e' :
+    e ==>! e' ->
+    <{ fold<X> e }> ==>! <{ fold<X> e' }>
+| RCongUnfold X e e' :
+    e ==>! e' ->
+    <{ unfold<X> e }> ==>! <{ unfold<X> e' }>
+| RCongPair e1 e2 e1' e2' :
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ (e1, e2) }> ==>! <{ (e1', e2') }>
+| RCongInj l b τ e τ' e' :
+    e ==>! e' ->
+    τ ==>! τ' ->
+    <{ inj{l}@b<τ> e }> ==>! <{ inj{l}@b<τ'> e' }>
+| RCongIte l e0 e1 e2 e0' e1' e2' :
+    e0 ==>! e0' ->
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ if{l} e0 then e1 else e2 }> ==>! <{ if{l} e0' then e1' else e2' }>
+| RCongCase l e0 e1 e2 e0' e1' e2' L1 L2 :
+    e0 ==>! e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    <{ case{l} e0 of e1 | e2 }> ==>! <{ case{l} e0' of e1' | e2' }>
+(* Reflexive rule *)
+| RRefl e : e ==>! e
+(* Assumption rule *)
+| RAsm e1 e2 :
+    (e1, e2) ∈ Φ ->
+    e1 ==>! e2
+
+where "e1 '==>!' e2" := (pared e1 e2)
+.
+
+Notation "e '==>*' e'" := (clos_refl_trans_1n _ pared e e')
+                            (at level 40,
+                             e' custom oadt at level 99).
+
+(** This definition is the same as saying two expressions multi-reduce to the
+same expression, but easier for induction in some cases. *)
+Inductive pared_equiv : expr -> expr -> Prop :=
+| QRRefl e : e ≡ e
+| QRRedL e1 e1' e2 :
+    e1 ==>! e1' ->
+    e1' ≡ e2 ->
+    e1 ≡ e2
+| QRRedR e1 e2 e2' :
+    e2 ==>! e2' ->
+    e1 ≡ e2' ->
+    e1 ≡ e2
+
+where "e ≡ e'" := (pared_equiv e e')
+.
+
+Inductive pared_equiv_alt : expr -> expr -> Prop :=
+| QRJoin e1 e2 e :
+    e1 ==>* e ->
+    e2 ==>* e ->
+    pared_equiv_alt e1 e2
+.
+
+End reduction.
+
 (** Better induction principle. *)
 Scheme typing_kinding_ind := Minimality for typing Sort Prop
   with kinding_typing_ind := Minimality for kinding Sort Prop.
@@ -417,6 +567,8 @@ Hint Constructors typing : typing.
 Hint Constructors kinding : kinding.
 Hint Constructors gdef_typing : gdef_typing.
 Hint Constructors gdefs_typing : gdefs_typing.
+Hint Constructors pared : pared.
+Hint Constructors pared_equiv : pared_equiv.
 
 (** ** Notations *)
 (* Unfortunately I have to copy-paste all notations here again. *)
@@ -462,4 +614,24 @@ Notation "Σ '={' Ds '}=>' Σ'" := (gdefs_typing Σ Ds Σ')
 (*                                   Σ constr at level 0, *)
 (*                                   τ custom oadt at level 99). *)
 
+Notation "Σ ; Φ '⊢' e '==>!' e'" := (pared Σ Φ e e')
+                                      (at level 40,
+                                       Φ constr at level 0,
+                                       e custom oadt at level 99,
+                                       e' custom oadt at level 99).
+Notation "Σ ; Φ '⊢' e '==>*' e'" := (clos_refl_trans_1n _ (pared Σ Φ) e e')
+                                      (at level 40,
+                                       Φ constr at level 0,
+                                       e custom oadt at level 99,
+                                       e' custom oadt at level 99).
+Notation "Σ ; Φ '⊢' e '≡ᵣ' e'" := (pared_equiv Σ Φ e e')
+                                    (at level 40,
+                                     Φ constr at level 0,
+                                     e custom oadt at level 99,
+                                     e' custom oadt at level 99).
+Notation "Σ ; Φ '⊢' e '≡ⱼ' e'" := (pared_equiv_alt Σ Φ e e')
+                                    (at level 40,
+                                     Φ constr at level 0,
+                                     e custom oadt at level 99,
+                                     e' custom oadt at level 99).
 End notations.

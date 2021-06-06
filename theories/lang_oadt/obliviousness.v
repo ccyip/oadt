@@ -21,6 +21,139 @@ Implicit Types (b : bool).
 #[local]
 Coercion EFVar : atom >-> expr.
 
+(* Lemma pared_obliv_type_preserve Σ Γ τ τ' : *)
+(*   gctx_wf Σ -> *)
+(*   Σ; ∅ ⊢ τ ==>! τ' -> *)
+(*      forall κ, *)
+(*   Σ; ∅; Γ ⊢ τ :: κ -> *)
+(*   Σ; ∅; Γ ⊢ τ' :: *@O -> *)
+(*   Σ; ∅; Γ ⊢ τ :: *@O. *)
+(* Proof. *)
+(*   intros Hwf. *)
+(*   induction 1; intros; eauto; simplify_eq; apply_kind_inv*; simplify_eq. *)
+
+
+(* Lemma pared_obliv_type_preserve Σ e e' : *)
+(*   gctx_wf Σ -> *)
+(*   Σ; ∅ ⊢ e ==>! e' -> *)
+(*   (forall Γ τ, Σ; ∅; Γ ⊢ e : τ -> Σ; ∅; Γ ⊢ e' : τ) /\ *)
+(*   (forall Γ κ, Σ; ∅; Γ ⊢ e :: κ -> Σ; ∅; Γ ⊢ e' :: κ). *)
+(* Proof. *)
+(*   intros Hwf. *)
+(*   induction 1; intros; eauto; simplify_eq. *)
+
+(*   25 : { *)
+(*     split; intros. 2 : admit. destruct l. admit. *)
+(*     try select! (_; _; _ ⊢ _ : _) *)
+(*           (fun H => dup_hyp H (fun H => eapply regularity in H; *)
+(*                                     [ simp_hyp H | eauto ])). *)
+(*     apply_type_inv. *)
+(*     simp_hyps. clear H9 H11 H13. *)
+(*     econstructor; eauto. *)
+(*     auto_apply. *)
+
+
+(*     econstructor. *)
+(*     eapply typing_actx_cut_refl. *)
+(*     eauto. eauto. equiv_naive_solver. *)
+
+(*   } *)
+
+
+(*   - split; intros. 2: apply_kind_inv; try easy. *)
+(*     try select! (_; _; _ ⊢ _ : _) *)
+(*           (fun H => dup_hyp H (fun H => eapply regularity in H; *)
+(*                                     [ simp_hyp H | eauto ])). *)
+(*     (* simpl_cofin. simplify_eq. simp_hyps. set_fold_not. *) *)
+(*     apply_type_inv. *)
+(*     apply_type_inv. *)
+(*     simpl_whnf_equiv. *)
+(*     simpl_cofin. simplify_eq. simp_hyps. set_fold_not. *)
+(*     econstructor. 3 : symmetry. 3: auto_apply. *)
+(*     eapply open_preservation_lc. eauto. *)
+(*     Focus 2. auto_apply. econstructor. eauto. 2: auto_apply. eauto. *)
+(*     auto_apply. *)
+(*     econstructor. eauto. *)
+(*     eapply kinding_weakening_insert; eauto. *)
+(*     eauto. *)
+(*     auto_apply. *)
+
+
+(* Lemma expr_equiv_obliv_type_preserve Σ Γ τ τ' κ : *)
+(*   gctx_wf Σ -> *)
+(*   (* τ' might not be well-kinded, but every well-kinded equivalent terms are *)
+(*   good *) *)
+(*   Σ; ∅; Γ ⊢ τ' :: κ -> *)
+(*   Σ; ∅; Γ ⊢ τ :: *@O -> *)
+(*   Σ; ∅ ⊢ τ ≡ τ' -> *)
+(*      (* whnf Σ τ' -> *) *)
+(*   Σ; ∅; Γ ⊢ τ' :: *@O. *)
+(* Proof. *)
+(*   intros Hwf. *)
+(*   remember ∅. *)
+(*   intros H. revert τ. *)
+(*   induction H; intros; try case_split; simplify_eq. *)
+(*   - remember ∅. remember <{ *@O }>. *)
+(*     induction H0; subst; try simpl_whnf_equiv; eauto with kinding. *)
+(*     admit. *)
+(*     admit. *)
+(*     admit. *)
+(*     admit. *)
+(*     admit. *)
+(*   - remember ∅. induction H; subst; try simpl_whnf_equiv; eauto with kinding. *)
+(*   - remember ∅. induction H1; subst; try simpl_whnf_equiv; eauto with kinding. *)
+(*     Focus 4. *)
+(*     admit. *)
+(*   - *)
+(*   rewrite <- expr_equiv_iff_pared_equiv. *)
+(*   - auto_apply; eauto. *)
+(*     shelve. *)
+(*   - *)
+(* Admitted. *)
+
+(* Lemma expr_equiv_obliv_type_preserve Σ Γ τ τ' κ : *)
+(*   gctx_wf Σ -> *)
+(*   Σ; ∅; Γ ⊢ τ :: *@O -> *)
+(*   Σ; ∅; Γ ⊢ τ' :: κ -> *)
+(*   Σ; ∅ ⊢ τ ≡ τ' -> *)
+(*   whnf Σ τ' -> *)
+(*   Σ; ∅; Γ ⊢ τ' :: *@O. *)
+(* Proof. *)
+(*   intros Hwf. *)
+(*   remember ∅. remember <{ *@O }>. *)
+(*   intros H. revert τ' κ. *)
+(*   induction H; intros; try case_split; try solve [simplify_eq]. *)
+(*   (* - destruct H1; subst; apply_kind_inv; try simpl_whnf_equiv; eauto with kinding. *) *)
+(*   - induction H; subst; try simpl_whnf_equiv; eauto with kinding. *)
+(*   - destruct H3; subst; apply_kind_inv*; try simpl_whnf_equiv; eauto with kinding. *)
+(*     Focus 3. *)
+(*     rewrite <- expr_equiv_iff_pared_equiv in H2. *)
+(*     remember <{ gvar X e }>. *)
+(*     remember <{ τ1 * τ2 }>. *)
+(*     induction H2; subst; simplify_eq. *)
+(*     admit. *)
+(*     admit. *)
+(*     shelve. *)
+(*     apply Hwf in H. simp_hyps. *)
+(*     simpl_cofin. eapply kinding_open_preservation; eauto. *)
+(*     eapply kinding_weakening; eauto. shelve. simpl_fv. fast_set_solver!!. *)
+(*   - induction H1; subst; try simpl_whnf_equiv; eauto with kinding. *)
+
+Lemma expr_equiv_obliv_type_preserve Σ Γ τ τ' κ :
+  gctx_wf Σ ->
+  Σ; ∅ ⊢ τ ≡ τ' ->
+  Σ; ∅; Γ ⊢ τ :: *@O ->
+  Σ; ∅; Γ ⊢ τ' :: κ ->
+     whnf Σ τ' ->
+  Σ; ∅; Γ ⊢ τ' :: *@O.
+Proof.
+  intros Hwf.
+  rewrite <- expr_equiv_iff_pared_equiv.
+  induction 1; intros; eauto.
+  - auto_apply; eauto.
+    shelve.
+  -
+Admitted.
 
 (** Indistinguishability is equivalence. *)
 Instance indistinguishable_is_equiv : Equivalence indistinguishable.
@@ -207,24 +340,67 @@ Tactic Notation "apply_canonical_form" :=
                                    | eauto with kinding
                                    | equiv_naive_solver ] ]).
 
-Ltac apply_obliv_type_preserve :=
-  simpl_cofin?;
-  try select! (_; _; _ ⊢ _ : _)
-      (fun H => dup_hyp H (fun H => eapply regularity in H;
-                                [ simp_hyp H | eauto ]));
-  apply_type_inv;
-  repeat
+(* Ltac apply_obliv_type_preserve := *)
+(*   simpl_cofin?; *)
+(*   try select! (_; _; _ ⊢ _ : _) *)
+(*       (fun H => dup_hyp H (fun H => eapply regularity in H; *)
+(*                                 [ simp_hyp H | eauto ])); *)
+(*   apply_type_inv; *)
+(*   repeat *)
+(*     match goal with *)
+(*     | H : _; _ ⊢ ?τ ≡ _, H' : _; _; _ ⊢ ?τ :: _ |- _ => *)
+(*       eapply expr_equiv_obliv_type_preserve in H; *)
+(*       [| eassumption | apply H' | eauto; kinding_intro; eauto; fast_set_solver!! ] *)
+(*     end; *)
+(*   repeat *)
+(*     match goal with *)
+(*     | Hwf : gctx_wf _, H : _ !! _ = Some (DADT _) |- _ => *)
+(*       apply Hwf in H; try simp_hyp H *)
+(*     end; *)
+(*   apply_kind_inv. *)
+
+Lemma indistinguishable_obliv_val Σ Φ Γ v1 v2 τ :
+  gctx_wf Σ ->
+  Σ; Φ; Γ ⊢ v1 : τ ->
+  Σ; Φ; Γ ⊢ v2 : τ ->
+  Φ = ∅ ->
+  val v1 ->
+  val v2 ->
+  Σ; Φ; Γ ⊢ τ :: *@O ->
+  v1 ≈ v2.
+Proof.
+  intros Hwf H. revert v2.
+  induction H; intros; subst; try qauto inv: val.
+  - apply_kind_inv; easy.
+  - apply_canonical_form. reflexivity.
+  - apply_kind_inv; easy.
+  - destruct l. easy. apply_kind_inv. easy.
+  - apply_canonical_form.
+    apply_kind_inv.
+    apply_type_inv.
+    sinvert H3.
+    simpl_whnf_equiv.
+    econstructor.
+    auto_apply; eauto. econstructor; eauto; try equiv_naive_solver.
+    econstructor; eauto.
+    auto_apply; eauto. econstructor; eauto; try equiv_naive_solver.
+    econstructor; eauto.
+  - apply_kind_inv. easy.
+  - apply_canonical_form. econstructor.
+  - inversion H; subst. apply_canonical_form.
     match goal with
-    | H : _; _ ⊢ ?τ ≡ _, H' : _; _; _ ⊢ ?τ :: _ |- _ =>
-      eapply expr_equiv_obliv_type_preserve in H;
-      [| eassumption | apply H' | eauto; kinding_intro; eauto; fast_set_solver!! ]
-    end;
-  repeat
-    match goal with
-    | Hwf : gctx_wf _, H : _ !! _ = Some (DADT _) |- _ =>
-      apply Hwf in H; try simp_hyp H
-    end;
-  apply_kind_inv.
+    | |- <{ [inj@_< ?ω1 > _] }> ≈ <{ [inj@_< ?ω2 > _] }> =>
+      replace ω2 with ω1
+    end.
+    econstructor.
+    apply_type_inv.
+    apply ovalty_elim in H6. simp_hyps. clear H11.
+    eapply otval_uniq; eauto.
+    qauto ctrs: otval.
+    qauto ctrs: otval.
+  - auto_apply; eauto.
+    use H. apply regularity in H3. destruct H3.
+    econstructor; eauto; try equiv_naive_solver. eauto.
 
 Lemma indistinguishable_obliv_val Σ Φ Γ v1 v2 τ :
   gctx_wf Σ ->
@@ -238,7 +414,7 @@ Proof.
   intros Hwf H. revert Γ v2 τ.
   induction H; intros;
     apply_type_inv;
-    try solve [apply_obliv_type_preserve; easy];
+    (* try solve [apply_obliv_type_preserve; easy]; *)
     try apply_canonical_form;
     eauto with indistinguishable.
 

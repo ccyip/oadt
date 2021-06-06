@@ -676,20 +676,26 @@ Smpl Add simpl_typing_kinding_fv : fv.
 (** Simplifier given well-formed contexts. *)
 Lemma gctx_wf_closed Σ :
   gctx_wf Σ ->
-  map_Forall (fun _ D => forall τ e, D = DFun τ e -> closed τ /\ closed e) Σ.
+  map_Forall (fun _ D =>
+                match D with
+                | DADT τ =>
+                  closed τ
+                | DOADT τ e | DFun τ e =>
+                  closed τ /\ closed e
+                end) Σ.
 Proof.
   intros Hwf.
-  intros ?? H. intros; subst.
-  apply Hwf in H. simp_hyps.
-  simpl_fv. set_solver.
+  intros ?? H.
+  case_split; apply Hwf in H; try simp_hyp H;
+  simpl_cofin?; simpl_fv; set_solver.
 Qed.
+
 
 Ltac simpl_wf_fv :=
   match goal with
-  | H : ?Σ !! _ = Some (DFun _ _), Hwf : gctx_wf ?Σ |- _ =>
+  | H : ?Σ !! _ = Some _, Hwf : gctx_wf ?Σ |- _ =>
     dup_hyp! H (fun H => apply gctx_wf_closed in H;
-                       [ efeed specialize H; [reflexivity |]
-                       | apply Hwf])
+                       [ | apply Hwf])
       with (fun H => unfold closed in H; destruct H)
   end.
 Smpl Add simpl_wf_fv : fv.

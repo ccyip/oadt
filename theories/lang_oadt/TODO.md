@@ -1,0 +1,4 @@
+- Use section and notation to simplify a lot of the lemmas.
+- Tactics for applying well-formedness.
+- Generalize and enhance [relax_relation] tactics.
+- Reorganize dependencies of the lemmas.

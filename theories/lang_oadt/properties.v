@@ -54,8 +54,8 @@ Qed.
 
 (** ** Weak head normal form *)
 (** I only use weak head normal form as a machinery for proofs right now, so
-only the necessary cases are defined. But I may extend it with other expressions
-later. *)
+only the necessary cases (for types) are defined. But I may extend it with other
+expressions later. *)
 Inductive whnf {Σ : gctx} : expr -> Prop :=
 | WUnitT : whnf <{ 𝟙 }>
 | WBool{l} : whnf <{ 𝔹{l} }>
@@ -65,7 +65,6 @@ Inductive whnf {Σ : gctx} : expr -> Prop :=
 | WADT X τ :
     Σ !! X = Some (DADT τ) ->
     whnf <{ gvar X }>
-| WInj b τ e : whnf <{ inj@b<τ> e }>
 .
 Arguments whnf : clear implicits.
 Hint Constructors whnf : whnf.
@@ -88,10 +87,6 @@ Inductive whnf_equiv {Σ : gctx} {Φ : actx} : expr -> expr -> Prop :=
     Σ; Φ ⊢ τ2 ≡ τ2' ->
     whnf_equiv <{ τ1 +{l} τ2 }> <{ τ1' +{l} τ2' }>
 | WQADT X : whnf_equiv <{ gvar X }> <{ gvar X }>
-| WQInj b τ e τ' e' :
-    Σ; Φ ⊢ τ ≡ τ' ->
-    Σ; Φ ⊢ e ≡ e' ->
-    whnf_equiv <{ inj@b<τ> e }> <{ inj@b<τ'> e' }>
 .
 Arguments whnf_equiv : clear implicits.
 Hint Constructors whnf_equiv : whnf_equiv.
@@ -268,43 +263,360 @@ Proof.
   all : exact ∅.
 Qed.
 
-(* We may weaken it so Γ = ∅. But we need to weaken all theorems depending on
-it. *)
-Lemma expr_equiv_obliv_type_preserve_ Σ Φ Γ τ τ' κ κ' :
-  gctx_wf Σ ->
-  Σ; Φ; Γ ⊢ τ :: κ ->
-  Σ; Φ; Γ ⊢ τ' :: κ' ->
-  Σ; Φ ⊢ τ ≡ τ' ->
-  κ ⊑ <{ *@O }> ->
-  Σ; Φ; Γ ⊢ τ' :: *@O.
+Instance pared_is_refl Σ Φ : Reflexive (pared Σ Φ).
 Proof.
-Admitted.
-
-Lemma expr_equiv_obliv_type_preserve Σ Φ Γ τ τ' κ :
-  gctx_wf Σ ->
-  Σ; Φ; Γ ⊢ τ :: *@O ->
-  Σ; Φ ⊢ τ ≡ τ' ->
-  Σ; Φ; Γ ⊢ τ' :: κ ->
-  Σ; Φ; Γ ⊢ τ' :: *@O.
-Proof.
-  qauto use: expr_equiv_obliv_type_preserve_ solve: lattice_naive_solver.
+  hnf; econstructor.
 Qed.
 
-(** [whnf_equiv] is a faithful fragment of [expr_equiv]. *)
-(* FIXME: this is NOT provable with [actx]. *)
-Lemma expr_equiv_iff_whnf_equiv Σ Φ τ1 τ2 :
-  whnf Σ τ1 -> whnf Σ τ2 ->
-  Σ; Φ ⊢ τ1 ≡ τ2 <->
-  whnf_equiv Σ Φ τ1 τ2.
+Inductive asm_wf : asm -> Prop :=
+| AWIte x b :
+    asm_wf (<{ fvar x }>, <{ lit b }>)
+| AWCase x y τ b :
+    lc τ ->
+    asm_wf (<{ fvar x }>, <{ inj@b<τ> y }>)
+.
+Hint Constructors asm_wf : asm_wf.
+
+Definition actx_wf : actx -> Prop := set_Forall asm_wf.
+
+Ltac apply_actx_wf :=
+  match goal with
+  | H : actx_wf ?Φ, H' : (_, _) ∈ ?Φ |- _ =>
+    apply H in H'; sinvert H'
+  end.
+
+Lemma actx_wf_lc Φ e1 e2 :
+  actx_wf Φ ->
+  (e1, e2) ∈ Φ ->
+  lc e1 /\ lc e2.
+Proof.
+  intros.
+  apply_actx_wf; hauto l: on ctrs: lc.
+Qed.
+
+Lemma pared_inv_abs Σ Φ τ e1 e2 :
+  actx_wf Φ ->
+  Σ; Φ ⊢ \:τ => e1 ==>! e2 ->
+  exists τ' e1',
+    e2 = <{ \:τ' => e1' }> /\
+    Σ; Φ ⊢ τ ==>! τ' /\
+    (exists L, forall x, x ∉ L -> Σ; Φ ⊢ e1^x ==>! e1'^x).
+Proof.
+  intros Hwf.
+  inversion 1; subst; try apply_actx_wf; repeat esplit; eauto with pared.
+
+  Unshelve.
+  all : exact ∅.
+Qed.
+
+Ltac apply_pared_inv :=
+  match goal with
+  | H : _; _ ⊢ \:_ => _ ==>! _ |- _ => apply pared_inv_abs in H; try simp_hyp H
+  end; subst; eauto.
+
+(* TODO: move *)
+Ltac apply_lc_inv :=
+  match goal with
+  | H : lc ?e |- _ => head_constructor e; sinvert H
+  end.
+
+(* TODO: also use it in other cases *)
+Ltac apply_gctx_wf :=
+  match goal with
+  | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = _ |- _ => apply Hwf in H; try simp_hyp H
+  end.
+
+Lemma pared_lc Σ Φ e e' :
+  gctx_wf Σ ->
+  actx_wf Φ ->
+  Σ; Φ ⊢ e ==>! e' ->
+  lc e ->
+  lc e'.
+Proof.
+  intros Hwf ?.
+  induction 1; intros; eauto with lc;
+    repeat apply_lc_inv;
+    try apply_gctx_wf;
+    try solve [ econstructor; simpl_cofin?; eauto
+              | simpl_cofin?; eauto using lc_open_atom_lc, typing_lc, kinding_lc
+              | simpl_cofin?; qauto use: lc_open_atom_lc ctrs: lc ].
+
+  qauto use: actx_wf_lc.
+Qed.
+
+(* Technically [lc e1] should imply [lc e1']. *)
+Lemma pared_subst1 Σ Φ e e1 e1' x :
+  lc e1 -> lc e1' ->
+  lc e ->
+  Σ; Φ ⊢ e1 ==>! e1' ->
+  Σ; Φ ⊢ {x↦e1}e ==>! {x↦e1'}e.
+Proof.
+  intros ??.
+  induction 1; intros; simpl; try case_decide; eauto with pared;
+    econstructor; eauto;
+      simpl_cofin?;
+      rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
+Qed.
+
+Ltac relax_pared :=
+  match goal with
+  | |- ?Σ; ?Φ ⊢ ?e ==>! ?e' =>
+    refine (eq_ind _ (fun e' => Σ; Φ ⊢ e ==>! e') _ _ _)
+  end.
+
+Lemma pared_subst Σ Φ e1 e1' e2 e2' x :
+  lc e1 -> lc e1' -> lc e2 ->
+  gctx_wf Σ ->
+  Σ; Φ ⊢ e2 ==>! e2' ->
+  Σ; Φ ⊢ e1 ==>! e1' ->
+  Σ; Φ ⊢ {x↦e1}e2 ==>! {x↦e1'}e2'.
+Proof.
+  intros ????.
+  induction 1; intros; simpl; eauto using pared_subst1.
+  all:
+    repeat apply_lc_inv.
+  all:
+    rewrite ?subst_ite_distr;
+    rewrite ?subst_open_distr by assumption;
+    repeat match goal with
+           | H : oval ?v |- _ =>
+             rewrite !(subst_fresh v) by shelve
+           | H : otval ?ω |- _ =>
+             rewrite !(subst_fresh ω) by shelve
+           end.
+  1-12:
+    econstructor; simpl_cofin?;
+    lazymatch goal with
+    | |- _; _ ⊢ _ ==>! _ =>
+      rewrite <- ?subst_open_comm by (eauto; shelve);
+        auto_apply
+    | _ => idtac
+    end; eauto;
+    repeat lazymatch goal with
+           | |- _ !! _ = Some _ =>
+             rewrite subst_fresh by shelve; eauto
+           end; eauto.
+
+  1-14:
+    econstructor; simpl_cofin?;
+    lazymatch goal with
+    | |- _; _ ⊢ _ ==>! _ =>
+      rewrite <- ?subst_open_comm by (eauto; shelve);
+        auto_apply
+    | _ => idtac
+    end; eauto;
+    repeat lazymatch goal with
+           | |- _ !! _ = Some _ =>
+             rewrite subst_fresh by shelve; eauto
+           end; eauto.
+
+    relax_pared.
+    econstructor.
+    Focus 3.
+    match goal with
+    | H : otval ?v |- _ =>
+      rewrite ?(subst_fresh v)
+    end.
+    reflexivity.
+    simpl_fv.
+    fast_set_solver!!.
+    rewrite ?(subst_fresh ω); eauto.
+    simpl_fv.
+    fast_set_solver!!.
+
+
+Lemma pared_open Σ Φ e1 e1' e2 e2' x :
+  Σ; Φ ⊢ e2 ==>! e2' ->
+  Σ; Φ ⊢ e1^x ==>! e1'^x ->
+  x ∉ fv e1 ∪ fv e1' ->
+  Σ; Φ ⊢ e1^e2 ==>! e1'^e2'.
+Proof.
+  intros.
+  rewrite (subst_intro e1 _ x) by fast_set_solver!!.
+  rewrite (subst_intro e1' _ x) by fast_set_solver!!.
+  eauto using pared_subst.
+Admitted.
+
+Lemma pared_diamond Σ Φ e e1 e2 :
+  actx_wf Φ ->
+  Σ; Φ ⊢ e ==>! e1 ->
+  Σ; Φ ⊢ e ==>! e2 ->
+  exists e',
+    Σ; Φ ⊢ e1 ==>! e' /\
+    Σ; Φ ⊢ e2 ==>! e'.
+Proof.
+  intros Hwf H. revert e2.
+  induction H; intros.
+  (* - qauto ctrs: pared. *)
+  (* - sinvert H. *)
+  (*   + repeat esplit; econstructor. *)
+  (*   + repeat esplit; econstructor. *)
+  (*   + apply_pared_inv. *)
+  (*     repeat esplit. 2 : apply RApp. *)
+Admitted.
+
+
+Lemma pared_confluence Σ Φ e e1 e2 :
+  Σ; Φ ⊢ e ==>* e1 ->
+  Σ; Φ ⊢ e ==>* e2 ->
+  exists e',
+    Σ; Φ ⊢ e1 ==>* e' /\
+    Σ; Φ ⊢ e2 ==>* e'.
 Proof.
 Admitted.
+
+(* FIXME *)
+Lemma pared_equiv_iff_alt Σ Φ e1 e2 :
+  Σ; Φ ⊢ e1 ≡ᵣ e2 <-> Σ; Φ ⊢ e1 ≡ⱼ e2.
+Proof.
+  split.
+  - induction 1; try hauto ctrs: pared_equiv_alt, clos_refl_trans_1n inv: pared_equiv_alt.
+  - induction 1.
+    induction H.
+    induction H0.
+    econstructor.
+    econstructor; solve [eauto].
+    econstructor; solve [eauto].
+Qed.
+
+(* FIXME *)
+Instance pared_equiv_alt_is_equiv Σ Φ : Equivalence (pared_equiv_alt Σ Φ).
+Proof.
+  split; hnf; intros.
+  - repeat econstructor.
+  - induction H; econstructor; solve [eauto].
+  - induction H; induction H0.
+    eapply pared_confluence in H1; eauto.
+    simp_hyps.
+    econstructor;
+    eapply Operators_Properties.clos_rt_rt1n;
+    eapply rt_trans;
+    eapply Operators_Properties.clos_rt1n_rt; eauto.
+Qed.
+
+Instance pared_equiv_is_equiv Σ Φ : Equivalence (pared_equiv Σ Φ).
+Proof.
+  split; hnf; intros; srewrite pared_equiv_iff_alt; equiv_naive_solver.
+Qed.
+
+Lemma expr_equiv_pared Σ Φ e1 e2 :
+  Σ; Φ ⊢ e1 ==>! e2 ->
+  Σ; Φ ⊢ e1 ≡ e2.
+Proof.
+  induction 1; simpl_cofin?; eauto with expr_equiv.
+Admitted.
+
+Lemma expr_equiv_iff_pared_equiv Σ Φ e1 e2 :
+  Σ; Φ ⊢ e1 ≡ᵣ e2 <-> Σ; Φ ⊢ e1 ≡ e2.
+Proof.
+  split.
+  - induction 1;
+      try select (_; _ ⊢ _ ==>! _) (fun H => apply expr_equiv_pared in H);
+      equiv_naive_solver.
+Admitted.
+
+(* Lemma pared_obliv_type_preserve Σ Γ τ τ' : *)
+(*   gctx_wf Σ -> *)
+(*   Σ; ∅ ⊢ τ ==>! τ' -> *)
+(*   Σ; ∅; Γ ⊢ τ :: *@O -> *)
+(*   Σ; ∅; Γ ⊢ τ' :: *@O. *)
+(* Proof. *)
+(*   intros H. revert Γ. *)
+(*   induction H; intros; eauto; apply_kind_inv*; simplify_eq. *)
+(*   (* simpl_cofin. *) *)
+(*   (* apply H1 in H6. *) *)
+(*   Admitted. *)
+
+(* Lemma expr_equiv_obliv_type_preserve Σ Γ τ τ' κ : *)
+(*   gctx_wf Σ -> *)
+(*   Σ; ∅ ⊢ τ ≡ τ' -> *)
+(*   Σ; ∅; Γ ⊢ τ :: *@O -> *)
+(*   Σ; ∅; Γ ⊢ τ' :: κ -> *)
+(*      whnf Σ τ' -> *)
+(*   Σ; ∅; Γ ⊢ τ' :: *@O. *)
+(* Proof. *)
+(*   intros Hwf. *)
+(*   rewrite <- expr_equiv_iff_pared_equiv. *)
+(*   induction 1; intros; eauto. *)
+(*   - auto_apply; eauto. *)
+(*     shelve. *)
+(*   - *)
+(* Admitted. *)
+
+Instance whnf_equiv_is_symm Σ Φ : Symmetric (whnf_equiv Σ Φ).
+Proof.
+  hnf. induction 1; econstructor; simpl_cofin?; equiv_naive_solver.
+Qed.
+
+Lemma pared_whnf Σ τ1 τ2 :
+  Σ; ∅ ⊢ τ1 ==>! τ2 ->
+  whnf Σ τ1 ->
+  whnf Σ τ2.
+Proof.
+  induction 1; eauto; intros Hw;
+    try lazymatch type of Hw with
+        | whnf _ ?e =>
+          head_constructor e; sinvert Hw
+        end;
+    simplify_map_eq; try solve [econstructor];
+      set_solver.
+Qed.
+
+(* FIXME *)
+Lemma pared_whnf_equiv Σ τ1 τ1' τ2 :
+  Σ; ∅ ⊢ τ1 ==>! τ1' ->
+  whnf Σ τ1 ->
+  whnf_equiv Σ ∅ τ1' τ2 ->
+  whnf_equiv Σ ∅ τ1 τ2.
+Proof.
+  intros H. revert τ2.
+  induction H; eauto; intros ? Hw;
+    try lazymatch type of Hw with
+        | whnf _ ?e =>
+          head_constructor e; sinvert Hw
+        end; intros;
+    simplify_map_eq.
+
+  sinvert H1.
+  econstructor;
+  rewrite <- expr_equiv_iff_pared_equiv in *; econstructor; eauto.
+  sinvert H1.
+  econstructor;
+  rewrite <- expr_equiv_iff_pared_equiv in *; econstructor; eauto.
+  sinvert H2.
+  econstructor; simpl_cofin?;
+  rewrite <- expr_equiv_iff_pared_equiv in *; econstructor; eauto.
+  set_solver.
+  set_solver.
+Qed.
+
+(** [whnf_equiv] refines [expr_equiv] under some side conditions. Note that this
+lemma assumes [actx] is empty for convenience, but it is not necessary. We would
+need to reason about the consistency of [actx] though if we want to relax it. *)
+(* FIXME *)
+Lemma expr_equiv_whnf_equiv Σ τ1 τ2 :
+  Σ; ∅ ⊢ τ1 ≡ τ2 ->
+  whnf Σ τ1 -> whnf Σ τ2 ->
+  whnf_equiv Σ ∅ τ1 τ2.
+Proof.
+  rewrite <- expr_equiv_iff_pared_equiv.
+  induction 1.
+  - destruct 1; destruct 1; simplify_eq; econstructor; simpl_cofin?;
+    try equiv_naive_solver.
+  - intros. feed specialize IHpared_equiv; eauto using pared_whnf.
+    eauto using pared_whnf_equiv.
+  - intros. feed specialize IHpared_equiv; eauto using pared_whnf.
+    symmetry in IHpared_equiv.
+    symmetry.
+    eauto using pared_whnf_equiv.
+Qed.
 
 (** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
 two equivalent types in [whnf] have different head. *)
 Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
   match goal with
   | H : _; _ ⊢ ?τ1 ≡ ?τ2 |- _ =>
-    apply expr_equiv_iff_whnf_equiv in H;
+    apply expr_equiv_whnf_equiv in H;
     [ sinvert H
     | solve [tac]
     | solve [tac] ]
