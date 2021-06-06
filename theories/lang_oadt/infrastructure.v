@@ -4,8 +4,8 @@ From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 
 (** * Infrastructure *)
-(** Definitions and lemmas related to locally nameless representation and free
-variables. *)
+(** Common tactics and lemmas, and definitions related to locally nameless
+representation and free variables. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -16,6 +16,18 @@ Implicit Types (b : bool).
 
 #[local]
 Coercion EFVar : atom >-> expr.
+
+(** [kind] forms a [SemiLattice].  *)
+Instance kind_semilattice : SemiLattice kind.
+Proof.
+  split; try reflexivity; repeat intros []; auto.
+Qed.
+
+(** [expr_equiv] is indeed an equivalence. *)
+Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
+Proof.
+  split; hnf; qauto ctrs: expr_equiv.
+Qed.
 
 (** ** Locally closed *)
 Inductive lc : expr -> Prop :=
@@ -626,3 +638,85 @@ Ltac simpl_typing_type_fv :=
               with (fun H => simpl in H)
   end.
 Smpl Add simpl_typing_type_fv : fv.
+
+(** Expression equivalence *)
+Lemma expr_equiv_subst1 Σ τ τ' x s :
+  gctx_wf Σ ->
+  lc s ->
+  Σ ⊢ τ ≡ τ' ->
+  Σ ⊢ {x↦s}τ ≡ {x↦s}τ'.
+Proof.
+  intros Hwf Hlc.
+  induction 1; intros; simpl;
+    rewrite ?subst_ite_distr;
+    rewrite ?subst_open_distr by eauto;
+    eauto with expr_equiv; try equiv_naive_solver.
+
+  (* [QAppOADT] and [QFun] *)
+  1-2: econstructor; rewrite subst_fresh; eauto;
+    select (Σ !! _ = _) (fun H => apply Hwf in H; simp_hyp H);
+    simpl_cofin?; simpl_fv; fast_set_solver*!!.
+
+  (* [QOCase] and [QOInj] *)
+  1-2: match goal with
+       | H : oval ?v |- _ =>
+         rewrite ?(subst_fresh v); rewrite ?(subst_fresh ω)
+       end; [ econstructor | .. ]; eauto;
+    simpl_fv; fast_set_solver!!.
+
+  (* Cases with binders *)
+  1-4:
+  econstructor; eauto;
+  simpl_cofin;
+  rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
+Qed.
+
+Lemma expr_equiv_subst2 Σ τ x e e' :
+  lc e ->
+  lc e' ->
+  lc τ ->
+  Σ ⊢ e ≡ e' ->
+  Σ ⊢ {x↦e}τ ≡ {x↦e'}τ.
+Proof.
+  intros Hlc1 Hlc2.
+  induction 1; intros; simpl; try case_decide; eauto with expr_equiv.
+
+  all: econstructor; eauto;
+    simpl_cofin;
+    rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
+Qed.
+
+Lemma expr_equiv_rename Σ τ τ' x y :
+  gctx_wf Σ ->
+  Σ ⊢ τ ≡ τ' ->
+  Σ ⊢ {x↦y}τ ≡ {x↦y}τ'.
+Proof.
+  eauto using expr_equiv_subst1 with lc.
+Qed.
+
+Lemma expr_equiv_open1 Σ τ1 τ2 x e :
+  gctx_wf Σ ->
+  lc e ->
+  Σ ⊢ τ1^x ≡ τ2^x ->
+  x ∉ fv τ1 ∪ fv τ2 ->
+  Σ ⊢ τ1^e ≡ τ2^e.
+Proof.
+  intros.
+  erewrite (subst_intro τ1 e x) by fast_set_solver!!.
+  erewrite (subst_intro τ2 e x) by fast_set_solver!!.
+  eapply expr_equiv_subst1; eauto.
+Qed.
+
+Lemma expr_equiv_open2 Σ τ e1 e2 L :
+  lc e1 ->
+  lc e2 ->
+  (forall x, x ∉ L -> lc <{ τ^x }>) ->
+  Σ ⊢ e1 ≡ e2 ->
+  Σ ⊢ τ^e1 ≡ τ^e2.
+Proof.
+  intros.
+  simpl_cofin.
+  erewrite (subst_intro τ e1 x) by eassumption.
+  erewrite (subst_intro τ e2 x) by eassumption.
+  eauto using expr_equiv_subst2.
+Qed.

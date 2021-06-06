@@ -4,6 +4,8 @@ From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.properties.
+From oadt Require Import lang_oadt.admissible.
+From oadt Require Import lang_oadt.inversion.
 
 (** * Progress *)
 (** The progress metatheorem. *)

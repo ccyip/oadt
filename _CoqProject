@@ -11,6 +11,8 @@ theories/lang_oadt/syntax.v
 theories/lang_oadt/semantics.v
 theories/lang_oadt/typing.v
 theories/lang_oadt/infrastructure.v
+theories/lang_oadt/admissible.v
+theories/lang_oadt/inversion.v
 theories/lang_oadt/properties.v
 theories/lang_oadt/progress.v
 theories/lang_oadt/preservation.v
