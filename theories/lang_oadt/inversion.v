@@ -198,7 +198,7 @@ Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ inj{_}@_<_> _ :: _ => apply kind_inv_inj in H; elim H
   | _; _ ⊢ fold<_> _ :: _ => apply kind_inv_fold in H; elim H
   | _; _ ⊢ unfold<_> _ :: _ => apply kind_inv_unfold in H; elim H
-  | _; _ ⊢ \:_ => _ :: _ => apply kind_inv_unfold in H; elim H
+  | _; _ ⊢ \:_ => _ :: _ => apply kind_inv_abs in H; elim H
   end.
 
 Tactic Notation "apply_kind_inv" hyp(H) :=

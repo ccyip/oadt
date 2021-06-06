@@ -388,18 +388,6 @@ Qed.
 
 (** ** Preservation *)
 
-Ltac case_ite_expr :=
-  lazymatch goal with
-  | |- _; _ ⊢ ?e : _ =>
-    lazymatch e with
-    | context [<{ ite ?b _ _ }>] => destruct b
-    end
-  | |- _; _ ⊢ ?τ :: _ =>
-    lazymatch τ with
-    | context [<{ ite ?b _ _ }>] => destruct b
-    end
-  end.
-
 (** The combined preservation theorems for expressions and types. *)
 Theorem preservation_ Σ :
   gctx_wf Σ ->

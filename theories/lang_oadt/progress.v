@@ -172,10 +172,7 @@ Proof.
           | idtac ].
 
   (* Injection *)
-  - match goal with
-    | |- val <{ inj{?l}@_<_> _ }> \/ _ =>
-      destruct l; [| qauto q: on ctrs: val, step ]
-    end.
+  - case_label; [| qauto q: on ctrs: val, step ].
     right. intuition; try qauto solve: step_ectx_solver.
     (* Step to boxed injection *)
     eexists. econstructor; eauto.
