@@ -221,11 +221,7 @@ Ltac apply_obliv_type_preserve :=
       eapply expr_equiv_obliv_type_preserve in H;
       [| eassumption | apply H' | eauto; kinding_intro; eauto; fast_set_solver!! ]
     end;
-  repeat
-    match goal with
-    | Hwf : gctx_wf _, H : _ !! _ = Some (DADT _) |- _ =>
-      apply Hwf in H; try simp_hyp H
-    end;
+  repeat apply_gctx_wf;
   apply_kind_inv.
 
 Lemma indistinguishable_obliv_val Σ Γ v1 v2 τ :

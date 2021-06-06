@@ -342,7 +342,7 @@ Reserved Notation "Σ '=[' D ']=>' Σ'" (at level 40,
 Inductive gdef_typing : gctx -> (atom * gdef) -> gctx -> Prop :=
 | TADT Σ X τ :
     Σ !! X = None ->
-    <[X:=DADT τ]>Σ ; ∅ ⊢ τ :: *@P ->
+    <[X:=DADT τ]>Σ; ∅ ⊢ τ :: *@P ->
     Σ =[ data X := τ ]=> <[X:=DADT τ]>Σ
 | TOADT Σ X τ e L :
     Σ !! X = None ->
@@ -352,7 +352,7 @@ Inductive gdef_typing : gctx -> (atom * gdef) -> gctx -> Prop :=
 | TFun Σ X τ e κ :
     Σ !! X = None ->
     Σ; ∅ ⊢ τ :: κ ->
-    <[X:=DFun τ e]>Σ ; ∅ ⊢ e : τ ->
+    <[X:=DFun τ e]>Σ; ∅ ⊢ e : τ ->
     Σ =[ def X : τ := e ]=> <[X:=DFun τ e]>Σ
 
 where "Σ '=[' D ']=>' Σ'" := (gdef_typing Σ D Σ')
@@ -374,6 +374,20 @@ where "Σ '={' Ds '}=>' Σ'" := (gdefs_typing Σ Ds Σ')
 (** ** Program typing *)
 Definition program_typing (Ds : gdefs) (e : expr) (Σ : gctx) (τ : expr) :=
   ∅ ={ Ds }=> Σ /\ Σ; ∅ ⊢ e : τ.
+
+(** ** Well-formedness of [gctx] *)
+Definition gctx_wf (Σ : gctx) :=
+  map_Forall (fun _ D =>
+                match D with
+                | DADT τ =>
+                  Σ; ∅ ⊢ τ :: *@P
+                | DOADT τ e =>
+                  Σ; ∅ ⊢ τ :: *@P /\
+                  exists L, forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O
+                | DFun τ e =>
+                  Σ; ∅ ⊢ e : τ /\
+                  exists κ, Σ; ∅ ⊢ τ :: κ
+                end) Σ.
 
 End typing.
 

@@ -361,10 +361,7 @@ Lemma regularity Σ Γ e τ :
 Proof.
   intros Hwf.
   induction 1; simp_hyps; eauto with kinding;
-    try match goal with
-        | H : _ !! _ = _ |- _ =>
-          apply Hwf in H; simp_hyps; eauto using kinding_weakening_empty
-        end;
+    try (apply_gctx_wf; eauto using kinding_weakening_empty);
     apply_kind_inv; simpl_cofin?; simp_hyps;
     try first [ eexists; typing_kinding_intro; eauto; fast_set_solver!!
               (* Types may be opened. *)

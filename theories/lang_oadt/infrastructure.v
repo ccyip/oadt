@@ -29,28 +29,6 @@ Proof.
   split; hnf; qauto ctrs: expr_equiv.
 Qed.
 
-(** ** Tactics *)
-Ltac case_ite_expr :=
-  lazymatch goal with
-  | |- _; _ ⊢ ?e : _ =>
-    lazymatch e with
-    | context [<{ ite ?b _ _ }>] => destruct b
-    end
-  | |- _; _ ⊢ ?τ :: _ =>
-    lazymatch τ with
-    | context [<{ ite ?b _ _ }>] => destruct b
-    end
-  end.
-
-Ltac case_label :=
-  lazymatch goal with
-  | |- context [<{ inj{?l}@_<_> _ }>] => destruct l
-  | |- context [<{ if{?l} _ then _ else _ }>] => destruct l
-  | |- context [<{ case{?l} _ of _ | _ }>] => destruct l
-  | |- context [<{ 𝔹{?l} }>] => destruct l
-  | |- context [<{ _ +{?l} _ }>] => destruct l
-  end.
-
 (** ** Locally closed *)
 Inductive lc : expr -> Prop :=
 | LCFVar x : lc <{ fvar x }>
@@ -126,19 +104,37 @@ Arguments tctx_stale /.
 
 Arguments stale /.
 
-(** ** Well-formedness of [gctx] *)
-Definition gctx_wf (Σ : gctx) :=
-  map_Forall (fun _ D =>
-                match D with
-                | DADT τ =>
-                  Σ; ∅ ⊢ τ :: *@P
-                | DOADT τ e =>
-                  Σ; ∅ ⊢ τ :: *@P /\
-                  exists L, forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O
-                | DFun τ e =>
-                  Σ; ∅ ⊢ e : τ /\
-                  exists κ, Σ; ∅ ⊢ τ :: κ
-                end) Σ.
+(** ** Tactics *)
+Ltac case_ite_expr :=
+  lazymatch goal with
+  | |- _; _ ⊢ ?e : _ =>
+    lazymatch e with
+    | context [<{ ite ?b _ _ }>] => destruct b
+    end
+  | |- _; _ ⊢ ?τ :: _ =>
+    lazymatch τ with
+    | context [<{ ite ?b _ _ }>] => destruct b
+    end
+  end.
+
+Ltac case_label :=
+  lazymatch goal with
+  | |- context [<{ inj{?l}@_<_> _ }>] => destruct l
+  | |- context [<{ if{?l} _ then _ else _ }>] => destruct l
+  | |- context [<{ case{?l} _ of _ | _ }>] => destruct l
+  | |- context [<{ 𝔹{?l} }>] => destruct l
+  | |- context [<{ _ +{?l} _ }>] => destruct l
+  end.
+
+Ltac apply_lc_inv :=
+  match goal with
+  | H : lc ?e |- _ => head_constructor e; sinvert H
+  end.
+
+Ltac apply_gctx_wf :=
+  match goal with
+  | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = _ |- _ => apply Hwf in H; try simp_hyp H
+  end.
 
 (** ** Properties of openness *)
 (* NOTE: [inversion] is the culprit for the slowness of this proof. *)
@@ -634,7 +630,7 @@ Lemma gctx_wf_closed Σ :
 Proof.
   intros Hwf.
   intros ?? H.
-  case_split; apply Hwf in H; try simp_hyp H;
+  case_split; apply_gctx_wf;
     simpl_cofin?; simpl_fv; set_solver.
 Qed.
 

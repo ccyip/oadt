@@ -19,7 +19,8 @@ Implicit Types (b : bool).
 Coercion EFVar : atom >-> expr.
 
 (** ** Weak head normal form *)
-(** We only define weak head normal form for types, but may extend it for other
+(** I only use weak head normal form as a machinery for proofs right now, so
+only the necessary cases (for types) are defined. But I may extend it with other
 expressions later. *)
 Inductive whnf {Σ : gctx} : expr -> Prop :=
 | WUnitT : whnf <{ 𝟙 }>
