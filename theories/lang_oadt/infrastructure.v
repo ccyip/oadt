@@ -136,6 +136,12 @@ Ltac apply_gctx_wf :=
   | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = _ |- _ => apply Hwf in H; try simp_hyp H
   end.
 
+Ltac relax_typing_type :=
+  match goal with
+  | |- ?Σ; ?Γ ⊢ ?e : _ =>
+    refine (eq_ind _ (fun τ => Σ; Γ ⊢ e : τ) _ _ _)
+  end.
+
 (** ** Properties of openness *)
 (* NOTE: [inversion] is the culprit for the slowness of this proof. *)
 Lemma open_lc_ e : forall s u i j,
@@ -287,22 +293,7 @@ Proof.
     econstructor; simpl_cofin; qauto.
 Qed.
 
-Lemma lc_subst_lc x e s :
-  lc s ->
-  lc <{ e }> ->
-  lc <{ {x↦s}e }>.
-Proof.
-  intros Hs.
-  induction 1; simpl;
-    try qauto ctrs: lc;
-    econstructor; eauto;
-      simpl_cofin?;
-      rewrite subst_open_comm in *; eauto; fast_set_solver!!.
-Qed.
-
-(* It seems this lemma can reduce to [subst_lc_lc]. But it would require a
-side condition on the freshness of [y]. *)
-Lemma lc_subst_lc_lc x s t e :
+Lemma subst_respect_lc x s t e :
   lc <{ {x↦s}e }> ->
   lc s ->
   lc t ->
@@ -318,15 +309,25 @@ Proof.
           rewrite <- ?subst_open_comm in *; eauto; fast_set_solver!!.
 Qed.
 
-Lemma lc_open_atom_lc x e s :
+Lemma open_respect_lc e s t :
+  lc <{ e^s }> ->
   lc s ->
-  lc <{ e^x }> ->
-  lc <{ e^s }>.
+  lc t ->
+  lc <{ e^t }>.
 Proof.
   intros.
   destruct (exist_fresh (fv e)) as [y ?].
   erewrite subst_intro in *; eauto.
-  eauto using lc_subst_lc_lc with lc.
+  eauto using subst_respect_lc with lc.
+Qed.
+
+Lemma open_respect_lc_atom x e s :
+  lc <{ e^x }> ->
+  lc s ->
+  lc <{ e^s }>.
+Proof.
+  intros.
+  eapply open_respect_lc; eauto with lc.
 Qed.
 
 (** The type of well-typed expression is also locally closed. *)
@@ -344,7 +345,8 @@ Proof.
       | H : _; _ ⊢ _ : _ |- _ => apply typing_lc in H
       | H : ovalty _ _ |- _ => apply ovalty_lc in H
       end;
-    qauto use: lc_open_atom_lc inv: lc simp: simpl_cofin?.
+    try apply_lc_inv; simpl_cofin?;
+      hauto l: on use: open_respect_lc, typing_lc, typing_lc ctrs: lc.
 Qed.
 
 

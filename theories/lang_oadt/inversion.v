@@ -303,14 +303,14 @@ Proof.
                            ctrs: ovalty inv: ovalty.
 Qed.
 
-Lemma type_inv_case Σ Γ l e0 e1 e2 τ :
-  Σ; Γ ⊢ case{l} e0 of e1 | e2 : τ ->
+Lemma type_inv_case Σ Γ e0 e1 e2 τ :
+  Σ; Γ ⊢ case e0 of e1 | e2 : τ ->
   exists τ1 τ2 τ' κ L1 L2,
-    Σ; Γ ⊢ τ' :: κ /\
-    Σ; Γ ⊢ e0 : τ1 +{l} τ2 /\
-    (forall x, x ∉ L1 -> Σ; (<[x:=τ1]> Γ) ⊢ e1^x : τ') /\
-    (forall x, x ∉ L2 -> Σ; (<[x:=τ2]> Γ) ⊢ e2^x : τ') /\
-    Σ ⊢ τ ≡ τ'.
+    Σ; Γ ⊢ τ'^e0 :: κ /\
+    Σ; Γ ⊢ e0 : τ1 + τ2 /\
+    (forall x, x ∉ L1 -> Σ; (<[x:=τ1]> Γ) ⊢ e1^x : τ'^(inl<τ1 + τ2> x)) /\
+    (forall x, x ∉ L2 -> Σ; (<[x:=τ2]> Γ) ⊢ e2^x : τ'^(inr<τ1 + τ2> x)) /\
+    Σ ⊢ τ ≡ τ'^e0.
 Proof.
   type_inv_solver.
 Qed.
@@ -325,6 +325,18 @@ Lemma type_inv_ocase Σ Γ e0 e1 e2 τ :
     Σ ⊢ τ ≡ τ'.
 Proof.
   type_inv_solver.
+Qed.
+
+Lemma type_inv_case_ Σ Γ l e0 e1 e2 τ :
+  Σ; Γ ⊢ case{l} e0 of e1 | e2 : τ ->
+  exists τ1 τ2 τ' κ L1 L2,
+    Σ; Γ ⊢ τ' :: κ /\
+    Σ; Γ ⊢ e0 : τ1 +{l} τ2 /\
+    (forall x, x ∉ L1 -> exists τ', Σ; (<[x:=τ1]> Γ) ⊢ e1^x : τ') /\
+    (forall x, x ∉ L2 -> exists τ', Σ; (<[x:=τ2]> Γ) ⊢ e2^x : τ') /\
+    Σ ⊢ τ ≡ τ'.
+Proof.
+  type_inv_solver by (repeat (esplit; eauto); equiv_naive_solver).
 Qed.
 
 Lemma type_inv_prod Σ Γ τ1 τ2 τ :
@@ -367,13 +379,14 @@ Proof.
   type_inv_solver.
 Qed.
 
-Lemma type_inv_ite Σ Γ l e0 e1 e2 τ :
-  Σ; Γ ⊢ if{l} e0 then e1 else e2 : τ ->
-  exists τ',
-    Σ; Γ ⊢ e0 : 𝔹{l} /\
-    Σ; Γ ⊢ e1 : τ' /\
-    Σ; Γ ⊢ e2 : τ' /\
-    Σ ⊢ τ ≡ τ'.
+Lemma type_inv_ite Σ Γ e0 e1 e2 τ :
+  Σ; Γ ⊢ if e0 then e1 else e2 : τ ->
+  exists τ' κ,
+    Σ; Γ ⊢ e0 : 𝔹 /\
+    Σ; Γ ⊢ e1 : τ'^(lit true) /\
+    Σ; Γ ⊢ e2 : τ'^(lit false) /\
+    Σ; Γ ⊢ τ'^e0 :: κ /\
+    Σ ⊢ τ ≡ τ'^e0.
 Proof.
   type_inv_solver.
 Qed.
@@ -424,7 +437,8 @@ Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ ~if _ then _ else _ : _ => tac type_inv_mux
   | _; _ ⊢ if _ then _ else _ : _ => tac type_inv_ite
   | _; _ ⊢ ~case _ of _ | _ : _ => tac type_inv_ocase
-  | _; _ ⊢ case{_} _ of _ | _ : _ => tac type_inv_case
+  | _; _ ⊢ case _ of _ | _ : _ => tac type_inv_case
+  | _; _ ⊢ case{_} _ of _ | _ : _ => tac type_inv_case_
   | _; _ ⊢ fold<_> _ : _ => tac type_inv_fold
   | _; _ ⊢ unfold<_> _ : _ => tac type_inv_unfold
   | _; _ ⊢ [_] : _ => tac type_inv_boxedlit

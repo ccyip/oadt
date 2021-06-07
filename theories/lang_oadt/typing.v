@@ -218,12 +218,12 @@ Inductive typing (Σ : gctx) : tctx -> expr -> expr -> Prop :=
 | TSec Γ e :
     Γ ⊢ e : 𝔹 ->
     Γ ⊢ s𝔹 e : ~𝔹
-(* TODO: Propagate the conditions. *)
-| TIte Γ e0 e1 e2 τ :
+| TIte Γ e0 e1 e2 τ κ :
     Γ ⊢ e0 : 𝔹 ->
-    Γ ⊢ e1 : τ ->
-    Γ ⊢ e2 : τ ->
-    Γ ⊢ if e0 then e1 else e2 : τ
+    Γ ⊢ e1 : τ^(lit true) ->
+    Γ ⊢ e2 : τ^(lit false) ->
+    Γ ⊢ τ^e0 :: κ ->
+    Γ ⊢ if e0 then e1 else e2 : τ^e0
 | TMux Γ e0 e1 e2 τ :
     Γ ⊢ e0 : ~𝔹 ->
     Γ ⊢ e1 : τ ->
@@ -234,13 +234,12 @@ Inductive typing (Σ : gctx) : tctx -> expr -> expr -> Prop :=
     Γ ⊢ e : ite b τ1 τ2 ->
     Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P ->
     Γ ⊢ inj{l}@b<τ1 +{l} τ2> e : τ1 +{l} τ2
-(* TODO: Propagate the conditions. *)
 | TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
-    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ^(inl<τ1 + τ2> x)) ->
+    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ^(inr<τ1 + τ2> x)) ->
     Γ ⊢ e0 : τ1 + τ2 ->
-    Γ ⊢ τ :: κ ->
-    Γ ⊢ case e0 of e1 | e2 : τ
+    Γ ⊢ τ^e0 :: κ ->
+    Γ ⊢ case e0 of e1 | e2 : τ^e0
 | TOCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
     (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
     (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->

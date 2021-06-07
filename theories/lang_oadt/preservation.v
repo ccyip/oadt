@@ -153,9 +153,9 @@ Proof.
       simpl_cofin?;
       (* Try to apply induction hypotheses. *)
       lazymatch goal with
-      | |- _; ?Γ ⊢ ?e : ?τ =>
+      | |- _; ?Γ ⊢ ?e : _ =>
         auto_apply || lazymatch goal with
-                      | H : _ -> _; ?Γ' ⊢ e : τ |- _ =>
+                      | H : _ -> _; ?Γ' ⊢ e : _ |- _ =>
                         replace Γ with Γ'; [auto_apply |]
                       end
       | |- _; ?Γ ⊢ ?τ :: _ =>
@@ -237,13 +237,17 @@ Proof.
           (* We massage the typing and kinding judgments so that we can apply
           induction hypotheses to them. *)
           rewrite <- ?subst_ite_distr;
+            rewrite <- ?subst_open_distr by assumption;
             rewrite <- ?subst_open_comm by (try assumption; shelve);
             try lazymatch Γ with
                 | <[_:=_]>({_↦_} <$> _) =>
                   rewrite <- fmap_insert
                 end;
             (* Apply one of the induction hypotheses. *)
-            auto_eapply in
+            first [ auto_apply
+                  (* In [if] and [case] cases, prove the type matching the
+                  induction hypothesis later. *)
+                  | relax_typing_type; [ auto_apply | ] ] in
       (* Make sure we complete handling the typing and kinding judgments first.
       Otherwise some existential variables may have undesirable
       instantiation. *)
@@ -275,6 +279,11 @@ Proof.
                  rewrite H
                end;
         eauto.
+
+  (* Prove the types of [if] and [case] match the induction hypotheses. *)
+  all : rewrite subst_open_distr by eassumption; simpl; eauto;
+    rewrite decide_False by shelve; eauto.
+
   Unshelve.
 
   (* Case [fvar x] *)
@@ -399,6 +408,11 @@ Theorem preservation_ Σ :
 Proof.
   intros Hwf.
   apply typing_kinding_mutind; intros; subst;
+    (* [TIte] and [TCase] are trickier. Let's deal with them later. *)
+    try lazymatch goal with
+        | H : _ ⊨ <{ if _ then _ else _ }> -->! _ |- _; _ ⊢ _ : _ => shelve
+        | H : _ ⊨ <{ case _ of _ | _ }> -->! _ |- _; _ ⊢ _ : _ => shelve
+        end;
     (* Repeatedly perform inversion on [step], but only if we know how to step
     it (i.e. the initial expression has a constructor for its head). *)
     repeat
@@ -514,7 +528,8 @@ Proof.
     rewrite insert_union_singleton_l.
     apply map_union_subseteq_l.
   - fast_set_solver!!.
-Qed.
+
+Admitted.
 
 Theorem preservation Σ Γ e e' τ :
   gctx_wf Σ ->

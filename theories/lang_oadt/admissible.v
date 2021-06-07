@@ -68,6 +68,7 @@ Proof.
           (* We massage the typing and kinding judgments so that we can apply
           induction hypotheses to them. *)
           rewrite <- ?subst_ite_distr;
+            rewrite <- ?subst_open_distr by constructor;
             rewrite <- ?subst_open_comm by (try constructor; shelve);
             try lazymatch Γ with
                 | <[_:=_]>(<[_:=_]>({_↦_} <$> _)) =>
@@ -77,7 +78,10 @@ Proof.
                           rewrite <- fmap_insert ]
                 end;
             (* Apply one of the induction hypotheses. *)
-            auto_apply in
+            first [ auto_apply
+                  (* In [if] and [case] cases, prove the type matching the
+                  induction hypothesis later. *)
+                  | relax_typing_type; [ auto_apply | ] ] in
       (* Make sure we complete handling the typing and kinding judgments first.
       Otherwise some existential variables may have undesirable
       instantiation. *)
@@ -109,6 +113,10 @@ Proof.
                  rewrite H
                end;
         eauto.
+
+  (* Prove the types of [if] and [case] match the induction hypotheses. *)
+  all : rewrite subst_open_distr by constructor; simpl; eauto;
+    rewrite decide_False by shelve; eauto.
 
   Unshelve.
 
@@ -144,6 +152,28 @@ Qed.
 
 (** The actual renaming lemmas. The side conditions are slightly different than
 the general version. *)
+Lemma typing_rename_alt Σ Γ e s τ τ' x y :
+  gctx_wf Σ ->
+  Σ; (<[x:=τ']>Γ) ⊢ e^x : τ^({y↦x}s) ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ fv s ∪ dom aset Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv e ∪ dom aset Γ ->
+  Σ; (<[y:=τ']>Γ) ⊢ e^y : τ^s.
+Proof.
+  intros.
+  destruct (decide (y = x)); subst.
+  - srewrite subst_id; eauto.
+  - rewrite <- (subst_tctx_fresh Γ x y) by fast_set_solver!!.
+    rewrite (subst_intro e y x) by fast_set_solver!!.
+    apply_eq typing_rename_; eauto.
+    fast_set_solver!!.
+    simpl_fv. fast_set_solver!!.
+    rewrite subst_open_distr by constructor.
+    rewrite subst_trans by fast_set_solver!!.
+    rewrite subst_id.
+    rewrite subst_fresh by fast_set_solver!!.
+    eauto.
+Qed.
+
 Lemma typing_rename Σ Γ e τ τ' x y :
   gctx_wf Σ ->
   Σ; (<[x:=τ']>Γ) ⊢ e^x : τ^x ->
@@ -153,12 +183,9 @@ Lemma typing_rename Σ Γ e τ τ' x y :
 Proof.
   intros.
   destruct (decide (y = x)); subst; eauto.
-  rewrite <- (subst_tctx_fresh Γ x y) by fast_set_solver!!.
-  rewrite (subst_intro e y x) by fast_set_solver!!.
-  rewrite (subst_intro τ y x) by fast_set_solver!!.
-  apply typing_rename_; eauto.
+  eapply typing_rename_alt; simpl; eauto.
+  rewrite decide_True by eauto; eauto.
   fast_set_solver!!.
-  simpl_fv. fast_set_solver!!.
 Qed.
 
 Lemma kinding_rename Σ Γ τ κ τ' x y :
@@ -193,9 +220,6 @@ Qed.
 (** ** Admissible typing and kinding introduction rules *)
 Section typing_kinding_intro.
 
-  #[local]
-  Set Warnings "-notation-overridden,-parsing".
-
   Context {Σ : gctx} (Hwf : gctx_wf Σ).
   Notation "Γ '⊢' e ':' τ" := (Σ; Γ ⊢ e : τ)
                                 (at level 40,
@@ -209,11 +233,14 @@ Section typing_kinding_intro.
   Ltac typing_intro_solver :=
     intros; econstructor; eauto; simpl_cofin?;
     lazymatch goal with
-    | |- _ ⊢ _ : _^_ => eapply typing_rename
+    | |- _ ⊢ _ : _^(fvar _) => eapply typing_rename
+    | |- _ ⊢ _ : _^_ => eapply typing_rename_alt; try relax_typing_type
     | |- _ ⊢ _ : _ => eapply typing_rename_lc
     | |- _ ⊢ _ :: _ => eapply kinding_rename
     end; eauto;
-    try fast_set_solver!!; simpl_fv; fast_set_solver!!.
+      try match goal with
+          | |- _ ∉ _ => try fast_set_solver!!; simpl_fv; fast_set_solver!!
+          end.
 
   Lemma TAbs_intro Γ e τ1 τ2 κ x :
     <[x:=τ2]>Γ ⊢ e^x : τ1^x ->
@@ -234,14 +261,17 @@ Section typing_kinding_intro.
   Qed.
 
   Lemma TCase_intro Γ e0 e1 e2 τ1 τ2 τ κ x :
-    <[x:=τ1]>Γ ⊢ e1^x : τ ->
-    <[x:=τ2]>Γ ⊢ e2^x : τ ->
+    <[x:=τ1]>Γ ⊢ e1^x : τ^(inl<τ1 + τ2> x) ->
+    <[x:=τ2]>Γ ⊢ e2^x : τ^(inr<τ1 + τ2> x) ->
     Γ ⊢ e0 : τ1 + τ2 ->
-    Γ ⊢ τ :: κ ->
+    Γ ⊢ τ^e0 :: κ ->
     x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-    Γ ⊢ case e0 of e1 | e2 : τ.
+    Γ ⊢ case e0 of e1 | e2 : τ^e0.
   Proof.
     typing_intro_solver.
+
+    all : simpl; rewrite decide_True by eauto;
+      rewrite !subst_fresh by fast_set_solver!!; eauto.
   Qed.
 
   Lemma TOCase_intro Γ e0 e1 e2 τ1 τ2 τ x :
