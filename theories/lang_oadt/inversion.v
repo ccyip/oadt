@@ -264,13 +264,24 @@ Proof.
   type_inv_solver.
 Qed.
 
-Lemma type_inv_inj Σ Γ l b e τ' τ :
-  Σ; Γ ⊢ inj{l}@b<τ'> e : τ ->
-  exists τ1 τ2,
-    τ' = <{ τ1 +{l} τ2 }> /\
-    Σ; Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P /\
+Lemma type_inv_inj Σ Γ b e τ' τ :
+  Σ; Γ ⊢ inj@b<τ'> e : τ ->
+  exists τ1 τ2 κ,
+    τ' = <{ τ1 + τ2 }> /\
+    Σ; Γ ⊢ τ1 + τ2 :: κ /\
     Σ; Γ ⊢ e : ite b τ1 τ2 /\
-    Σ ⊢ τ ≡ τ1 +{l} τ2.
+    Σ ⊢ τ ≡ τ1 + τ2.
+Proof.
+  type_inv_solver.
+Qed.
+
+Lemma type_inv_oinj Σ Γ b e τ' τ :
+  Σ; Γ ⊢ ~inj@b<τ'> e : τ ->
+  exists τ1 τ2,
+    τ' = <{ τ1 ~+ τ2 }> /\
+    Σ; Γ ⊢ τ1 ~+ τ2 :: *@O /\
+    Σ; Γ ⊢ e : ite b τ1 τ2 /\
+    Σ ⊢ τ ≡ τ1 ~+ τ2.
 Proof.
   type_inv_solver.
 Qed.
@@ -433,7 +444,8 @@ Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ (_, _) : _ => tac type_inv_pair
   | _; _ ⊢ s𝔹 _ : _ => tac type_inv_sec
   | _; _ ⊢ π@_ _ : _ => tac type_inv_proj
-  | _; _ ⊢ inj{_}@_<_> _ : _ => tac type_inv_inj
+  | _; _ ⊢ ~inj@_<_> _ : _ => tac type_inv_oinj
+  | _; _ ⊢ inj@_<_> _ : _ => tac type_inv_inj
   | _; _ ⊢ ~if _ then _ else _ : _ => tac type_inv_mux
   | _; _ ⊢ if _ then _ else _ : _ => tac type_inv_ite
   | _; _ ⊢ ~case _ of _ | _ : _ => tac type_inv_ocase

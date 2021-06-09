@@ -230,10 +230,14 @@ Inductive typing (Σ : gctx) : tctx -> expr -> expr -> Prop :=
     Γ ⊢ e2 : τ ->
     Γ ⊢ τ :: *@O ->
     Γ ⊢ ~if e0 then e1 else e2 : τ
-| TInj Γ l b e τ1 τ2 :
+| TInj Γ b e τ1 τ2 κ :
     Γ ⊢ e : ite b τ1 τ2 ->
-    Γ ⊢ τ1 +{l} τ2 :: ite l *@O *@P ->
-    Γ ⊢ inj{l}@b<τ1 +{l} τ2> e : τ1 +{l} τ2
+    Γ ⊢ τ1 + τ2 :: κ ->
+    Γ ⊢ inj@b<τ1 + τ2> e : τ1 + τ2
+| TOInj Γ b e τ1 τ2 :
+    Γ ⊢ e : ite b τ1 τ2 ->
+    Γ ⊢ τ1 ~+ τ2 :: *@O ->
+    Γ ⊢ ~inj@b<τ1 ~+ τ2> e : τ1 ~+ τ2
 | TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ^(inl<τ1 + τ2> x)) ->
     (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ^(inr<τ1 + τ2> x)) ->

@@ -172,8 +172,7 @@ Proof.
           | idtac ].
 
   (* Injection *)
-  - case_label; [| qauto q: on ctrs: val, step ].
-    right. intuition; try qauto solve: step_ectx_solver.
+  - right. intuition; try qauto solve: step_ectx_solver.
     (* Step to boxed injection *)
     eexists. econstructor; eauto.
     qauto l: on ctrs: otval inv: otval use: ovalty_elim, ovalty_intro_alt.
