@@ -549,6 +549,76 @@ Proof.
   induction 1; qauto use: otval_closed solve: fast_set_solver*.
 Qed.
 
+Lemma close_open_fresh_ x y e : forall k,
+  x ∉ fv (close_ k x (open y e)) ->
+  x ∉ fv (close_ k x e).
+Proof.
+  unfold open. generalize 0.
+  induction e; intros; simpl in *;
+    fast_set_solver*!!.
+Qed.
+
+Lemma close_fresh x e :
+  (* This assumption is stronger than necessary. Ideally we only need to assume
+  the boxed injection case is well-formed. But it is nonetheless good enough. *)
+  lc e ->
+  x # close x e.
+Proof.
+  (* Perhaps a better proof is to formalize the well-formedness regarding the
+  boxed injection case and use it as the assumption. Then prove local closure
+  entails that well-formedness. But it is quite annoying to add all these
+  boilerplates when they are only used in this lemma so far. *)
+  intros H.
+  unfold close. generalize 0.
+  induction H; intros; simpl;
+    try solve [ try case_decide; fast_set_solver*!!
+              | simpl_cofin;
+                repeat select (forall n, _ # close_ n _ <{ _^_ }>)
+                              (fun H => eapply close_open_fresh_ in H);
+                fast_set_solver* ].
+
+  select (otval _) (fun H => apply otval_closed in H).
+  select (oval _) (fun H => apply oval_closed in H).
+  fast_set_solver*.
+Qed.
+
+Lemma close_fv_subseteq1 x e :
+  fv e ⊆ fv (close x e) ∪ {[ x ]}.
+Proof.
+  unfold close. generalize 0.
+  induction e; intros; simpl;
+    solve [ try case_decide; subst; try fast_set_solver!!
+          | repeat
+            match goal with
+            | H : context [fv (close_ _ _ ?e)] |- context [fv (close_ ?k _ ?e)] =>
+              rewrite (H k)
+            end; fast_set_solver!! ].
+Qed.
+
+Lemma close_fv_subseteq2 x e :
+  fv (close x e) ⊆ fv e.
+Proof.
+  unfold close. generalize 0.
+  induction e; intros; simpl;
+    solve [ try case_decide; subst; try fast_set_solver!!
+          | repeat
+            match goal with
+            | H : context [fv (close_ _ _ ?e)] |- context [fv (close_ ?k _ ?e)] =>
+              rewrite (H k)
+            end; fast_set_solver!! ].
+Qed.
+
+Lemma close_fv x e :
+  lc e ->
+  fv (close x e) ≡ fv e ∖ {[x]}.
+Proof.
+  intros H.
+  apply (close_fresh x) in H.
+  use (close_fv_subseteq1 x e).
+  use (close_fv_subseteq2 x e).
+  fast_set_solver*!!.
+Qed.
+
 (** Simplifier for free variable reasoning *)
 
 Tactic Notation "fv_rewrite" constr(T) :=
