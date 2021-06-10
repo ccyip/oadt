@@ -11,7 +11,7 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (x X y Y : atom) (L : aset).
+Implicit Types (x X y Y z : atom) (L : aset).
 Implicit Types (b : bool).
 
 #[local]
@@ -28,6 +28,38 @@ Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
 Proof.
   split; hnf; qauto ctrs: expr_equiv.
 Qed.
+
+(** ** Variable closing *)
+Section close.
+
+Reserved Notation "'{' k '<~' x '}' e" (in custom oadt at level 20, k constr).
+
+Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
+  match e with
+  | <{ fvar y }> => if decide (x = y) then <{ bvar k }> else e
+  | <{ Π:τ1, τ2 }> => <{ Π:{k<~x}τ1, {S k<~x}τ2 }>
+  | <{ \:τ => e }> => <{ \:{k<~x}τ => {S k<~x}e }>
+  | <{ let e1 in e2 }> => <{ let {k<~x}e1 in {S k<~x}e2 }>
+  | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k<~x}e0 of {S k<~x}e1 | {S k<~x}e2 }>
+  (** Congruence rules *)
+  | <{ τ1 * τ2 }> => <{ ({k<~x}τ1) * ({k<~x}τ2) }>
+  | <{ τ1 +{l} τ2 }> => <{ ({k<~x}τ1) +{l} ({k<~x}τ2) }>
+  | <{ e1 e2 }> => <{ ({k<~x}e1) ({k<~x}e2) }>
+  | <{ s𝔹 e }> => <{ s𝔹 ({k<~x}e) }>
+  | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k<~x}e0 then {k<~x}e1 else {k<~x}e2 }>
+  | <{ (e1, e2) }> => <{ ({k<~x}e1, {k<~x}e2) }>
+  | <{ π@b e }> => <{ π@b ({k<~x}e) }>
+  | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k<~x}τ)> ({k<~x}e) }>
+  | <{ fold<X> e }> => <{ fold<X> ({k<~x}e) }>
+  | <{ unfold<X> e }> => <{ unfold<X> ({k<~x}e) }>
+  | _ => e
+  end
+
+where "'{' k '<~' x '}' e" := (close_ k x e) (in custom oadt).
+
+End close.
+
+Definition close x e := close_ 0 x e.
 
 (** ** Locally closed *)
 Inductive lc : expr -> Prop :=
@@ -172,12 +204,12 @@ Qed.
 which produces a lot of cases (square of the number of the language constructs).
 A better way to handle this may be to prove a "lock-step" induction
 principle, similar to [rect2] for [Vector]. *)
-Lemma open_inv x e1 e2 :
+Lemma open_inj x e1 : forall e2,
   <{ e1^x }> = <{ e2^x }> ->
   x ∉ fv e1 ∪ fv e2 ->
   e1 = e2.
 Proof.
-  unfold open. generalize 0. revert e2.
+  unfold open. generalize 0.
   induction e1; intros; subst; simpl in *;
   lazymatch goal with
   | H : ?e' = <{ {_~>_}?e }> |- _ =>
@@ -188,6 +220,42 @@ Proof.
     try (auto_eapply; eauto; fast_set_solver!!).
 
   all: set_unfold; sfirstorder.
+Qed.
+
+Lemma close_open e x :
+  x # e ->
+  close x (open x e) = e.
+Proof.
+  intros.
+  unfold open, close. generalize 0.
+  induction e; intros; simpl;
+    hauto solve: fast_set_solver!!.
+Qed.
+
+Lemma open_close_ x y z e : forall i j,
+  i <> j ->
+  y # e ->
+  y <> x ->
+  open_ i y (open_ j z (close_ j x e)) = open_ j z (close_ j x (open_ i y e)).
+Proof.
+  induction e; intros; simpl;
+    solve [ repeat (case_decide; subst; simpl; try scongruence; eauto)
+          | f_equal; auto_apply; eauto; fast_set_solver!! ].
+Qed.
+
+Lemma open_close e x :
+  lc e ->
+  open x (close x e) = e.
+Proof.
+  intros H.
+  unfold open, close. generalize 0.
+  induction H; intros; simpl; try hauto;
+    f_equal; eauto;
+      match goal with
+      | |- ?e = _ => simpl_cofin (fv e)
+      end;
+      (eapply open_inj; [ unfold open; rewrite open_close_ | ]);
+      eauto; fast_set_solver!!.
 Qed.
 
 Lemma subst_fresh e : forall x s,
