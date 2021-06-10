@@ -19,44 +19,6 @@ Implicit Types (b : bool).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-(** ** Properties of [expr_wf] *)
-
-Lemma open_expr_wf e s :
-  expr_wf e ->
-  expr_wf s ->
-  expr_wf <{ e^s }>.
-Proof.
-  unfold open. intros H. generalize 0.
-  induction H; simpl; intros; try case_decide; eauto with expr_wf.
-Qed.
-
-Lemma open_expr_wf_inv e s :
-  expr_wf <{ e^s }> ->
-  expr_wf s ->
-  expr_wf e.
-Proof.
-  unfold open. generalize 0.
-  induction e; simpl; intros; qauto l: on inv: expr_wf ctrs: expr_wf.
-Qed.
-
-Lemma open_atom_expr_wf_inv e x :
-  expr_wf <{ e^x }> ->
-  expr_wf e.
-Proof.
-  qauto use: open_expr_wf_inv ctrs: expr_wf.
-Qed.
-
-Lemma typing_expr_wf Σ Γ e τ :
-  Σ; Γ ⊢ e : τ ->
-  expr_wf e
-with kinding_expr_wf Σ Γ τ κ :
-  Σ; Γ ⊢ τ :: κ ->
-  expr_wf τ.
-Proof.
-  all: destruct 1; eauto with expr_wf;
-    simpl_cofin?; qauto l: on ctrs: expr_wf use: open_atom_expr_wf_inv.
-Qed.
-
 (** ** Properties of oblivious values *)
 
 Lemma oval_val v :
@@ -82,13 +44,6 @@ Proof.
   intros H. revert ω2.
   induction H; intros; simpl_whnf_equiv;
     qauto l:on rew:off inv: otval.
-Qed.
-
-Lemma ovalty_elim v ω:
-  ovalty v ω ->
-  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
-Proof.
-  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
 Qed.
 
 Lemma ovalty_elim_alt v ω:

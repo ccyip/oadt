@@ -87,12 +87,10 @@ Qed.
 Lemma indistinguishable_val_ v v' :
   v ≈ v' ->
   val v ->
-  expr_wf v' ->
+  lc v' ->
   val v'.
 Proof.
-  induction 1; intros; try qauto l: on ctrs: val inv: val, expr_wf.
-  (* The boxed injection case. *)
-  qauto l: on ctrs: val inv: val, expr_wf use: ovalty_elim_alt.
+  induction 1; intros; try qauto l: on ctrs: val inv: val, lc.
 Qed.
 
 Lemma indistinguishable_val v v' Σ Γ τ :
@@ -101,7 +99,7 @@ Lemma indistinguishable_val v v' Σ Γ τ :
   Σ; Γ ⊢ v' : τ ->
   val v'.
 Proof.
-  qauto use: indistinguishable_val_, typing_expr_wf.
+  qauto use: indistinguishable_val_, typing_lc.
 Qed.
 
 Lemma indistinguishable_val_is_nf Σ v v' :

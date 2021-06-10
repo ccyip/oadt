@@ -94,7 +94,9 @@ Inductive lc : expr -> Prop :=
 | LCFold X e : lc e -> lc <{ fold<X> e }>
 | LCUnfold X e : lc e -> lc <{ unfold<X> e }>
 | LCBoxedLit b : lc <{ [b] }>
-| LCBoxedInj b τ e : lc τ -> lc e -> lc <{ [inj@b<τ> e] }>
+(* Techincally this is not only locally closed. Probably we should call it
+expression well-formedness. *)
+| LCBoxedInj b ω v : otval ω -> oval v -> lc <{ [inj@b<ω> v] }>
 .
 Hint Constructors lc : lc.
 
@@ -342,11 +344,20 @@ Proof.
   induction 1; hauto ctrs: lc use: otval_lc.
 Qed.
 
+Lemma ovalty_elim v ω:
+  ovalty v ω ->
+  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
+Proof.
+  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
+Qed.
+
 Lemma ovalty_lc v ω :
   ovalty v ω ->
   lc v /\ lc ω.
 Proof.
-  induction 1; hauto ctrs: lc use: otval_lc.
+  induction 1; try hauto ctrs: lc.
+
+  hauto use: otval_lc, ovalty_elim ctrs: otval, lc.
 Qed.
 
 (** Well-typed and well-kinded expressions are locally closed. *)
