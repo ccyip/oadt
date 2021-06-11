@@ -167,3 +167,10 @@ Tactic Notation "simpl_cofin" "*" := simpl_cofin* tt.
 Tactic Notation "simpl_cofin" := simpl_cofin tt.
 
 Tactic Notation "simpl_cofin" "?" := try simpl_cofin.
+
+Tactic Notation "pick_fresh" constr(S) :=
+  let H := fresh "Hfresh" in
+  let S := collect_stales S in
+  destruct (exist_fresh S) as [? H]; simpl_fresh H.
+
+Tactic Notation "pick_fresh" := pick_fresh tt.

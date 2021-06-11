@@ -11,8 +11,7 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (x X y Y z : atom) (L : aset).
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x X y Y z : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
@@ -21,12 +20,6 @@ Coercion EFVar : atom >-> expr.
 Instance kind_semilattice : SemiLattice kind.
 Proof.
   split; try reflexivity; repeat intros []; auto.
-Qed.
-
-(** [expr_equiv] is indeed an equivalence. *)
-Instance expr_equiv_is_equiv Σ : Equivalence (expr_equiv Σ).
-Proof.
-  split; hnf; qauto ctrs: expr_equiv.
 Qed.
 
 (** ** Variable closing *)
@@ -60,45 +53,6 @@ where "'{' k '<~' x '}' e" := (close_ k x e) (in custom oadt).
 End close.
 
 Definition close x e := close_ 0 x e.
-
-(** ** Locally closed *)
-Inductive lc : expr -> Prop :=
-| LCFVar x : lc <{ fvar x }>
-| LCGVar x : lc <{ gvar x }>
-| LCPi τ1 τ2 L :
-    (forall x, x ∉ L -> lc <{ τ2^x }>) ->
-    lc τ1 -> lc <{ Π:τ1, τ2 }>
-| LCAbs τ e L :
-    (forall x, x ∉ L -> lc <{ e^x }>) ->
-    lc τ -> lc <{ \:τ => e }>
-| LCLet e1 e2 L :
-    (forall x, x ∉ L -> lc <{ e2^x }>) ->
-    lc e1 -> lc <{ let e1 in e2 }>
-| LCCase l e0 e1 e2 L1 L2 :
-    (forall x, x ∉ L1 -> lc <{ e1^x }>) ->
-    (forall x, x ∉ L2 -> lc <{ e2^x }>) ->
-    lc e0 -> lc <{ case{l} e0 of e1 | e2 }>
-(** Congruence rules *)
-| LCUnitT : lc <{ 𝟙 }>
-| LCBool l : lc <{ 𝔹{l} }>
-| LCProd τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 * τ2 }>
-| LCSum l τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 +{l} τ2 }>
-| LCApp e1 e2 : lc e1 -> lc e2 -> lc <{ e1 e2 }>
-| LCUnitV : lc <{ () }>
-| LCLit b : lc <{ lit b }>
-| LCSec e : lc e -> lc <{ s𝔹 e }>
-| LCIte l e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if{l} e0 then e1 else e2 }>
-| LCPair e1 e2 : lc e1 -> lc e2 -> lc <{ (e1, e2) }>
-| LCProj b e : lc e -> lc <{ π@b e }>
-| LCInj l b τ e : lc τ -> lc e -> lc <{ inj{l}@b<τ> e }>
-| LCFold X e : lc e -> lc <{ fold<X> e }>
-| LCUnfold X e : lc e -> lc <{ unfold<X> e }>
-| LCBoxedLit b : lc <{ [b] }>
-(* Techincally this is not only locally closed. Probably we should call it
-expression well-formedness. *)
-| LCBoxedInj b ω v : otval ω -> oval v -> lc <{ [inj@b<ω> v] }>
-.
-Hint Constructors lc : lc.
 
 (** ** Free variables *)
 Fixpoint fv (e : expr) : aset :=
@@ -139,6 +93,13 @@ Arguments tctx_stale /.
 Arguments stale /.
 
 (** ** Tactics *)
+Ltac set_shelve :=
+  lazymatch goal with
+  | |- _ ∉ _ => shelve
+  | |- _ ⊆ _ => shelve
+  | |- _ <> _ => shelve
+  end.
+
 Ltac case_ite_expr :=
   lazymatch goal with
   | |- _; _ ⊢ ?e : _ =>
@@ -167,7 +128,8 @@ Ltac apply_lc_inv :=
 
 Ltac apply_gctx_wf :=
   match goal with
-  | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = _ |- _ => apply Hwf in H; try simp_hyp H
+  | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = _ |- _ =>
+    dup_hyp H (fun H => apply Hwf in H; try simp_hyp H)
   end.
 
 Ltac relax_typing_type :=
@@ -372,6 +334,17 @@ Proof.
     econstructor; simpl_cofin; qauto.
 Qed.
 
+Lemma subst_lc x e s :
+  lc s ->
+  lc e ->
+  lc <{ {x↦s}e }>.
+Proof.
+  intros H.
+  induction 1; simpl; try qauto ctrs: lc;
+    repeat econstructor; simpl_cofin?; eauto with lc;
+      rewrite <- subst_open_comm; eauto; fast_set_solver!!.
+Qed.
+
 Lemma subst_respect_lc x s t e :
   lc <{ {x↦s}e }> ->
   lc s ->
@@ -407,6 +380,13 @@ Lemma open_respect_lc_atom x e s :
 Proof.
   intros.
   eapply open_respect_lc; eauto with lc.
+Qed.
+
+Lemma lc_rename e x y :
+  lc <{ e^x }> ->
+  lc <{ e^y }>.
+Proof.
+  eauto using open_respect_lc_atom with lc.
 Qed.
 
 (** The type of well-typed expression is also locally closed. *)
@@ -813,84 +793,36 @@ Ltac simpl_typing_type_fv :=
   end.
 Smpl Add simpl_typing_type_fv : fv.
 
-(** Expression equivalence *)
-Lemma expr_equiv_subst1 Σ τ τ' x s :
+(** Lemmas about parallel reduction *)
+Lemma pared_lc1 Σ e e' :
   gctx_wf Σ ->
-  lc s ->
-  Σ ⊢ τ ≡ τ' ->
-  Σ ⊢ {x↦s}τ ≡ {x↦s}τ'.
+  Σ ⊢ e ==>! e' ->
+  lc e.
 Proof.
-  intros Hwf Hlc.
-  induction 1; intros; simpl;
-    rewrite ?subst_ite_distr;
-    rewrite ?subst_open_distr by eauto;
-    eauto with expr_equiv; try equiv_naive_solver.
-
-  (* [QAppOADT] and [QFun] *)
-  1-2: econstructor; rewrite subst_fresh; eauto;
-    select (Σ !! _ = _) (fun H => apply Hwf in H; simp_hyp H);
-    simpl_cofin?; simpl_fv; fast_set_solver*!!.
-
-  (* [QOCase] and [QOInj] *)
-  1-2: match goal with
-       | H : oval ?v |- _ =>
-         rewrite ?(subst_fresh v); rewrite ?(subst_fresh ω)
-       end; [ econstructor | .. ]; eauto;
-    simpl_fv; fast_set_solver!!.
-
-  (* Cases with binders *)
-  1-4:
-  econstructor; eauto;
-  simpl_cofin;
-  rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
+  intros ?.
+  induction 1; eauto with lc;
+    repeat econstructor; eauto;
+      qauto use: ovalty_elim, oval_lc, otval_lc.
 Qed.
 
-Lemma expr_equiv_subst2 Σ τ x e e' :
-  lc e ->
-  lc e' ->
-  lc τ ->
-  Σ ⊢ e ≡ e' ->
-  Σ ⊢ {x↦e}τ ≡ {x↦e'}τ.
-Proof.
-  intros Hlc1 Hlc2.
-  induction 1; intros; simpl; try case_decide; eauto with expr_equiv.
-
-  all: econstructor; eauto;
-    simpl_cofin;
-    rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
-Qed.
-
-Lemma expr_equiv_rename Σ τ τ' x y :
+Lemma pared_lc2 Σ e e' :
   gctx_wf Σ ->
-  Σ ⊢ τ ≡ τ' ->
-  Σ ⊢ {x↦y}τ ≡ {x↦y}τ'.
+  Σ ⊢ e ==>! e' ->
+  lc e'.
 Proof.
-  eauto using expr_equiv_subst1 with lc.
+  intros ?.
+  induction 1; eauto with lc;
+    try apply_gctx_wf;
+    simpl_cofin?;
+    eauto using open_respect_lc_atom, typing_lc, kinding_lc;
+    repeat econstructor;
+    qauto use: open_respect_lc_atom, ovalty_elim, oval_lc.
 Qed.
 
-Lemma expr_equiv_open1 Σ τ1 τ2 x e :
+Lemma pared_lc Σ e e' :
   gctx_wf Σ ->
-  lc e ->
-  Σ ⊢ τ1^x ≡ τ2^x ->
-  x ∉ fv τ1 ∪ fv τ2 ->
-  Σ ⊢ τ1^e ≡ τ2^e.
+  Σ ⊢ e ==>! e' ->
+  lc e /\ lc e'.
 Proof.
-  intros.
-  erewrite (subst_intro τ1 e x) by fast_set_solver!!.
-  erewrite (subst_intro τ2 e x) by fast_set_solver!!.
-  eapply expr_equiv_subst1; eauto.
-Qed.
-
-Lemma expr_equiv_open2 Σ τ e1 e2 L :
-  lc e1 ->
-  lc e2 ->
-  (forall x, x ∉ L -> lc <{ τ^x }>) ->
-  Σ ⊢ e1 ≡ e2 ->
-  Σ ⊢ τ^e1 ≡ τ^e2.
-Proof.
-  intros.
-  simpl_cofin.
-  erewrite (subst_intro τ e1 x) by eassumption.
-  erewrite (subst_intro τ e2 x) by eassumption.
-  eauto using expr_equiv_subst2.
+  eauto using pared_lc1, pared_lc2.
 Qed.

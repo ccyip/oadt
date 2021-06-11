@@ -15,8 +15,7 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (x X y Y : atom) (L : aset).
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 
 (** ** Soundness *)

@@ -17,24 +17,6 @@ Inductive padt : expr -> Prop :=
 .
 Hint Constructors padt : padt.
 
-(** ** Oblivious type values (ω) *)
-Inductive otval : expr -> Prop :=
-| OVUnitT : otval <{ 𝟙 }>
-| OVOBool : otval <{ ~𝔹 }>
-| OVProd ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 * ω2 }>
-| OVOSum ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 ~+ ω2 }>
-.
-Hint Constructors otval : otval.
-
-(** ** Oblivious values (v) *)
-Inductive oval : expr -> Prop :=
-| OVUnitV : oval <{ () }>
-| OVBoxedLit b : oval <{ [b] }>
-| OVPair v1 v2 : oval v1 -> oval v2 -> oval <{ (v1, v2) }>
-| OVBoxedInj b ω v : otval ω -> oval v -> oval <{ [inj@b<ω> v] }>
-.
-Hint Constructors oval : oval.
-
 (** ** OADT value typing *)
 (** [ovalty v ω] means [v] is an oblivious value of oblivious type value [ω].
 This is essentially a subset of [typing], but we have it so that the dynamic
@@ -52,19 +34,6 @@ Inductive ovalty : expr -> expr -> Prop :=
     ovalty <{ [inj@b<ω1 ~+ ω2> v] }> <{ ω1 ~+ ω2 }>
 .
 Hint Constructors ovalty : ovalty.
-
-(** ** Values (v) *)
-Inductive val : expr -> Prop :=
-| VUnitV : val <{ () }>
-| VLit b : val <{ lit b }>
-| VPair v1 v2 : val v1 -> val v2 -> val <{ (v1, v2) }>
-| VAbs τ e : val <{ \:τ => e }>
-| VInj b τ v : val v -> val <{ inj@b<τ> v }>
-| VFold X v : val v -> val <{ fold<X> v }>
-| VBoxedLit b : val <{ [b] }>
-| VBoxedInj b ω v : otval ω -> oval v -> val <{ [inj@b<ω> v] }>
-.
-Hint Constructors val : val.
 
 (** ** Evaluation context (ℇ) *)
 (* This style is inspired by Iron Lambda. *)
@@ -159,12 +128,12 @@ Hint Constructors step : step.
 Module notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,
-                                                e constr at level 0,
-                                                e' constr at level 0).
+                                                e custom oadt at level 0,
+                                                e' custom oadt at level 0).
 
 Notation "Σ '⊨' e '-->*' e'" := (clos_refl_trans_1n _ (step Σ) e e')
                                   (at level 40,
-                                   e constr at level 0,
-                                   e' constr at level 0).
+                                   e custom oadt at level 0,
+                                   e' custom oadt at level 0).
 
 End notations.

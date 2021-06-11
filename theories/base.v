@@ -1,4 +1,4 @@
-From Coq Require Export Relations.Relation_Operators.
+From Coq Require Export Relations.Relation_Operators Relations.Operators_Properties.
 From stdpp Require Export prelude fin_maps fin_map_dom.
 From smpl Require Export Smpl.
 From Hammer Require Export Tactics.

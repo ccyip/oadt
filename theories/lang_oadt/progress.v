@@ -15,12 +15,15 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (x X y Y : atom) (L : aset).
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
 
+Section progress.
+
+Context (Σ : gctx).
+Context (Hwf : gctx_wf Σ).
 
 (** ** Canonical forms *)
 Ltac canonical_form_solver :=
@@ -29,7 +32,7 @@ Ltac canonical_form_solver :=
   apply_kind_inv;
   simpl_whnf_equiv.
 
-Lemma canonical_form_unit Σ Γ e :
+Lemma canonical_form_unit Γ e :
   val e ->
   Σ; Γ ⊢ e : 𝟙 ->
   e = <{ () }>.
@@ -37,7 +40,7 @@ Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_abs Σ Γ e τ2 τ1 :
+Lemma canonical_form_abs Γ e τ2 τ1 :
   val e ->
   Σ; Γ ⊢ e : Π:τ2, τ1 ->
   exists e' τ, e = <{ \:τ => e' }>.
@@ -45,7 +48,7 @@ Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_bool Σ Γ e :
+Lemma canonical_form_bool Γ e :
   val e ->
   Σ; Γ ⊢ e : 𝔹 ->
   exists b, e = <{ b }>.
@@ -53,7 +56,7 @@ Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_obool Σ Γ e :
+Lemma canonical_form_obool Γ e :
   val e ->
   Σ; Γ ⊢ e : ~𝔹 ->
   exists b, e = <{ [b] }>.
@@ -61,7 +64,7 @@ Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_prod Σ Γ e τ1 τ2 :
+Lemma canonical_form_prod Γ e τ1 τ2 :
   val e ->
   Σ; Γ ⊢ e : τ1 * τ2 ->
   exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
@@ -69,7 +72,7 @@ Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_sum Σ Γ e τ1 τ2 :
+Lemma canonical_form_sum Γ e τ1 τ2 :
   val e ->
   Σ; Γ ⊢ e : τ1 + τ2 ->
   exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
@@ -77,7 +80,7 @@ Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_osum Σ Γ e τ1 τ2 :
+Lemma canonical_form_osum Γ e τ1 τ2 :
   val e ->
   Σ; Γ ⊢ e : τ1 ~+ τ2 ->
   exists b v ω1 ω2, oval v /\ otval ω1 /\ otval ω2 /\
@@ -92,7 +95,7 @@ Qed.
 
 (** Though it seems we should have a condition of [X] being an (public) ADT, this
 condition is not needed since it is implied by the typing judgment. *)
-Lemma canonical_form_fold Σ Γ e X :
+Lemma canonical_form_fold Γ e X :
   val e ->
   Σ; Γ ⊢ e : gvar X ->
   exists v X', val v /\ e = <{ fold<X'> v }>.
@@ -120,7 +123,7 @@ Ltac step_ectx_solver :=
   end.
 
 (** The combined progress theorems for expressions and types. *)
-Theorem progress_ Σ :
+Theorem progress_ :
   (forall Γ e τ,
       Σ; Γ ⊢ e : τ ->
       Γ = ∅ ->
@@ -198,9 +201,11 @@ Proof.
   - select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
 Qed.
 
-Theorem progress Σ τ e :
+Theorem progress τ e :
   Σ; ∅ ⊢ e : τ ->
   val e \/ exists e', Σ ⊨ e -->! e'.
 Proof.
   hauto use: progress_.
 Qed.
+
+End progress.

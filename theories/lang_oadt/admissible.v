@@ -3,6 +3,7 @@ From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
+From oadt Require Import lang_oadt.equivalence.
 
 (** * Admissible rules *)
 
@@ -10,15 +11,14 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (x X y Y : atom) (L : aset).
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
 
 (** This lemma is equivalent to [SCtx] constructor, but more friendly for
 automation. *)
-Lemma SCtx_intro {Σ} ℇ e e' E E' :
+Lemma SCtx_intro Σ ℇ e e' E E' :
     Σ ⊨ e -->! e' ->
     ℇ e = E ->
     ℇ e' = E' ->
@@ -100,7 +100,7 @@ Proof.
                | |- <[_:=_]>(<[_:=_]>_) = <[_:=_]>(<[_:=_]>_) =>
                  apply insert_commute
                | |- _ ⊢ _ ≡ _ =>
-                 apply expr_equiv_rename
+                 apply pared_equiv_rename
                | |- <[?y:=_]>_ !! ?y = Some _ =>
                  simplify_map_eq
                | |- <[_:=_]>_ !! _ = Some _ =>

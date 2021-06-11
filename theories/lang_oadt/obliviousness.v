@@ -17,12 +17,44 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (x X y Y : atom) (L : aset).
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
 
+Lemma pared_obliv_preservation_inv Σ Γ τ τ' κ :
+  gctx_wf Σ ->
+  Σ ⊢ τ ==>! τ' ->
+  Σ; Γ ⊢ τ :: κ ->
+  Σ; Γ ⊢ τ' :: *@O ->
+  Σ; Γ ⊢ τ :: *@O.
+Proof.
+  intros Hwf.
+  induction 1; intros; try case_label;
+    apply_kind_inv;
+    simpl_cofin?;
+    simplify_eq;
+    try solve [ kinding_intro; eauto; set_shelve ];
+    try easy.
+
+  (* Product *)
+  hauto ctrs: kinding solve: lattice_naive_solver.
+
+  Unshelve.
+  all : fast_set_solver!!.
+Qed.
+
+Lemma pared_equiv_obliv_preservation Σ Γ τ τ' κ :
+  gctx_wf Σ ->
+  Σ ⊢ τ ≡ τ' ->
+  Σ; Γ ⊢ τ :: *@O ->
+  Σ; Γ ⊢ τ' :: κ ->
+  Σ; Γ ⊢ τ' :: *@O.
+Proof.
+  intros Hwf.
+  induction 1; intros;
+    eauto using pared_obliv_preservation_inv, pared_kinding_preservation.
+Qed.
 
 (** Indistinguishability is equivalence. *)
 Instance indistinguishable_is_equiv : Equivalence indistinguishable.
@@ -188,123 +220,85 @@ Ltac apply_canonical_form_ H τ :=
   end.
 
 (* This tactic is destructive. *)
-Tactic Notation "apply_canonical_form" "by" tactic3(tac) :=
+Ltac apply_canonical_form :=
   match goal with
   | H : val ?e, H' : _; _ ⊢ ?e : ?τ |- _ =>
-    first [ apply_canonical_form_ H τ
-          | match goal with
-            | H' : _ ⊢ τ ≡ ?τ' |- _ => apply_canonical_form_ H τ'
-            | H' : _ ⊢ ?τ' ≡ τ |- _ => apply_canonical_form_ H τ'
-            end ];
-      [ try simp_hyp H
-      | tac ]
+    apply_canonical_form_ H τ; eauto; try simp_hyp H
   end; subst.
 
-Tactic Notation "apply_canonical_form" :=
-  apply_canonical_form by (first [ solve [eauto]
-                                 | eapply TConv;
-                                   [ solve [eauto]
-                                   | eauto with kinding
-                                   | equiv_naive_solver ] ]).
-
-Ltac apply_obliv_type_preserve :=
-  simpl_cofin?;
-  try select! (_; _ ⊢ _ : _)
-      (fun H => dup_hyp H (fun H => eapply regularity in H;
-                                [ simp_hyp H | eauto ]));
-  apply_type_inv;
-  repeat
-    match goal with
-    | H : _ ⊢ ?τ ≡ _, H' : _; _ ⊢ ?τ :: _ |- _ =>
-      eapply expr_equiv_obliv_type_preserve in H;
-      [| eassumption | apply H' | eauto; kinding_intro; eauto; fast_set_solver!! ]
-    end;
-  repeat apply_gctx_wf;
-  apply_kind_inv.
-
-Lemma indistinguishable_obliv_val Σ Γ v1 v2 τ :
+Lemma indistinguishable_obliv_val Σ Γ v v' τ :
   gctx_wf Σ ->
-  val v1 ->
-  val v2 ->
-  Σ; Γ ⊢ v1 : τ ->
-  Σ; Γ ⊢ v2 : τ ->
+  Σ; Γ ⊢ v : τ ->
+  Σ; Γ ⊢ v' : τ ->
+  val v ->
+  val v' ->
   Σ; Γ ⊢ τ :: *@O ->
-  v1 ≈ v2.
+  v ≈ v'.
 Proof.
-  intros Hwf H. revert Γ v2 τ.
+  intros Hwf H. revert v'.
   induction H; intros;
-    apply_type_inv;
-    try solve [apply_obliv_type_preserve; easy];
-    try apply_canonical_form;
-    eauto with indistinguishable.
-
-  (* Pair *)
-  - select (_ ⊢ _ ≡ _) (fun H => dup_hyp H (fun H => revert H)).
-    apply_obliv_type_preserve.
-    intros.
-    apply_canonical_form by (eapply TConv; eauto;
-                             kinding_intro; eauto).
-    apply_type_inv.
-    match goal with
-    | H1 : _ ⊢ ?τ ≡ _, H2 : _ ⊢ ?τ ≡ _ |- _ =>
-      rewrite H1 in H2
-    end.
-    simpl_whnf_equiv.
-    constructor; auto_eapply; eauto; econstructor; eauto; equiv_naive_solver.
+    repeat
+      match goal with
+      | H : val ?e |- _ => head_constructor e; sinvert H
+      end; simplify_eq;
+      try apply_regularity;
+      try apply_canonical_form;
+      apply_type_inv;
+      apply_kind_inv;
+      try simpl_whnf_equiv;
+      simplify_eq;
+      try solve [ easy
+                | econstructor; auto_apply; eauto;
+                  econstructor; eauto; equiv_naive_solver ].
 
   (* Boxed injection *)
-  - apply_canonical_form by (eapply TConv; eauto;
-                             qauto use: otval_well_kinded).
+  - select (ovalty _ _) (fun H => sinvert H).
+    apply_canonical_form.
     apply_type_inv.
-    match goal with
-    | H1 : _ ⊢ ?τ ≡ _, H2 : _ ⊢ ?τ ≡ _ |- _ =>
-      rewrite H1 in H2
-    end.
-    match goal with
-    | |- <{ [inj@_< ?ω1 > _] }> ≈ <{ [inj@_< ?ω2 > _] }> =>
-      replace ω2 with ω1 by (eauto using otval_uniq with otval)
-    end.
-    eauto with indistinguishable.
+    apply_kind_inv.
+    select (_ ⊢ _ ≡ _) (fun H => eapply otval_uniq in H;
+                               eauto with otval; rewrite H).
+    econstructor.
+
+  (* Equivalence case *)
+  - auto_apply; eauto.
+    econstructor; eauto; equiv_naive_solver.
+    eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
 Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' τ τ' :
   gctx_wf Σ ->
-  val v ->
-  v ≈ v' ->
   Σ; Γ ⊢ v : τ ->
   Σ; Γ ⊢ v' : τ' ->
   Σ; Γ ⊢ τ :: *@O ->
+  val v ->
+  v ≈ v' ->
   Σ ⊢ τ ≡ τ'.
 Proof.
-  intros Hwf H. revert Γ v' τ τ'.
-  induction H; intros; subst;
-    select (_ ≈ _) (fun H => sinvert H);
-    apply_type_inv;
-    try solve [apply_obliv_type_preserve; easy];
-    try equiv_naive_solver.
+  intros Hwf H. revert v' τ'.
+  induction H; intros;
+    try match goal with
+        | H : ?e ≈ _ |- _ => head_constructor e; sinvert H
+        end; simplify_eq;
+    repeat
+      match goal with
+      | H : val ?e |- _ => head_constructor e; sinvert H
+      end; simplify_eq;
+      try apply_regularity;
+      apply_type_inv;
+      apply_kind_inv;
+      simplify_eq;
+      try easy.
 
   (* Product *)
-  - repeat
-      match goal with
-      | H : _ ⊢ ?τ ≡ _ |- _ ⊢ ?τ ≡ _ => rewrite H
-      | H : _ ⊢ ?τ ≡ _ |- _ ⊢ _ ≡ ?τ => rewrite H
-      end.
-    apply_obliv_type_preserve.
-    apply expr_equiv_iff_whnf_equiv; [ solve [eauto with whnf]
-                                     | solve [eauto with whnf]
-                                     | econstructor; eauto ];
-    (* Apply the right induction hypothesis. *)
-    match goal with
-    | H : context [?v ≈ _ -> _], H' : _; _ ⊢ ?v : ?τ |- _ ⊢ ?τ ≡ _ =>
-      eapply H
-    end;
-    try (goal_is (_ ≈ _); eauto); eauto;
-      eauto with kinding.
+  - select (_ ⊢ _ ≡ _ * _) (fun H => rewrite H).
+    apply_pared_equiv_congr; eauto using kinding_lc, typing_type_lc;
+      auto_eapply; eauto with kinding.
 
-  (* Oblivious sum *)
-  - subst.
-    select (<{ _ ~+ _ }> = <{ _ ~+ _ }>) (fun H => sinvert H).
+  (* Equivalence case *)
+  - etrans; try auto_eapply; eauto.
     equiv_naive_solver.
+    eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
 (* This lemma can be strengthened so that we drop the typing assumption for
@@ -312,11 +306,11 @@ Qed.
 provable. But this version is good enough for the main theorem. *)
 Lemma indistinguishable_val_type Σ Γ v v' τ τ' :
   gctx_wf Σ ->
-  val v ->
-  v ≈ v' ->
   Σ; Γ ⊢ v : τ ->
   Σ; Γ ⊢ v' : τ' ->
   Σ; Γ ⊢ τ :: *@O ->
+  val v ->
+  v ≈ v' ->
   Σ; Γ ⊢ v' : τ.
 Proof.
   intros.

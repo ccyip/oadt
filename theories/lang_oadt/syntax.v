@@ -2,7 +2,7 @@ From oadt Require Import lang_oadt.base.
 
 (** * Syntax *)
 
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 Declare Custom Entry oadt.
 Declare Custom Entry oadt_def.
@@ -268,6 +268,8 @@ End expr_notations.
 Section definitions.
 
 Import expr_notations.
+#[local]
+Coercion EFVar : atom >-> expr.
 
 (** ** Indistinguishability *)
 
@@ -386,6 +388,9 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
 
 where "'{' k '~>' s '}' e" := (open_ k s e) (in custom oadt).
 
+Definition open s e := open_ 0 s e.
+Notation "e ^ s" := (open s e) (in custom oadt at level 20).
+
 (** ** Substitution (for local free variables) *)
 Reserved Notation "'{' x '↦' s '}' e" (in custom oadt at level 20, x constr).
 
@@ -412,12 +417,80 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
 
 where "'{' x '↦' s '}' e" := (subst x s e) (in custom oadt).
 
-End definitions.
+(** ** Oblivious type values (ω) *)
+Inductive otval : expr -> Prop :=
+| OVUnitT : otval <{ 𝟙 }>
+| OVOBool : otval <{ ~𝔹 }>
+| OVProd ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 * ω2 }>
+| OVOSum ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 ~+ ω2 }>
+.
 
-Definition open s e := open_ 0 s e.
+(** ** Oblivious values (v) *)
+Inductive oval : expr -> Prop :=
+| OVUnitV : oval <{ () }>
+| OVBoxedLit b : oval <{ [b] }>
+| OVPair v1 v2 : oval v1 -> oval v2 -> oval <{ (v1, v2) }>
+| OVBoxedInj b ω v : otval ω -> oval v -> oval <{ [inj@b<ω> v] }>
+.
+
+(** ** Values (v) *)
+Inductive val : expr -> Prop :=
+| VUnitV : val <{ () }>
+| VLit b : val <{ lit b }>
+| VPair v1 v2 : val v1 -> val v2 -> val <{ (v1, v2) }>
+| VAbs τ e : val <{ \:τ => e }>
+| VInj b τ v : val v -> val <{ inj@b<τ> v }>
+| VFold X v : val v -> val <{ fold<X> v }>
+| VBoxedLit b : val <{ [b] }>
+| VBoxedInj b ω v : otval ω -> oval v -> val <{ [inj@b<ω> v] }>
+.
+
+(** ** Local closure as expression well-formedness *)
+Inductive lc : expr -> Prop :=
+| LCFVar x : lc <{ fvar x }>
+| LCGVar x : lc <{ gvar x }>
+| LCPi τ1 τ2 L :
+    (forall x, x ∉ L -> lc <{ τ2^x }>) ->
+    lc τ1 -> lc <{ Π:τ1, τ2 }>
+| LCAbs τ e L :
+    (forall x, x ∉ L -> lc <{ e^x }>) ->
+    lc τ -> lc <{ \:τ => e }>
+| LCLet e1 e2 L :
+    (forall x, x ∉ L -> lc <{ e2^x }>) ->
+    lc e1 -> lc <{ let e1 in e2 }>
+| LCCase l e0 e1 e2 L1 L2 :
+    (forall x, x ∉ L1 -> lc <{ e1^x }>) ->
+    (forall x, x ∉ L2 -> lc <{ e2^x }>) ->
+    lc e0 -> lc <{ case{l} e0 of e1 | e2 }>
+(** Congruence rules *)
+| LCUnitT : lc <{ 𝟙 }>
+| LCBool l : lc <{ 𝔹{l} }>
+| LCProd τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 * τ2 }>
+| LCSum l τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 +{l} τ2 }>
+| LCApp e1 e2 : lc e1 -> lc e2 -> lc <{ e1 e2 }>
+| LCUnitV : lc <{ () }>
+| LCLit b : lc <{ lit b }>
+| LCSec e : lc e -> lc <{ s𝔹 e }>
+| LCIte l e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if{l} e0 then e1 else e2 }>
+| LCPair e1 e2 : lc e1 -> lc e2 -> lc <{ (e1, e2) }>
+| LCProj b e : lc e -> lc <{ π@b e }>
+| LCInj l b τ e : lc τ -> lc e -> lc <{ inj{l}@b<τ> e }>
+| LCFold X e : lc e -> lc <{ fold<X> e }>
+| LCUnfold X e : lc e -> lc <{ unfold<X> e }>
+| LCBoxedLit b : lc <{ [b] }>
+(* Techincally this is not only locally closed, but more about
+well-formedness. *)
+| LCBoxedInj b ω v : otval ω -> oval v -> lc <{ [inj@b<ω> v] }>
+.
+
+End definitions.
 
 (** ** Hints *)
 Hint Constructors indistinguishable : indistinguishable.
+Hint Constructors otval : otval.
+Hint Constructors oval : oval.
+Hint Constructors val : val.
+Hint Constructors lc : lc.
 
 (** ** Notations *)
 Module notations.

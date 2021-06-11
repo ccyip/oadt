@@ -13,8 +13,7 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (x X y Y : atom) (L : aset).
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
@@ -54,12 +53,13 @@ Proof.
 Qed.
 
 Lemma ovalty_intro_alt v ω Σ Γ :
+  gctx_wf Σ ->
   val v ->
   otval ω ->
   Σ; Γ ⊢ v : ω ->
   ovalty v ω.
 Proof.
-  intros H. revert ω.
+  intros Hwf H. revert ω.
   induction H; inversion 1; intros; subst;
     apply_type_inv;
     simpl_whnf_equiv;
@@ -76,6 +76,7 @@ Proof.
 Qed.
 
 Lemma ovalty_intro v ω Σ Γ :
+  gctx_wf Σ ->
   oval v ->
   otval ω ->
   Σ; Γ ⊢ v : ω ->
