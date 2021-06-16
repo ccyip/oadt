@@ -341,7 +341,7 @@ Lemma subst_lc x e s :
 Proof.
   intros H.
   induction 1; simpl; try qauto ctrs: lc;
-    repeat econstructor; simpl_cofin?; eauto with lc;
+    repeat econstructor; simpl_cofin?; eauto using lc;
       rewrite <- subst_open_comm; eauto; fast_set_solver!!.
 Qed.
 
@@ -370,7 +370,7 @@ Proof.
   intros.
   destruct (exist_fresh (fv e)) as [y ?].
   erewrite subst_intro in *; eauto.
-  eauto using subst_respect_lc with lc.
+  eauto using lc, subst_respect_lc.
 Qed.
 
 Lemma open_respect_lc_atom x e s :
@@ -379,14 +379,14 @@ Lemma open_respect_lc_atom x e s :
   lc <{ e^s }>.
 Proof.
   intros.
-  eapply open_respect_lc; eauto with lc.
+  eapply open_respect_lc; eauto using lc.
 Qed.
 
 Lemma lc_rename e x y :
   lc <{ e^x }> ->
   lc <{ e^y }>.
 Proof.
-  eauto using open_respect_lc_atom with lc.
+  eauto using lc, open_respect_lc_atom.
 Qed.
 
 (** The type of well-typed expression is also locally closed. *)
@@ -396,7 +396,7 @@ Lemma typing_type_lc Σ Γ e τ :
   lc τ.
 Proof.
   intros Hwf.
-  induction 1; eauto using kinding_lc with lc;
+  induction 1; eauto using lc, kinding_lc;
     try
       lazymatch goal with
       | H : Σ !! _ = Some _ |- _ =>
@@ -800,7 +800,7 @@ Lemma pared_lc1 Σ e e' :
   lc e.
 Proof.
   intros ?.
-  induction 1; eauto with lc;
+  induction 1; eauto using lc;
     repeat econstructor; eauto;
       qauto use: ovalty_elim, oval_lc, otval_lc.
 Qed.
@@ -811,7 +811,7 @@ Lemma pared_lc2 Σ e e' :
   lc e'.
 Proof.
   intros ?.
-  induction 1; eauto with lc;
+  induction 1; eauto using lc;
     try apply_gctx_wf;
     simpl_cofin?;
     eauto using open_respect_lc_atom, typing_lc, kinding_lc;

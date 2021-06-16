@@ -24,7 +24,7 @@ Lemma oval_val v :
   oval v ->
   val v.
 Proof.
-  induction 1; eauto with val.
+  induction 1; eauto using val.
 Qed.
 
 Lemma otval_well_kinded ω Σ Γ :

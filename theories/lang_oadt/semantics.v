@@ -15,7 +15,6 @@ Inductive padt : expr -> Prop :=
 | PSum α1 α2 : padt α1 -> padt α2 -> padt <{ α1 + α2 }>
 | PGVar (X : atom) : padt <{ gvar X }>
 .
-Hint Constructors padt : padt.
 
 (** ** OADT value typing *)
 (** [ovalty v ω] means [v] is an oblivious value of oblivious type value [ω].
@@ -33,7 +32,6 @@ Inductive ovalty : expr -> expr -> Prop :=
     otval <{ ite b ω2 ω1 }> ->
     ovalty <{ [inj@b<ω1 ~+ ω2> v] }> <{ ω1 ~+ ω2 }>
 .
-Hint Constructors ovalty : ovalty.
 
 (** ** Evaluation context (ℇ) *)
 (* This style is inspired by Iron Lambda. *)
@@ -65,7 +63,6 @@ Inductive ectx : (expr -> expr) -> Prop :=
 | CtxFold X : ectx (fun e => <{ fold<X> e }>)
 | CtxUnfold X : ectx (fun e => <{ unfold<X> e }>)
 .
-Hint Constructors ectx : ectx.
 
 (** ** Small-step relation *)
 Section step.
@@ -122,7 +119,6 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
 where "e '-->!' e'" := (step _ e e').
 
 End step.
-Hint Constructors step : step.
 
 (** Notations *)
 Module notations.

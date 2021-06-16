@@ -451,15 +451,6 @@ Scheme typing_kinding_ind := Minimality for typing Sort Prop
 Combined Scheme typing_kinding_mutind
          from typing_kinding_ind, kinding_typing_ind.
 
-(** ** Hints *)
-Hint Constructors pared : pared.
-Hint Constructors pared_equiv : pared_equiv.
-Hint Constructors pared_equiv_join : pared_equiv_join.
-Hint Constructors typing : typing.
-Hint Constructors kinding : kinding.
-Hint Constructors gdef_typing : gdef_typing.
-Hint Constructors gdefs_typing : gdefs_typing.
-
 (** ** Notations *)
 (* Unfortunately I have to copy-paste all notations here again. *)
 Module notations.

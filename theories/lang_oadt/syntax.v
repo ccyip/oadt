@@ -485,13 +485,6 @@ well-formedness. *)
 
 End definitions.
 
-(** ** Hints *)
-Hint Constructors indistinguishable : indistinguishable.
-Hint Constructors otval : otval.
-Hint Constructors oval : oval.
-Hint Constructors val : val.
-Hint Constructors lc : lc.
-
 (** ** Notations *)
 Module notations.
 

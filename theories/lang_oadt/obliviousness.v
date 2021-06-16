@@ -60,10 +60,10 @@ Qed.
 Instance indistinguishable_is_equiv : Equivalence indistinguishable.
 Proof.
   split.
-  - intros e. induction e; eauto with indistinguishable.
-  - intros ??; induction 1; eauto with indistinguishable.
+  - intros e. induction e; eauto using indistinguishable.
+  - intros ??; induction 1; eauto using indistinguishable.
   - intros e1 e2 e3. intros H. revert e3.
-    induction H; intros e3; inversion 1; subst; eauto with indistinguishable.
+    induction H; intros e3; inversion 1; subst; eauto using indistinguishable.
 Qed.
 
 Lemma indistinguishable_open e e' s s' :
@@ -73,7 +73,7 @@ Lemma indistinguishable_open e e' s s' :
 Proof.
   unfold open. intros H. generalize 0.
   induction H; intros; simpl in *;
-    try case_decide; eauto with indistinguishable.
+    try case_decide; eauto using indistinguishable.
 Qed.
 
 Lemma indistinguishable_ovalty v v' ω :
@@ -83,7 +83,7 @@ Lemma indistinguishable_ovalty v v' ω :
 Proof.
   intros H. revert v'.
   induction H; intros v'; inversion 1; subst;
-    eauto with indistinguishable.
+    eauto using indistinguishable.
 Qed.
 
 Lemma indistinguishable_ovalty_inv v v' ω ω' :
@@ -257,7 +257,7 @@ Proof.
     apply_type_inv.
     apply_kind_inv.
     select (_ ⊢ _ ≡ _) (fun H => eapply otval_uniq in H;
-                               eauto with otval; rewrite H).
+                               eauto using otval; rewrite H).
     econstructor.
 
   (* Equivalence case *)
@@ -293,7 +293,7 @@ Proof.
   (* Product *)
   - select (_ ⊢ _ ≡ _ * _) (fun H => rewrite H).
     apply_pared_equiv_congr; eauto using kinding_lc, typing_type_lc;
-      auto_eapply; eauto with kinding.
+      auto_eapply; eauto using kinding.
 
   (* Equivalence case *)
   - etrans; try auto_eapply; eauto.
@@ -327,14 +327,14 @@ Ltac val_step_absurd :=
     | solve [ eauto
             | eapply indistinguishable_otval;
               [ solve [ eassumption | symmetry; eassumption ]
-              | eauto with otval ] ] ]
+              | eauto using otval ] ] ]
   | H : _ ⊨ _ -->! _ |- _ =>
     exfalso; eapply val_step;
     [ apply H
     | solve [ eauto
             | eapply indistinguishable_val;
               [ solve [ eassumption | symmetry; eassumption ]
-              | eauto with val
+              | eauto using val
               | eauto ] ] ]
   end.
 
@@ -381,7 +381,7 @@ Proof.
              (* Solve the trivial cases *)
              | eauto using indistinguishable_open
              (* Solve the inductive cases. *)
-             | econstructor; eauto; auto_eapply; eauto 10 with kinding ]);
+             | econstructor; eauto; auto_eapply; eauto 10 using kinding ]);
       (* Solve other less trivial cases *)
       try qauto rew: off use: indistinguishable_open solve: reflexivity.
 
@@ -390,7 +390,7 @@ Proof.
       match goal with
       | H : ovalty ?v _ |- _ => head_constructor v; sinvert H
       end.
-    econstructor; eauto with indistinguishable;
+    econstructor; eauto using indistinguishable;
       case_splitting;
       eauto using indistinguishable_open, indistinguishable_ovalty.
 
@@ -398,9 +398,9 @@ Proof.
   - match goal with
     | |- <{ [inj@_< ?ω1 > _] }> ≈ <{ [inj@_< ?ω2 > _] }> =>
       replace ω2 with ω1
-        by (eauto using indistinguishable_otval_inv with indistinguishable)
+        by (eauto using indistinguishable, indistinguishable_otval_inv)
     end.
-    eauto with indistinguishable.
+    eauto using indistinguishable.
 
   (* Step from mux *)
   - case_splitting;

@@ -55,8 +55,8 @@ Lemma pared_subst1_ e s s' x :
   <{ {x↦s}e }> ==>! <{ {x↦s'}e }>.
 Proof.
   intros ??.
-  induction 1; intros; simpl; try case_decide; eauto with pared;
-    econstructor; eauto with lc;
+  induction 1; intros; simpl; try case_decide; eauto using pared;
+    econstructor; eauto using lc;
       simpl_cofin?;
       rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
 Qed.
@@ -137,7 +137,7 @@ Proof.
   intros.
   destruct (exist_fresh (fv e)) as [x ?].
   unshelve eapply pared_open; eauto.
-  constructor. eauto using open_respect_lc, pared_lc1 with lc.
+  constructor. eauto using lc, open_respect_lc, pared_lc1.
   fast_set_solver!!.
 Qed.
 
@@ -147,8 +147,8 @@ Lemma pared_rename e e' x y :
   <{ e^y }> ==>! <{ e'^y }>.
 Proof.
   intros.
-  eapply pared_open; eauto with lc.
-  econstructor; eauto with lc.
+  eapply pared_open; eauto using lc.
+  econstructor; eauto using lc.
 Qed.
 
 (** ** Admissible Rules *)
@@ -230,7 +230,7 @@ Qed.
 (** ** Inversion Lemmas *)
 
 Ltac inv_solver :=
-  inversion 1; subst; try apply_lc_inv; repeat esplit; eauto with pared.
+  inversion 1; subst; try apply_lc_inv; repeat esplit; eauto using pared.
 
 Lemma pared_inv_abs τ e t :
   <{ \:τ => e }> ==>! t ->
@@ -305,7 +305,7 @@ Ltac apply_pared_inv :=
   end; subst; eauto.
 
 Tactic Notation "lcrefl" "by" tactic3(tac) := eapply RRefl; tac.
-Tactic Notation "lcrefl" := lcrefl by eauto with lc.
+Tactic Notation "lcrefl" := lcrefl by eauto using lc.
 
 (** ** Confluence *)
 
@@ -349,7 +349,7 @@ Proof.
         end; subst;
         (* Solve some easy cases. *)
         try solve [ repeat esplit; eauto;
-                    econstructor; eauto with lc ];
+                    econstructor; eauto using lc ];
         (* Generate local closure assumptions to avoid reproving the same
         stuff. *)
         repeat apply_lc_inv;
@@ -400,7 +400,7 @@ Proof.
     repeat apply_pared_inv;
     (* Solve more easy cases. *)
     try solve [ try case_split; repeat esplit; eauto;
-                econstructor; eauto with lc ];
+                econstructor; eauto using lc ];
     (* Solve the trickier cases. *)
     let go _ :=
         lazymatch goal with
@@ -419,7 +419,7 @@ Proof.
           lazymatch goal with
           | |- _ ∉ _ => shelve
           | |- lc _ =>
-            eauto using typing_lc, kinding_lc with lc
+            eauto using lc, typing_lc, kinding_lc
           | |- _ => eauto
           end
     in try solve [ repeat esplit; go ()
@@ -611,7 +611,7 @@ Proof.
     simplify_map_eq;
   select (whnf_equiv _ _) (fun H => sinvert H);
   econstructor; simpl_cofin?;
-  eauto with pared_equiv.
+  eauto using pared_equiv.
 Qed.
 
 (** [whnf_equiv] refines [pared_equiv] under some side conditions. *)
@@ -653,7 +653,7 @@ Lemma pared_equiv_pared e e' :
   e ==>! e' ->
   e ≡ e'.
 Proof.
-  eauto with pared_equiv.
+  eauto using pared_equiv.
 Qed.
 
 Lemma pared_equiv_step e e' :
@@ -703,7 +703,7 @@ Lemma pared_equiv_rename τ τ' x y :
   τ ≡ τ' ->
   {x↦y}τ ≡ {x↦y}τ'.
 Proof.
-  eauto using pared_equiv_subst2 with lc.
+  eauto using lc, pared_equiv_subst2.
 Qed.
 
 (* A few alternative statements exist, e.g., having [x] as an argument. But this
@@ -804,9 +804,6 @@ Qed.
 
 End equivalence.
 
-Hint Constructors whnf : whnf.
-Hint Constructors whnf_equiv : whnf_equiv.
-
 Hint Extern 0 (gctx_wf _) => eassumption : typeclass_instances.
 
 (** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
@@ -821,7 +818,7 @@ Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
   end.
 
 Tactic Notation "simpl_whnf_equiv" :=
-  simpl_whnf_equiv by eauto using otval_whnf with whnf.
+  simpl_whnf_equiv by eauto using whnf, otval_whnf.
 
 Ltac apply_pared_equiv_congr :=
   lazymatch goal with

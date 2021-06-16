@@ -27,7 +27,7 @@ Lemma pared_weakening Σ e e' :
   forall Σ', Σ ⊆ Σ' ->
         Σ' ⊢ e ==>! e'.
 Proof.
-  induction 1; intros; eauto using lookup_weaken with pared.
+  induction 1; intros; eauto using pared, lookup_weaken.
 Qed.
 
 Lemma pared_equiv_weakening Σ e e' :
@@ -35,7 +35,7 @@ Lemma pared_equiv_weakening Σ e e' :
   forall Σ', Σ ⊆ Σ' ->
         Σ' ⊢ e ≡ e'.
 Proof.
-  induction 1; intros; eauto using pared_weakening with pared_equiv.
+  induction 1; intros; eauto using pared_equiv, pared_weakening.
 Qed.
 
 Lemma weakening_ Σ :
@@ -388,7 +388,7 @@ Lemma regularity Σ Γ e τ :
   exists κ, Σ; Γ ⊢ τ :: κ.
 Proof.
   intros Hwf.
-  induction 1; simp_hyps; eauto with kinding;
+  induction 1; simp_hyps; eauto using kinding;
     try (apply_gctx_wf; eauto using kinding_weakening_empty);
     apply_kind_inv; simpl_cofin?; simp_hyps;
     try first [ eexists; typing_kinding_intro; eauto; fast_set_solver!!
@@ -621,8 +621,7 @@ Proof.
          eapply pared_equiv_open
        (* Solve other side conditions. *)
        | |- lc _ =>
-         eauto using open_respect_lc, typing_type_lc, typing_lc, kinding_lc
-               with lc
+         eauto using lc, open_respect_lc, typing_type_lc, typing_lc, kinding_lc
        | |- _ ∉ _ => shelve
        end).
 
@@ -636,7 +635,7 @@ Proof.
   rewrite subst_open_distr by eauto using typing_lc; simpl;
     rewrite decide_True by auto;
     rewrite !subst_fresh by shelve;
-    let xauto := eauto using open_respect_lc, typing_lc, kinding_lc with lc
+    let xauto := eauto using lc, open_respect_lc, typing_lc, kinding_lc
     in eapply pared_equiv_open1; simpl_cofin?; xauto;
        apply_pared_equiv_congr; xauto;
        equiv_naive_solver.

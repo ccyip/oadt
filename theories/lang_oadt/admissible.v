@@ -318,7 +318,7 @@ Section typing_kinding_intro.
     Γ ⊢ τ2 :: κ2 ->
     Γ ⊢ τ1 * τ2 :: (κ1 ⊔ κ2).
   Proof.
-    eauto using join_ub_l, join_ub_r with kinding.
+    eauto using kinding, join_ub_l, join_ub_r.
   Qed.
 
 End typing_kinding_intro.
