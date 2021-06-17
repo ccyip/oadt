@@ -45,22 +45,19 @@ condition *)
 | EBoxedInj (b : bool) (τ e : expr)
 .
 
-(** ** GLobal definitions (D) *)
+(** ** Global definitions (D) *)
 Variant gdef :=
 | DADT (e : expr)
 | DOADT (τ e : expr)
 | DFun (τ e : expr)
 .
 
-(** ** Global named definitions (Ds) *)
-Definition gdefs := list (atom * gdef).
+(** ** Global context (Σ) *)
+(** A store of global definitions. *)
+Notation gctx := (amap gdef).
 
 (** ** Programs (P) *)
-Notation program := (gdefs * expr).
-
-(** ** Global context (Σ) *)
-(** It is used in operational semantics and typing. *)
-Notation gctx := (amap gdef).
+Notation program := (gctx * expr).
 
 
 (** ** Notations for expressions *)

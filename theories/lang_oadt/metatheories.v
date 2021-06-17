@@ -17,14 +17,24 @@ Import typing.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
+Lemma gdefs_typing_wf Σ :
+  gctx_typing Σ ->
+  gctx_wf Σ.
+Proof.
+  intros.
+  eapply map_Forall_impl; eauto.
+  simpl.
+  intros ??. inversion 1; eauto.
+Qed.
 
 (** ** Soundness *)
 
 Definition stuck (Σ : gctx) (e : expr) : Prop :=
   nf (@step Σ) e /\ ¬val e.
 
-Corollary soundness Ds e Σ τ e' :
-  program_typing Ds e Σ τ ->
+(* If a program is well-typed, it will never get stuck. *)
+Corollary soundness e Σ τ e' :
+  Σ; e ▷ τ ->
   Σ ⊨ e -->* e' ->
   ¬(stuck Σ e').
 Proof.

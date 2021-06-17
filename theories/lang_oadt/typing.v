@@ -390,46 +390,35 @@ Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
                                     κ custom oadt at level 99).
 
 (** ** Global definitions typing *)
-Reserved Notation "Σ '=[' D ']=>' Σ'" (at level 40,
-                                       D custom oadt_def at level 99).
+Reserved Notation "Σ '⊢₁' D" (at level 40,
+                               D constr at level 0).
 
-Inductive gdef_typing : gctx -> (atom * gdef) -> gctx -> Prop :=
+Inductive gdef_typing : gctx -> gdef -> Prop :=
 | TADT Σ X τ :
-    Σ !! X = None ->
-    <[X:=DADT τ]>Σ; ∅ ⊢ τ :: *@P ->
-    Σ =[ data X := τ ]=> <[X:=DADT τ]>Σ
-| TOADT Σ X τ e L :
-    Σ !! X = None ->
     Σ; ∅ ⊢ τ :: *@P ->
-    (forall x, x ∉ L -> <[X:=DOADT τ e]>Σ ; ({[x:=τ]}) ⊢ e^x :: *@O) ->
-    Σ =[ obliv X (:τ) := e ]=> <[X:=DOADT τ e]>Σ
+    Σ ⊢₁ (DADT τ)
+| TOADT Σ X τ e L :
+    Σ; ∅ ⊢ τ :: *@P ->
+    (forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O) ->
+    Σ ⊢₁ (DOADT τ e)
 | TFun Σ X τ e κ :
-    Σ !! X = None ->
     Σ; ∅ ⊢ τ :: κ ->
-    <[X:=DFun τ e]>Σ; ∅ ⊢ e : τ ->
-    Σ =[ def X : τ := e ]=> <[X:=DFun τ e]>Σ
+    Σ; ∅ ⊢ e : τ ->
+    Σ ⊢₁ (DFun τ e)
 
-where "Σ '=[' D ']=>' Σ'" := (gdef_typing Σ D Σ')
+where "Σ '⊢₁' D" := (gdef_typing Σ D)
 .
 
-Reserved Notation "Σ '={' Ds '}=>' Σ'" (at level 40,
-                                        Ds constr at level 99).
-
-Inductive gdefs_typing : gctx -> gdefs -> gctx -> Prop :=
-| TNil Σ : Σ ={ [] }=> Σ
-| TCons Σ0 Σ1 Σ2 D Ds :
-    Σ0 =[ D ]=> Σ1 ->
-    Σ1 ={ Ds }=> Σ2 ->
-    Σ0 ={ D::Ds }=> Σ2
-
-where "Σ '={' Ds '}=>' Σ'" := (gdefs_typing Σ Ds Σ')
-.
+Definition gctx_typing (Σ : gctx) : Prop :=
+  map_Forall (fun _ D => Σ ⊢₁ D) Σ.
 
 (** ** Program typing *)
-Definition program_typing (Ds : gdefs) (e : expr) (Σ : gctx) (τ : expr) :=
-  ∅ ={ Ds }=> Σ /\ Σ; ∅ ⊢ e : τ.
+Definition program_typing (Σ : gctx) (e : expr) (τ : expr) :=
+  gctx_typing Σ /\ Σ; ∅ ⊢ e : τ.
 
 (** ** Well-formedness of [gctx] *)
+(* Equivalent to [gctx_typing]. Essentially saying all definitions in [Σ] are
+well-typed. *)
 Definition gctx_wf (Σ : gctx) :=
   map_Forall (fun _ D =>
                 match D with
@@ -481,17 +470,12 @@ Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
-Notation "Σ '=[' D ']=>' Σ'" := (gdef_typing Σ D Σ')
-                                  (at level 40,
-                                   D custom oadt_def at level 99).
-Notation "Σ '={' Ds '}=>' Σ'" := (gdefs_typing Σ Ds Σ')
-                                   (at level 40,
-                                    Ds constr at level 99).
+Notation "Σ '⊢₁' D" := (gdef_typing Σ D) (at level 40,
+                                          D constr at level 0).
 
-(* Notation "Ds ; e '▷' Σ ; τ" := (program_typing Ds e Σ τ) *)
-(*                                  (at level 40, *)
-(*                                   e custom oadt at level 99, *)
-(*                                   Σ constr at level 0, *)
-(*                                   τ custom oadt at level 99). *)
+Notation "Σ ; e '▷' τ" := (program_typing Σ e τ)
+                            (at level 40,
+                             e constr at level 0,
+                             τ constr at level 0).
 
 End notations.
