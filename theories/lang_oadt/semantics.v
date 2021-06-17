@@ -132,4 +132,11 @@ Notation "Σ '⊨' e '-->*' e'" := (clos_refl_trans_1n _ (step Σ) e e')
                                    e custom oadt at level 0,
                                    e' custom oadt at level 0).
 
+Notation "Σ '⊨' e '-->{' n '}' e'" := (trans_ext _ (step Σ) e e' n)
+                                        (at level 40,
+                                         e custom oadt at level 0,
+                                         n constr at level 0,
+                                         e' custom oadt at level 0,
+                                         format "Σ  '⊨'  e  '-->{' n '}'  e'").
+
 End notations.

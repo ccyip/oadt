@@ -8,6 +8,18 @@ From Hammer Require Export Tactics.
 Definition nf {A : Type} (R : relation A) (a : A) : Prop :=
   ¬ exists a', R a a'.
 
+Section trans_ext.
+
+  Variable A : Type.
+  Variable R : relation A.
+
+  Inductive trans_ext (x : A) : A -> nat -> Prop :=
+  | TERefl : trans_ext x x 0
+  | TEStep y z n : R x y -> trans_ext y z n -> trans_ext x z (S n)
+  .
+
+End trans_ext.
+
 (** * Lemmas *)
 
 Lemma insert_fresh_subseteq `{FinMapDom K M D} {A} k (m : M A) v :

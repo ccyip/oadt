@@ -338,7 +338,7 @@ Ltac val_step_absurd :=
               | eauto ] ] ]
   end.
 
-Theorem indistinguishable_step Σ e1 e1' e2 τ τ' :
+Lemma indistinguishable_step Σ e1 e1' e2 τ τ' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
   e1 ≈ e1' ->
@@ -350,7 +350,7 @@ Proof.
   qauto use: progress solve: val_step_absurd.
 Qed.
 
-Theorem indistinguishable_deterministic Σ e1 e1' e2 e2' :
+Lemma indistinguishable_deterministic Σ e1 e1' e2 e2' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
   Σ ⊨ e1' -->! e2' ->
