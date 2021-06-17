@@ -7,15 +7,6 @@ Import syntax.notations.
 
 Implicit Types (b : bool).
 
-(** ** Polynomial algebraic data type (α) *)
-Inductive padt : expr -> Prop :=
-| PUnitT : padt <{ 𝟙 }>
-| PBool : padt <{ 𝔹 }>
-| PProd α1 α2 : padt α1 -> padt α2 -> padt <{ α1 * α2 }>
-| PSum α1 α2 : padt α1 -> padt α2 -> padt <{ α1 + α2 }>
-| PGVar (X : atom) : padt <{ gvar X }>
-.
-
 (** ** OADT value typing *)
 (** [ovalty v ω] means [v] is an oblivious value of oblivious type value [ω].
 This is essentially a subset of [typing], but we have it so that the dynamic
