@@ -110,6 +110,18 @@ Qed.
 
 End theorems.
 
+(** Boolean is also a semilattice. *)
+Hint Extern 0 (Join bool) => exact orb : typeclass_instances.
+Hint Extern 0 (Top bool) => exact true : typeclass_instances.
+Hint Extern 0 (Bottom bool) => exact false : typeclass_instances.
+Hint Extern 0 (SqSubsetEq bool) => exact implb: typeclass_instances.
+
+Instance bool_semilattice : SemiLattice bool.
+Proof.
+  split; hnf; repeat intros []; easy.
+Qed.
+
+
 Ltac lattice_naive_solver :=
   solve [ reflexivity
         | eauto
