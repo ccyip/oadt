@@ -7,6 +7,8 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 Declare Custom Entry oadt.
 Declare Custom Entry oadt_def.
 
+Open Scope type_scope.
+
 (** ** Expressions (e, τ) *)
 Inductive expr :=
 (** Variables *)
@@ -14,10 +16,11 @@ Inductive expr :=
 | EFVar (x : atom)
 | EGVar (x : atom)
 (** Expressions with binders *)
-| EPi (τ1 τ2: expr)
-| EAbs (τ e : expr)
+(** The argument may leak if the label is [high]. *)
+| EPi (l : bool) (τ1 τ2: expr)
+| EAbs (l : bool) (τ e : expr)
 | ELet (e1 e2 : expr)
-(** Oblivious case if the label is [high], otherwise public case *)
+(** Leaking case if the label is [high], otherwise public case *)
 | ECase (l : bool) (e0 : expr) (e1 : expr) (e2 : expr)
 (** Types *)
 | EUnitT
@@ -31,8 +34,7 @@ Inductive expr :=
 | EUnitV
 | ELit (b : bool)
 | ESec (e : expr)
-(** Oblivious condition (i.e. MUX) if the label is [high], otherwise public
-condition *)
+(** Leaking condition if the label is [high], otherwise public condition *)
 | EIte (l : bool) (e0 e1 e2 : expr)
 | EPair (e1 e2 : expr)
 | EProj (b : bool) (e : expr)
@@ -40,16 +42,30 @@ condition *)
 | EInj (l : bool) (b : bool) (τ e : expr)
 | EFold (X : atom) (e : expr)
 | EUnfold (X : atom) (e : expr)
+(** Tape the leakage. *)
+| ETape (e : expr)
+(** Oblivious condition, i.e. MUX. Technically we do not need this in the source
+language, but it is a convenient mechinery for conceptually cleaner
+semantics. *)
+| EMux (e0 e1 e2 : expr)
 (** Runtime expressions *)
 | EBoxedLit (b : bool)
 | EBoxedInj (b : bool) (τ e : expr)
 .
 
+(** ** Expression with leakage label (T) *)
+Definition lexpr := bool * expr.
+Definition lexpr_label : lexpr -> bool := fst.
+Arguments lexpr_label /.
+Definition lexpr_expr : lexpr -> expr := snd.
+Arguments lexpr_expr /.
+
 (** ** Global definitions (D) *)
 Variant gdef :=
 | DADT (e : expr)
 | DOADT (τ e : expr)
-| DFun (τ e : expr)
+(* The function may leak if the label is [high]. *)
+| DFun (T : lexpr) (e : expr)
 .
 
 (** ** Global context (Σ) *)
@@ -66,8 +82,13 @@ Module expr_notations.
 (* Adapted from _Software Foundations_. *)
 Coercion ELit : bool >-> expr.
 Coercion EBVar : nat >-> expr.
+Coercion lexpr_expr : lexpr >-> expr.
 
+(* Quote *)
 Notation "<{ e }>" := e (e custom oadt at level 99).
+(* Lispy unquote *)
+Notation "',(' e ')'" := e (in custom oadt at level 0,
+                               e constr at level 0).
 
 Notation "'high'" := (true) (only parsing).
 Notation "'low'" := (false) (only parsing).
@@ -101,14 +122,36 @@ Notation "τ1 + τ2" := (ESum low τ1 τ2) (in custom oadt at level 3,
                                            left associativity).
 Notation "τ1 ~+ τ2" := (ESum high τ1 τ2) (in custom oadt at level 3,
                                              left associativity).
-Notation "'Π' : τ1 , τ2" := (EPi τ1 τ2) (in custom oadt at level 50,
-                                            right associativity,
-                                            format "Π : τ1 ,  τ2").
-Notation "\ : τ '=>' e" := (EAbs τ e) (in custom oadt at level 90,
-                                          τ custom oadt at level 99,
-                                          e custom oadt at level 99,
-                                          left associativity,
-                                          format "\ : τ  =>  e").
+Notation "'Π' :{ l } τ1 , τ2" := (EPi l τ1 τ2)
+                                   (in custom oadt at level 50,
+                                       right associativity,
+                                       format "Π :{ l } τ1 ,  τ2").
+Notation "'Π' : τ1 , τ2" := (EPi ⊥ τ1 τ2)
+                              (in custom oadt at level 50,
+                                  right associativity,
+                                  format "Π : τ1 ,  τ2").
+Notation "'Π' ~: τ1 , τ2" := (EPi ⊤ τ1 τ2)
+                               (in custom oadt at level 50,
+                                   right associativity,
+                                   format "Π ~: τ1 ,  τ2").
+Notation "\ :{ l } τ '=>' e" := (EAbs l τ e)
+                                  (in custom oadt at level 90,
+                                      τ custom oadt at level 99,
+                                      e custom oadt at level 99,
+                                      left associativity,
+                                      format "\ :{ l } τ  =>  e").
+Notation "\ : τ '=>' e" := (EAbs ⊥ τ e)
+                             (in custom oadt at level 90,
+                                 τ custom oadt at level 99,
+                                 e custom oadt at level 99,
+                                 left associativity,
+                                 format "\ : τ  =>  e").
+Notation "\ ~: τ '=>' e" := (EAbs ⊤ τ e)
+                              (in custom oadt at level 90,
+                                  τ custom oadt at level 99,
+                                  e custom oadt at level 99,
+                                  left associativity,
+                                  format "\ ~: τ  =>  e").
 Notation "e1 e2" := (EApp e1 e2) (in custom oadt at level 1, left associativity).
 Notation "()" := EUnitV (in custom oadt at level 0).
 Notation "( x , y , .. , z )" := (EPair .. (EPair x y) .. z)
@@ -181,7 +224,6 @@ Notation "'~inr' < τ > e" := (EInj high false τ e) (in custom oadt at level 0,
                                                        τ custom oadt at level 0,
                                                        e custom oadt at level 0,
                                                        format "~inr < τ >  e").
-(* I still want to use high and low *)
 Notation "'case{' l '}' e0 'of' e1 '|' e2" :=
   (ECase l e0 e1 e2) (in custom oadt at level 89,
                          l constr at level 0,
@@ -210,6 +252,12 @@ Notation "'unfold' < X > e" := (EUnfold X e) (in custom oadt at level 0,
                                                  X custom oadt at level 0,
                                                  e custom oadt at level 0,
                                                  format "unfold < X >  e").
+Notation "'tape' e" := (ETape e) (in custom oadt at level 0,
+                                     e custom oadt at level 0).
+Notation "'mux' e0 e1 e2" := (EMux e0 e1 e2) (in custom oadt at level 0,
+                                                 e0 custom oadt at level 0,
+                                                 e1 custom oadt at level 0,
+                                                 e2 custom oadt at level 0).
 Notation "[ b ]" := (EBoxedLit b) (in custom oadt at level 0,
                                       b constr at level 0).
 Notation "[ 'inj@' b < τ > e ]" := (EBoxedInj b τ e)
@@ -240,10 +288,11 @@ Notation "'obliv' X ( : τ ) := e" := (X, DOADT τ e)
                                            τ custom oadt at level 99,
                                            e custom oadt at level 99,
                                            format "obliv  X  ( : τ )  :=  e").
-Notation "'def' x : τ := e" := (x, DFun τ e) (in custom oadt_def at level 0,
-                                                 x constr at level 0,
-                                                 τ custom oadt at level 99,
-                                                 e custom oadt at level 99).
+Notation "'def' x ':{' l '}' τ := e" := (x, DFun (l, τ) e)
+                                          (in custom oadt_def at level 0,
+                                              x constr at level 0,
+                                              τ custom oadt at level 99,
+                                              e custom oadt at level 99).
 Notation "[{ x }]" := (cons x nil)
                         (x custom oadt_def at level 99).
 Notation "[{ x ; y ; .. ; z }]" := (cons x (cons y .. (cons z nil) ..))
@@ -282,14 +331,14 @@ Inductive indistinguishable : expr -> expr -> Prop :=
 | IBVar k : <{ bvar k }> ≈ <{ bvar k }>
 | IFVar x : <{ fvar x }> ≈ <{ fvar x }>
 | IGVar x : <{ gvar x }> ≈ <{ gvar x }>
-| IPi τ1 τ1' τ2 τ2' :
+| IPi l τ1 τ1' τ2 τ2' :
     τ1 ≈ τ1' ->
     τ2 ≈ τ2' ->
-    <{ Π:τ1, τ2 }> ≈ <{ Π:τ1', τ2' }>
-| IAbs τ τ' e e' :
+    <{ Π:{l}τ1, τ2 }> ≈ <{ Π:{l}τ1', τ2' }>
+| IAbs l τ τ' e e' :
     τ ≈ τ' ->
     e ≈ e' ->
-    <{ \:τ => e }> ≈ <{ \:τ' => e' }>
+    <{ \:{l}τ => e }> ≈ <{ \:{l}τ' => e' }>
 | ILet e1 e1' e2 e2' :
     e1 ≈ e1' ->
     e2 ≈ e2' ->
@@ -340,6 +389,14 @@ Inductive indistinguishable : expr -> expr -> Prop :=
 | IUnfold X e e' :
     e ≈ e' ->
     <{ unfold<X> e }> ≈ <{ unfold<X> e' }>
+| ITape e e' :
+    e ≈ e' ->
+    <{ tape e }> ≈ <{ tape e' }>
+| IMux e0 e0' e1 e1' e2 e2' :
+    e0 ≈ e0' ->
+    e1 ≈ e1' ->
+    e2 ≈ e2' ->
+    <{ mux e0 e1 e2 }> ≈ <{ mux e0' e1' e2' }>
 (* The only interesting cases *)
 | IBoxedLit b b' :
     (* We can not distinguish between two encrypted boolean values. *)
@@ -365,8 +422,8 @@ change it if it turns out to be too annoying for proofs. *)
 Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   match e with
   | <{ bvar n }> => if decide (k = n) then s else e
-  | <{ Π:τ1, τ2 }> => <{ Π:{k~>s}τ1, {S k~>s}τ2 }>
-  | <{ \:τ => e }> => <{ \:{k~>s}τ => {S k~>s}e }>
+  | <{ Π:{l}τ1, τ2 }> => <{ Π:{l}({k~>s}τ1), {S k~>s}τ2 }>
+  | <{ \:{l}τ => e }> => <{ \:{l}({k~>s}τ) => {S k~>s}e }>
   | <{ let e1 in e2 }> => <{ let {k~>s}e1 in {S k~>s}e2 }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
   (** Congruence rules *)
@@ -380,6 +437,8 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k~>s}τ)> ({k~>s}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k~>s}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({k~>s}e) }>
+  | <{ tape e }> => <{ tape ({k~>s}e) }>
+  | <{ mux e0 e1 e2 }> => <{ mux ({k~>s}e0) ({k~>s}e1) ({k~>s}e2) }>
   | _ => e
   end
 
@@ -395,8 +454,8 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   match e with
   | <{ fvar y }> => if decide (x = y) then s else e
   (** Congruence rules *)
-  | <{ Π:τ1, τ2 }> => <{ Π:{x↦s}τ1, {x↦s}τ2 }>
-  | <{ \:τ => e }> => <{ \:{x↦s}τ => {x↦s}e }>
+  | <{ Π:{l}τ1, τ2 }> => <{ Π:{l}({x↦s}τ1), {x↦s}τ2 }>
+  | <{ \:{l}τ => e }> => <{ \:{l}({x↦s}τ) => {x↦s}e }>
   | <{ let e1 in e2 }> => <{ let {x↦s}e1 in {x↦s}e2 }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {x↦s}e0 of {x↦s}e1 | {x↦s}e2 }>
   | <{ τ1 * τ2 }> => <{ ({x↦s}τ1) * ({x↦s}τ2) }>
@@ -409,10 +468,14 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({x↦s}τ)> ({x↦s}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({x↦s}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({x↦s}e) }>
+  | <{ tape e }> => <{ tape ({x↦s}e) }>
+  | <{ mux e0 e1 e2 }> => <{ mux ({x↦s}e0) ({x↦s}e1) ({x↦s}e2) }>
   | _ => e
   end
 
 where "'{' x '↦' s '}' e" := (subst x s e) (in custom oadt).
+
+Definition lexpr_subst x s (T : lexpr) := (T.1, subst x s T.2).
 
 (** ** Oblivious type values (ω) *)
 Inductive otval : expr -> Prop :=
@@ -435,7 +498,7 @@ Inductive val : expr -> Prop :=
 | VUnitV : val <{ () }>
 | VLit b : val <{ lit b }>
 | VPair v1 v2 : val v1 -> val v2 -> val <{ (v1, v2) }>
-| VAbs τ e : val <{ \:τ => e }>
+| VAbs l τ e : val <{ \:{l}τ => e }>
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
 | VFold X v : val v -> val <{ fold<X> v }>
 | VBoxedLit b : val <{ [b] }>
@@ -446,12 +509,12 @@ Inductive val : expr -> Prop :=
 Inductive lc : expr -> Prop :=
 | LCFVar x : lc <{ fvar x }>
 | LCGVar x : lc <{ gvar x }>
-| LCPi τ1 τ2 L :
+| LCPi l τ1 τ2 L :
     (forall x, x ∉ L -> lc <{ τ2^x }>) ->
-    lc τ1 -> lc <{ Π:τ1, τ2 }>
-| LCAbs τ e L :
+    lc τ1 -> lc <{ Π:{l}τ1, τ2 }>
+| LCAbs l τ e L :
     (forall x, x ∉ L -> lc <{ e^x }>) ->
-    lc τ -> lc <{ \:τ => e }>
+    lc τ -> lc <{ \:{l}τ => e }>
 | LCLet e1 e2 L :
     (forall x, x ∉ L -> lc <{ e2^x }>) ->
     lc e1 -> lc <{ let e1 in e2 }>
@@ -474,6 +537,8 @@ Inductive lc : expr -> Prop :=
 | LCInj l b τ e : lc τ -> lc e -> lc <{ inj{l}@b<τ> e }>
 | LCFold X e : lc e -> lc <{ fold<X> e }>
 | LCUnfold X e : lc e -> lc <{ unfold<X> e }>
+| LCTape e : lc e -> lc <{ tape e }>
+| LCMux e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ mux e0 e1 e2 }>
 | LCBoxedLit b : lc <{ [b] }>
 (* Techincally this is not only locally closed, but more about
 well-formedness. *)
@@ -495,7 +560,8 @@ Notation "e ^ s" := (open s e) (in custom oadt at level 20).
 
 Notation "'{' x '↦' s '}' e" := (subst x s e)
                                   (in custom oadt at level 20, x constr).
-Notation "{ x '↦' s }" := (subst x s) (at level 20).
+(* This notation is supposed to be applied to a typing context. *)
+Notation "{ x '↦' s }" := (lexpr_subst x s) (at level 20).
 
 Notation "x # s" := (x ∉ stale s) (at level 40).
 

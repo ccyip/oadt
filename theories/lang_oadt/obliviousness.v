@@ -22,40 +22,6 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-Lemma pared_obliv_preservation_inv Σ Γ τ τ' κ :
-  gctx_wf Σ ->
-  Σ ⊢ τ ==>! τ' ->
-  Σ; Γ ⊢ τ :: κ ->
-  Σ; Γ ⊢ τ' :: *@O ->
-  Σ; Γ ⊢ τ :: *@O.
-Proof.
-  intros Hwf.
-  induction 1; intros; try case_label;
-    apply_kind_inv;
-    simpl_cofin?;
-    simplify_eq;
-    try solve [ kinding_intro; eauto; set_shelve ];
-    try easy.
-
-  (* Product *)
-  hauto ctrs: kinding solve: lattice_naive_solver.
-
-  Unshelve.
-  all : fast_set_solver!!.
-Qed.
-
-Lemma pared_equiv_obliv_preservation Σ Γ τ τ' κ :
-  gctx_wf Σ ->
-  Σ ⊢ τ ≡ τ' ->
-  Σ; Γ ⊢ τ :: *@O ->
-  Σ; Γ ⊢ τ' :: κ ->
-  Σ; Γ ⊢ τ' :: *@O.
-Proof.
-  intros Hwf.
-  induction 1; intros;
-    eauto using pared_obliv_preservation_inv, pared_kinding_preservation.
-Qed.
-
 (** Indistinguishability is equivalence. *)
 Instance indistinguishable_is_equiv : Equivalence indistinguishable.
 Proof.
@@ -116,26 +82,26 @@ Proof.
     qauto l: on inv: otval.
 Qed.
 
-Lemma indistinguishable_val_ v v' :
+Lemma indistinguishable_wval_ v v' :
   v ≈ v' ->
-  val v ->
+  wval v ->
   lc v' ->
-  val v'.
+  wval v'.
 Proof.
-  induction 1; intros; try qauto l: on ctrs: val inv: val, lc.
+  induction 1; intros; hauto l: on ctrs: wval inv: wval, lc.
 Qed.
 
-Lemma indistinguishable_val v v' Σ Γ τ :
+Lemma indistinguishable_wval v v' Σ Γ l τ :
   v ≈ v' ->
-  val v ->
-  Σ; Γ ⊢ v' : τ ->
-  val v'.
+  wval v ->
+  Σ; Γ ⊢ v' :{l} τ ->
+  wval v'.
 Proof.
-  qauto use: indistinguishable_val_, typing_lc.
+  qauto use: indistinguishable_wval_, typing_lc.
 Qed.
 
-Lemma indistinguishable_val_is_nf Σ v v' :
-  val v ->
+Lemma indistinguishable_wval_is_nf Σ v v' :
+  wval v ->
   v ≈ v' ->
   nf (@step Σ) v'.
 Proof.
@@ -143,7 +109,7 @@ Proof.
   induction H; intros ?? [];
     select (_ ≈ _) (fun H => sinvert H);
     select (_ ⊨ _ -->! _) (fun H => sinvert H);
-    try select (ectx _) (fun H => sinvert H);
+    repeat apply_ectx_inv;
     simplify_eq; eauto; sfirstorder.
 Qed.
 
@@ -156,17 +122,17 @@ Proof.
   induction H; intros ?? [];
     select (_ ≈ _) (fun H => sinvert H);
     select (_ ⊨ _ -->! _) (fun H => sinvert H);
-    try select (ectx _) (fun H => sinvert H);
+    repeat apply_ectx_inv;
     simplify_eq; eauto; sfirstorder.
 Qed.
 
-Lemma indistinguishable_val_step Σ v v' e :
-  val v ->
+Lemma indistinguishable_wval_step Σ v v' e :
+  wval v ->
   v ≈ v' ->
   Σ ⊨ v' -->! e ->
   False.
 Proof.
-  sfirstorder use: indistinguishable_val_is_nf.
+  sfirstorder use: indistinguishable_wval_is_nf.
 Qed.
 
 Lemma indistinguishable_otval_step Σ ω ω' e :
@@ -180,11 +146,11 @@ Qed.
 
 (** The next few lemmas can be proved independently, but they can simply reduce
 to the indistinguishable counterparts. *)
-Lemma val_is_nf Σ v :
-  val v ->
+Lemma wval_is_nf Σ v :
+  wval v ->
   nf (@step Σ) v.
 Proof.
-  qauto use: indistinguishable_val_is_nf solve: reflexivity.
+  qauto use: indistinguishable_wval_is_nf solve: reflexivity.
 Qed.
 
 Lemma otval_is_nf Σ ω :
@@ -194,12 +160,12 @@ Proof.
   qauto use: indistinguishable_otval_is_nf solve: reflexivity.
 Qed.
 
-Lemma val_step Σ v e :
+Lemma wval_step Σ v e :
   Σ ⊨ v -->! e ->
-  val v ->
+  wval v ->
   False.
 Proof.
-  sfirstorder use: val_is_nf.
+  sfirstorder use: wval_is_nf.
 Qed.
 
 Lemma otval_step Σ ω e :
@@ -226,16 +192,16 @@ Ltac apply_canonical_form :=
     apply_canonical_form_ H τ; eauto; try simp_hyp H
   end; subst.
 
-Lemma indistinguishable_obliv_val Σ Γ v v' τ :
+Lemma indistinguishable_obliv_val Σ Γ v v' l l' τ :
   gctx_wf Σ ->
-  Σ; Γ ⊢ v : τ ->
-  Σ; Γ ⊢ v' : τ ->
+  Σ; Γ ⊢ v :{l} τ ->
+  Σ; Γ ⊢ v' :{l'} τ ->
   val v ->
   val v' ->
   Σ; Γ ⊢ τ :: *@O ->
   v ≈ v'.
 Proof.
-  intros Hwf H. revert v'.
+  intros Hwf H. revert v' l'.
   induction H; intros;
     repeat
       match goal with
@@ -248,7 +214,7 @@ Proof.
       try simpl_whnf_equiv;
       simplify_eq;
       try solve [ easy
-                | econstructor; auto_apply; eauto;
+                | econstructor; auto_eapply; eauto;
                   econstructor; eauto; equiv_naive_solver ].
 
   (* Boxed injection *)
@@ -261,21 +227,21 @@ Proof.
     econstructor.
 
   (* Equivalence case *)
-  - auto_apply; eauto.
+  - auto_eapply; eauto.
     econstructor; eauto; equiv_naive_solver.
     eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
-Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' τ τ' :
+Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' l l' τ τ' :
   gctx_wf Σ ->
-  Σ; Γ ⊢ v : τ ->
-  Σ; Γ ⊢ v' : τ' ->
+  Σ; Γ ⊢ v :{l} τ ->
+  Σ; Γ ⊢ v' :{l'} τ' ->
   Σ; Γ ⊢ τ :: *@O ->
   val v ->
   v ≈ v' ->
   Σ ⊢ τ ≡ τ'.
 Proof.
-  intros Hwf H. revert v' τ'.
+  intros Hwf H. revert v' l' τ'.
   induction H; intros;
     try match goal with
         | H : ?e ≈ _ |- _ => head_constructor e; sinvert H
@@ -304,14 +270,14 @@ Qed.
 (* This lemma can be strengthened so that we drop the typing assumption for
 [v']. In order for that, we have to prove [v'] can be typed which should be
 provable. But this version is good enough for the main theorem. *)
-Lemma indistinguishable_val_type Σ Γ v v' τ τ' :
+Lemma indistinguishable_val_type Σ Γ v v' l l' τ τ' :
   gctx_wf Σ ->
-  Σ; Γ ⊢ v : τ ->
-  Σ; Γ ⊢ v' : τ' ->
+  Σ; Γ ⊢ v :{l} τ ->
+  Σ; Γ ⊢ v' :{l'} τ' ->
   Σ; Γ ⊢ τ :: *@O ->
   val v ->
   v ≈ v' ->
-  Σ; Γ ⊢ v' : τ.
+  Σ; Γ ⊢ v' :{l'} τ.
 Proof.
   intros.
   eapply TConv; eauto.
@@ -329,25 +295,24 @@ Ltac val_step_absurd :=
               [ solve [ eassumption | symmetry; eassumption ]
               | eauto using otval ] ] ]
   | H : _ ⊨ _ -->! _ |- _ =>
-    exfalso; eapply val_step;
+    exfalso; eapply wval_step;
     [ apply H
-    | solve [ eauto
-            | eapply indistinguishable_val;
+    | solve [ eauto using wval
+            | eapply indistinguishable_wval;
               [ solve [ eassumption | symmetry; eassumption ]
-              | eauto using val
+              | eauto using wval
               | eauto ] ] ]
   end.
 
-Lemma indistinguishable_step Σ e1 e1' e2 τ τ' :
+Lemma indistinguishable_step Σ e1 e1' e2 l l' τ τ' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
   e1 ≈ e1' ->
-  Σ; ∅ ⊢ e1 : τ ->
-  Σ; ∅ ⊢ e1' : τ' ->
+  Σ; ∅ ⊢ e1 :{l} τ ->
+  Σ; ∅ ⊢ e1' :{l'} τ' ->
   exists e2', Σ ⊨ e1' -->! e2'.
 Proof.
-  intros.
-  qauto use: progress solve: val_step_absurd.
+  qauto use: progress_weak solve: val_step_absurd.
 Qed.
 
 Lemma indistinguishable_deterministic Σ e1 e1' e2 e2' :
@@ -355,31 +320,32 @@ Lemma indistinguishable_deterministic Σ e1 e1' e2 e2' :
   Σ ⊨ e1 -->! e2 ->
   Σ ⊨ e1' -->! e2' ->
   e1 ≈ e1' ->
-  ((exists τ τ', Σ; ∅ ⊢ e1 : τ /\ Σ; ∅ ⊢ e1' : τ') \/
+  ((exists τ τ' l l', Σ; ∅ ⊢ e1 :{l} τ /\ Σ; ∅ ⊢ e1' :{l'} τ') \/
    (exists κ κ', Σ; ∅ ⊢ e1 :: κ /\ Σ; ∅ ⊢ e1' :: κ')) ->
   e2 ≈ e2'.
 Proof.
   intros Hwf H. revert e1' e2'.
   induction H; intros;
-    try select (ectx _) (fun H => sinvert H); simplify_eq;
+    repeat apply_ectx_inv; simplify_eq;
       repeat
         (match goal with
          | H : ?e ≈ _ |- _ => head_constructor e; sinvert H
          | H : _ ≈ ?e |- _ => head_constructor e; sinvert H
          end;
-         try (select (_ \/ _) (fun H => destruct H as [ [?[?[??]]] | [?[?[??]]] ]));
-         apply_type_inv; apply_kind_inv;
+         try (select (_ \/ _) (fun H => destruct H as [ [?[?[?[?[??]]]]] | [?[?[??]]] ]));
+         apply_type_inv; apply_kind_inv; simplify_eq;
          try match goal with
              | H : _ ⊨ ?e -->! _ |- _ =>
                head_constructor e; sinvert H
              end;
-         try select (ectx _) (fun H => sinvert H); simplify_eq;
-         try select (oval _) (fun H => apply oval_val in H);
+         repeat apply_ectx_inv; simplify_eq;
+         try select (oval _) (fun H => apply oval_val in H; apply val_wval in H);
+         try select! (woval _) (fun H => apply woval_wval in H);
          try solve
              (* Discharge the impossible cases *)
              [ val_step_absurd
              (* Solve the trivial cases *)
-             | eauto using indistinguishable_open
+             | eauto using indistinguishable, indistinguishable_open
              (* Solve the inductive cases. *)
              | econstructor; eauto; auto_eapply; eauto 10 using kinding ]);
       (* Solve other less trivial cases *)
@@ -404,8 +370,8 @@ Proof.
 
   (* Step from mux *)
   - case_splitting;
+      select! (wval _) (fun H => eapply wval_val in H; [ | solve [eauto] ]); eauto;
       eauto using indistinguishable_obliv_val, indistinguishable_val_type.
-
 Qed.
 
 (** The one-step obliviousness theorem, which is essentially a noninterference
@@ -413,14 +379,14 @@ theorem. Two indistinguishable well-typed expressions always step to
 indistinguishable new expressions, or they both can not take any more step. It
 is important that if one of them takes step, another one also takes step.
 Otherwise the adversaries can distinguish them by this mismatched behavior. *)
-Corollary obliviousness_step Σ e1 e1' e2 τ τ' :
+Corollary obliviousness_step Σ e1 e1' e2 l l' τ τ' :
   gctx_wf Σ ->
   Σ ⊨ e1 -->! e2 ->
   e1 ≈ e1' ->
-  Σ; ∅ ⊢ e1 : τ ->
-  Σ; ∅ ⊢ e1' : τ' ->
+  Σ; ∅ ⊢ e1 :{l} τ ->
+  Σ; ∅ ⊢ e1' :{l'} τ' ->
   (exists e2', Σ ⊨ e1' -->! e2') /\
   (forall e2', Σ ⊨ e1' -->! e2' -> e2 ≈ e2').
 Proof.
-  qauto use: indistinguishable_step, indistinguishable_deterministic.
+  hauto use: indistinguishable_step, indistinguishable_deterministic.
 Qed.

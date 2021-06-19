@@ -31,13 +31,6 @@ Proof.
   scongruence use: join_comm, join_left_absorb.
 Qed.
 
-Lemma join_lub (x y z : A) :
-  x ⊑ z -> y ⊑ z -> x ⊔ y ⊑ z.
-Proof.
-  rewrite !join_consistent.
-  scongruence use: join_assoc.
-Qed.
-
 Lemma join_ub_l (x y : A) :
   x ⊑ x ⊔ y.
 Proof.
@@ -56,6 +49,14 @@ Lemma join_prime (x y z : A) :
 Proof.
   rewrite !join_consistent.
   scongruence use: join_assoc.
+Qed.
+
+Lemma join_lub (x y z : A) :
+  (x ⊑ z /\ y ⊑ z) <-> x ⊔ y ⊑ z.
+Proof.
+  rewrite !join_consistent. split.
+  - intros []. scongruence use: join_assoc.
+  - intros. split; scongruence use: join_comm, join_assoc, join_idemp.
 Qed.
 
 Lemma top_ub (x : A) :
@@ -111,18 +112,22 @@ Qed.
 End theorems.
 
 (** Boolean is also a semilattice. *)
-Hint Extern 0 (Join bool) => exact orb : typeclass_instances.
-Hint Extern 0 (Top bool) => exact true : typeclass_instances.
-Hint Extern 0 (Bottom bool) => exact false : typeclass_instances.
-Hint Extern 0 (SqSubsetEq bool) => exact implb: typeclass_instances.
+
+Instance bool_join : Join bool := orb.
+Instance bool_top : Top bool := true.
+Instance bool_bot : Bottom bool := false.
+Instance bool_le : SqSubsetEq bool := implb.
 
 Instance bool_semilattice : SemiLattice bool.
 Proof.
   split; hnf; repeat intros []; easy.
 Qed.
 
+(** Tactics *)
+Tactic Notation "lattice_naive_solver" "by" tactic3(tac) :=
+  solve [ reflexivity
+        | tac
+        | etrans; tac ].
 
 Ltac lattice_naive_solver :=
-  solve [ reflexivity
-        | eauto
-        | etrans; eauto ].
+  lattice_naive_solver by eauto.

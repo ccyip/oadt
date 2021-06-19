@@ -18,7 +18,7 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-(** ** Properties of oblivious values *)
+(** ** Properties of values *)
 
 Lemma oval_val v :
   oval v ->
@@ -47,19 +47,19 @@ Qed.
 
 Lemma ovalty_elim_alt v ω:
   ovalty v ω ->
-  val v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
+  val v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v :{⊥} ω.
 Proof.
   hauto use: ovalty_elim, oval_val.
 Qed.
 
-Lemma ovalty_intro_alt v ω Σ Γ :
+Lemma ovalty_intro_alt v ω l Σ Γ :
   gctx_wf Σ ->
   val v ->
   otval ω ->
-  Σ; Γ ⊢ v : ω ->
+  Σ; Γ ⊢ v :{l} ω ->
   ovalty v ω.
 Proof.
-  intros Hwf H. revert ω.
+  intros Hwf H. revert ω l.
   induction H; inversion 1; intros; subst;
     apply_type_inv;
     simpl_whnf_equiv;
@@ -75,11 +75,11 @@ Proof.
          end.
 Qed.
 
-Lemma ovalty_intro v ω Σ Γ :
+Lemma ovalty_intro v ω l Σ Γ :
   gctx_wf Σ ->
   oval v ->
   otval ω ->
-  Σ; Γ ⊢ v : ω ->
+  Σ; Γ ⊢ v :{l} ω ->
   ovalty v ω.
 Proof.
   hauto use: ovalty_intro_alt, oval_val.
@@ -103,4 +103,60 @@ Proof.
   induction 1; subst; try hauto ctrs: otval.
   - srewrite join_bot_iff. easy.
   - eauto using bot_inv.
+Qed.
+
+Lemma wval_val Σ Γ τ v :
+  Σ; Γ ⊢ v :{⊥} τ ->
+  wval v ->
+  val v.
+Proof.
+  remember ⊥.
+  induction 1; subst; intros;
+    try match goal with
+        | H : wval ?v |- _ => head_constructor v; sinvert H
+        end; simplify_eq; eauto using val, (bot_inv (A:=bool)).
+  select (⊥ = _ ⊔ _) (fun H => symmetry in H; apply join_bot_iff in H).
+  hauto ctrs: val.
+Qed.
+
+Lemma val_wval v :
+  val v ->
+  wval v.
+Proof.
+  induction 1; eauto using wval.
+Qed.
+
+Lemma woval_otval Σ Γ v l τ :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ v :{l} τ ->
+  woval v ->
+  exists ω, Σ; Γ ⊢ v :{l} ω /\ otval ω /\ Σ ⊢ ω ≡ τ.
+Proof.
+  intros Hwf.
+  induction 1; intros Hv;
+    try lazymatch type of Hv with
+        | woval ?e => head_constructor e; sinvert Hv
+        end; simp_hyps;
+      try solve [ repeat esplit; eauto;
+                  try lazymatch goal with
+                      | |- _; _ ⊢ _ : _ =>
+                        repeat (econstructor;
+                                eauto using otval_well_kinded;
+                                try equiv_naive_solver)
+                      | |- _ ⊢ _ ≡ _ => equiv_naive_solver
+                      | |- otval _ => eauto using otval
+                      end ].
+
+  (* Product *)
+  repeat esplit.
+  econstructor; eauto using otval_well_kinded; try equiv_naive_solver.
+  eauto using otval.
+  apply_pared_equiv_congr; eauto with lc.
+Qed.
+
+Lemma woval_wval v :
+  woval v ->
+  wval v.
+Proof.
+  induction 1; eauto using wval.
 Qed.

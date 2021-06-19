@@ -21,6 +21,9 @@ Section equivalence.
 Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
 
+#[local]
+Set Default Proof Using "Type".
+
 Notation "e '==>!' e'" := (Σ ⊢ e ==>! e')
                             (at level 40,
                              e' constr at level 0).
@@ -43,6 +46,15 @@ Proof.
   induction H; intros ?; inversion 1; intros; subst; eauto; hauto.
 Qed.
 
+Lemma pared_woval ω τ :
+  woval ω ->
+  ω ==>! τ ->
+  woval τ.
+Proof.
+  intros H. revert τ.
+  induction H; intros ?; inversion 1; intros; subst;
+    try case_split; eauto using woval.
+Qed.
 
 (** ** Renaming Lemmas *)
 
@@ -61,6 +73,10 @@ Proof.
       rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
 Qed.
 
+(* From now on, well-formedness of [Σ] is needed. *)
+#[local]
+Set Default Proof Using "Hwf".
+
 Lemma pared_subst1 e s s' x :
   s ==>! s' ->
   lc e ->
@@ -71,18 +87,23 @@ Qed.
 
 Lemma pared_subst_ e e' s s' x :
   lc s -> lc s' ->
-  e ==>! e' ->
   s ==>! s' ->
+  e ==>! e' ->
   <{ {x↦s}e }> ==>! <{ {x↦s'}e' }>.
 Proof.
-  intros ??.
+  intros ???.
   induction 1; intros; simpl; eauto using pared_subst1;
+    try apply_gctx_wf;
     (* Massage the goal so the induction hypotheses can be applied. *)
     rewrite ?subst_ite_distr;
     rewrite ?subst_open_distr by assumption;
     repeat match goal with
            | H : oval ?v |- _ =>
              rewrite !(subst_fresh v) by shelve
+           | H : woval ?v, H' : ?v ==>! ?u |- _ =>
+             assert (woval u) by eauto using pared_woval;
+               rewrite !(subst_fresh v) by shelve;
+               rewrite !(subst_fresh u) by shelve
            | H : otval ?ω |- _ =>
              rewrite !(subst_fresh ω) by shelve
            end;
@@ -157,24 +178,12 @@ Ltac intro_solver :=
   intros; econstructor; eauto; simpl_cofin;
     eapply pared_rename; eauto; try fast_set_solver!!.
 
-Lemma ROCase_intro b ω1 ω2 v v1 v2 e1 e2 e1' e2' x :
-  <{ e1^x }> ==>! <{ e1'^x }> ->
-  <{ e2^x }> ==>! <{ e2'^x }> ->
-  oval v ->
-  ovalty v1 ω1 -> ovalty v2 ω2 ->
-  x ∉ fv e1 ∪ fv e1' ∪ fv e2 ∪ fv e2' ->
-  <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ==>!
-    <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>.
-Proof.
-  intro_solver.
-Qed.
-
-Lemma RApp_intro τ e1 e2 e1' e2' x :
+Lemma RApp_intro l τ e1 e2 e1' e2' x :
   e1 ==>! e1' ->
   <{ e2^x }> ==>! <{ e2'^x }> ->
   lc τ ->
   x ∉ fv e2 ∪ fv e2' ->
-  <{ (\:τ => e2) e1 }> ==>! <{ e2'^e1' }>.
+  <{ (\:{l}τ => e2) e1 }> ==>! <{ e2'^e1' }>.
 Proof.
   intro_solver.
 Qed.
@@ -199,25 +208,49 @@ Proof.
   intro_solver.
 Qed.
 
-Lemma RCongPi_intro τ1 τ2 τ1' τ2' x :
+Lemma ROCase_intro b ω1 ω2 v v1 v2 e1 e2 e1' e2' x :
+  <{ e1^x }> ==>! <{ e1'^x }> ->
+  <{ e2^x }> ==>! <{ e2'^x }> ->
+  oval v ->
+  ovalty v1 ω1 -> ovalty v2 ω2 ->
+  x ∉ fv e1 ∪ fv e1' ∪ fv e2 ∪ fv e2' ->
+  <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ==>!
+    <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>.
+Proof.
+  intro_solver.
+Qed.
+
+Lemma ROIteCase_intro b e1 e2 e3 e4 e1' e2' e3' e4' x :
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ e3^x }> ==>! <{ e3'^x }> ->
+    <{ e4^x }> ==>! <{ e4'^x }> ->
+    x ∉ fv e3 ∪ fv e3' ∪ fv e4 ∪ fv e4' ->
+    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ==>!
+      <{ ~if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>.
+Proof.
+  intro_solver.
+Qed.
+
+Lemma RCgrPi_intro l τ1 τ2 τ1' τ2' x :
   τ1 ==>! τ1' ->
   <{ τ2^x }> ==>! <{ τ2'^x }> ->
   x ∉ fv τ2 ∪ fv τ2' ->
-  <{ Π:τ1, τ2 }> ==>! <{ Π:τ1', τ2' }>.
+  <{ Π:{l}τ1, τ2 }> ==>! <{ Π:{l}τ1', τ2' }>.
 Proof.
   intro_solver.
 Qed.
 
-Lemma RCongAbs_intro τ e τ' e' x :
+Lemma RCgrAbs_intro l τ e τ' e' x :
   τ ==>! τ' ->
   <{ e^x }> ==>! <{ e'^x }> ->
   x ∉ fv e ∪ fv e' ->
-  <{ \:τ => e }> ==>! <{ \:τ' => e' }>.
+  <{ \:{l}τ => e }> ==>! <{ \:{l}τ' => e' }>.
 Proof.
   intro_solver.
 Qed.
 
-Lemma RCongCase_intro l e0 e1 e2 e0' e1' e2' x :
+Lemma RCgrCase_intro l e0 e1 e2 e0' e1' e2' x :
   e0 ==>! e0' ->
   <{ e1^x }> ==>! <{ e1'^x }> ->
   <{ e2^x }> ==>! <{ e2'^x }> ->
@@ -232,10 +265,10 @@ Qed.
 Ltac inv_solver :=
   inversion 1; subst; try apply_lc_inv; repeat esplit; eauto using pared.
 
-Lemma pared_inv_abs τ e t :
-  <{ \:τ => e }> ==>! t ->
+Lemma pared_inv_abs l τ e t :
+  <{ \:{l}τ => e }> ==>! t ->
   exists τ' e' L,
-    t = <{ \:τ' => e' }> /\
+    t = <{ \:{l}τ' => e' }> /\
     τ ==>! τ' /\
     (forall x, x ∉ L -> <{ e^x }> ==>! <{ e'^x }>).
 Proof.
@@ -275,13 +308,14 @@ End equivalence.
 
 Ltac pared_intro_ e :=
   match e with
-  | <{ (\:_ => _) _ }> => eapply RApp_intro
+  | <{ (\:{_}_ => _) _ }> => eapply RApp_intro
   | <{ ~case [inj@_<_> _] of _ | _ }> => eapply ROCase_intro
   | <{ let _ in _ }> => eapply RLet_intro
   | <{ case inj@_<_> _ of _ | _ }> => eapply RCase_intro
-  | <{ Π:_, _ }> => eapply RCongPi_intro
-  | <{ \:_ => _ }> => eapply RCongAbs_intro
-  | <{ case{_} _ of _ | _ }> => eapply RCongCase_intro
+  | <{ case (~if _ then _ else _) of _ | _ }> => eapply ROIteCase_intro
+  | <{ Π:{_}_, _ }> => eapply RCgrPi_intro
+  | <{ \:{_}_ => _ }> => eapply RCgrAbs_intro
+  | <{ case{_} _ of _ | _ }> => eapply RCgrCase_intro
   | _ => econstructor
   end.
 
@@ -292,7 +326,7 @@ Ltac pared_intro :=
 
 Ltac apply_pared_inv_ e H :=
   match e with
-  | <{ \:_ => _ }> => apply pared_inv_abs in H; try simp_hyp H
+  | <{ \:{_}_ => _ }> => apply pared_inv_abs in H; try simp_hyp H
   | <{ (_, _) }> => apply pared_inv_pair in H; try simp_hyp H
   | <{ fold<_> _ }> => apply pared_inv_fold in H; try simp_hyp H
   | <{ inj@_<_> _ }> => apply pared_inv_inj in H; try simp_hyp H
@@ -305,7 +339,7 @@ Ltac apply_pared_inv :=
   end; subst; eauto.
 
 Tactic Notation "lcrefl" "by" tactic3(tac) := eapply RRefl; tac.
-Tactic Notation "lcrefl" := lcrefl by eauto using lc.
+Tactic Notation "lcrefl" := lcrefl by eauto with lc.
 
 (** ** Confluence *)
 
@@ -313,6 +347,9 @@ Section equivalence.
 
 Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
+
+#[local]
+Set Default Proof Using "Type".
 
 Notation "e '==>!' e'" := (Σ ⊢ e ==>! e')
                             (at level 40,
@@ -322,45 +359,63 @@ Notation "e '==>*' e'" := (Σ ⊢ e ==>* e')
                              e' custom oadt at level 99).
 Notation "e ≡ e'" := (Σ ⊢ e ≡ e').
 
+Ltac relax_pared :=
+  match goal with
+  | |- ?e ==>! _ =>
+    refine (eq_ind _ (fun e' => e ==>! e') _ _ _)
+  end.
+
 Lemma pared_diamond e e1 e2 :
   e ==>! e1 ->
   e ==>! e2 ->
   exists e',
     e1 ==>! e' /\
     e2 ==>! e'.
-Proof.
+Proof using Hwf.
   intros H. revert e2.
   induction H; intros;
-    repeat apply_pared_inv;
-    try apply_gctx_wf; simplify_map_eq;
-      (* Massage hypotheses related to oblivious values. *)
-      try select! (oval _)
-          (fun H => dup_hyp H (fun H => apply oval_lc in H));
-      try select! (otval _)
-          (fun H => dup_hyp H (fun H => apply otval_lc in H));
-      try select! (ovalty _ _)
-          (fun H => dup_hyp H (fun H => apply ovalty_lc in H; destruct H));
-      repeat
-        match goal with
-        | H : oval ?v, H' : ?v ==>! _ |- _ =>
-          eapply pared_oval in H'; [| solve [ eauto ] ]
-        | H : otval ?ω, H' : ?ω ==>! _ |- _ =>
-          eapply pared_otval in H'; [| solve [ eauto ]]
-        end; subst;
-        (* Solve some easy cases. *)
-        try solve [ repeat esplit; eauto;
-                    econstructor; eauto using lc ];
-        (* Generate local closure assumptions to avoid reproving the same
-        stuff. *)
-        repeat apply_lc_inv;
-        simpl_cofin?;
+    (* Invert another parallel reduction. *)
+    repeat apply_pared_inv; simplify_eq;
+      try apply_gctx_wf; simplify_map_eq;
+        (* Massage hypotheses related to oblivious values. *)
+        try select! (oval _)
+            (fun H => dup_hyp H (fun H => apply oval_lc in H));
+        try select! (otval _)
+            (fun H => dup_hyp H (fun H => apply otval_lc in H));
+        try select! (ovalty _ _)
+            (fun H => dup_hyp H (fun H => apply ovalty_lc in H; destruct H));
+        repeat
+          match goal with
+          | H : oval ?v, H' : ?v ==>! _ |- _ =>
+            eapply pared_oval in H'; [| solve [ eauto ] ]
+          | H : otval ?ω, H' : ?ω ==>! _ |- _ =>
+            eapply pared_otval in H'; [| solve [ eauto ] ]
+          end; subst;
+          (* Solve some easy cases. *)
+          (let go := try case_split;
+                     eauto; repeat esplit;
+                     try match goal with
+                         | |- ?e ==>! _ => head_constructor e; econstructor
+                         end;
+                     eauto; econstructor; eauto using lc, pared_lc2
+           in try solve [ go
+                        (* First mung the induction hypotheses. *)
+                        | repeat
+                            match goal with
+                            | H : forall _, _ ==>! _ -> exists _, _ /\ _ |- _ =>
+                              edestruct H as [? [??]]; [ solve [eauto] | clear H ]
+                            end; go ]);
+          (* Generate local closure assumptions to avoid reproving the same
+          stuff. *)
+          repeat apply_lc_inv;
+          simpl_cofin?;
           (* Generate more local closure assumptions. *)
           try select! (_ ==>! _)
               (fun H => match type of H with
                       | _ ==>! ?e =>
                         try assert (lc e) by eauto using pared_lc2
                       end);
-          (* Use induction hypotheses. *)
+          (* Mung induction hypotheses. *)
           repeat
             match goal with
             | H : context [exists _, ?u ==>! _ /\ _] |- _ =>
@@ -398,40 +453,33 @@ Proof.
             end;
     (* May invert some generated induction hypotheses. *)
     repeat apply_pared_inv;
-    (* Solve more easy cases. *)
-    try solve [ try case_split; repeat esplit; eauto;
-                econstructor; eauto using lc ];
     (* Solve the trickier cases. *)
-    let go _ :=
-        lazymatch goal with
-        | |- ?e ==>! ?e' =>
-          eauto;
+    let go :=
+        eauto;
+          lazymatch goal with
+          | |- ?e ==>! ?e' =>
             match e with
             | <{ _^?e2 }> =>
               eapply pared_open; [ assumption
-                                 | solve [eauto] || lcrefl
-                                 | solve [eauto] || lcrefl
+                                 | solve [eauto] || econstructor
+                                 | solve [eauto] || econstructor
                                  | .. ]
             | _ => head_constructor e; pared_intro
-            | _ => lcrefl
+            | _ => econstructor
             end
-        end;
-          lazymatch goal with
           | |- _ ∉ _ => shelve
           | |- lc _ =>
             eauto using lc, typing_lc, kinding_lc
-          | |- _ => eauto
+          | |- woval _ =>
+            eauto using pared_woval with lc
           end
-    in try solve [ repeat esplit; go ()
-                 | case_split; repeat esplit; do 2 go ()
-                 (* Sometimes I have to solve the right hand side first. *)
-                 | repeat esplit; cycle 1;
-                   solve [ do 2 go ()
-                         | case_split; do 2 go () ] ].
+    in try case_split;
+         try solve [ repeat esplit; cycle 1; repeat go; relax_pared; repeat go
+                   | repeat esplit; repeat go; relax_pared; repeat go ].
 
   (* Application of abstraction. *)
   match goal with
-  | H : context [exists _, <{ \:_ => ?e }> ==>! _ /\ _] |- _ =>
+  | H : context [exists _, <{ \:{_}_ => ?e }> ==>! _ /\ _] |- _ =>
     (* Avoid generating useless hypothesis. *)
     match goal with
     | H : _ ==>! ?e' |- _ =>
@@ -458,7 +506,7 @@ Lemma pared_confluence_ e e1 e2 :
   exists e',
     e1 ==>! e' /\
     e2 ==>* e'.
-Proof.
+Proof using Hwf.
   intros H. revert e2.
   induction H; intros.
   - match goal with
@@ -481,7 +529,7 @@ Lemma pared_confluence e e1 e2 :
   exists e',
     e1 ==>* e' /\
     e2 ==>* e'.
-Proof.
+Proof using Hwf.
   intros H. revert e2.
   induction H; intros.
   - edestruct pared_confluence_ as [? [??]]; eauto.
@@ -530,7 +578,7 @@ Qed.
 
 #[global]
 Instance pared_equiv_is_trans : Transitive (pared_equiv Σ).
-Proof.
+Proof using Hwf.
   hnf. intros ??? H1 H2.
   srewrite pared_equiv_iff_join.
   destruct H1 as [e1 e e1'].
@@ -549,7 +597,7 @@ expressions later. *)
 Inductive whnf : expr -> Prop :=
 | WUnitT : whnf <{ 𝟙 }>
 | WBool{l} : whnf <{ 𝔹{l} }>
-| WPi τ1 τ2 : whnf <{ Π:τ1, τ2 }>
+| WPi l τ1 τ2 : whnf <{ Π:{l}τ1, τ2 }>
 | WProd τ1 τ2 : whnf <{ τ1 * τ2 }>
 | WSum l τ1 τ2 : whnf <{ τ1 +{l} τ2 }>
 | WADT X τ :
@@ -562,10 +610,10 @@ always assumes that the two arguments are already in [whnf]. *)
 Inductive whnf_equiv : expr -> expr -> Prop :=
 | WQUnitT : whnf_equiv <{ 𝟙 }> <{ 𝟙 }>
 | WQBool l : whnf_equiv <{ 𝔹{l} }> <{ 𝔹{l} }>
-| WQPi τ1 τ2 τ1' τ2' L :
+| WQPi l τ1 τ2 τ1' τ2' L :
     τ1 ≡ τ1' ->
     (forall x, x ∉ L -> <{ τ2^x }> ≡ <{ τ2'^x }>) ->
-    whnf_equiv <{ Π:τ1, τ2 }> <{ Π:τ1', τ2' }>
+    whnf_equiv <{ Π:{l}τ1, τ2 }> <{ Π:{l}τ1', τ2' }>
 | WQProd τ1 τ2 τ1' τ2' :
     τ1 ≡ τ1' ->
     τ2 ≡ τ2' ->
@@ -644,7 +692,7 @@ Lemma pared_step e e' :
   lc e ->
   e ==>! e'.
 Proof.
-  induction 1; intros; try select (ectx _) (fun H => sinvert H);
+  induction 1; intros; repeat apply_ectx_inv;
     repeat apply_lc_inv;
     repeat econstructor; eauto.
 Qed.
@@ -664,11 +712,14 @@ Proof.
   hauto use: pared_step, pared_equiv_pared.
 Qed.
 
+#[local]
+Set Default Proof Using "Hwf".
+
 (** Substitution lemmas for [pared_equiv] *)
 Lemma pared_equiv_subst1 e s s' x :
   s ≡ s' ->
   lc e ->
-  {x↦s}e ≡ {x↦s'}e.
+  <{ {x↦s}e }> ≡ <{ {x↦s'}e }>.
 Proof.
   intros H ?.
   induction H;
@@ -678,7 +729,7 @@ Qed.
 Lemma pared_equiv_subst2 e e' s x :
   e ≡ e' ->
   lc s ->
-  {x↦s}e ≡ {x↦s}e'.
+  <{ {x↦s}e }> ≡ <{ {x↦s}e' }>.
 Proof.
   intros H ?.
   induction H; intros;
@@ -691,7 +742,7 @@ Lemma pared_equiv_subst e e' s s' x :
   s ≡ s' ->
   lc e ->
   lc s' ->
-  {x↦s}e ≡ {x↦s'}e'.
+  <{ {x↦s}e }> ≡ <{ {x↦s'}e' }>.
 Proof.
   intros.
   etrans.
@@ -701,7 +752,7 @@ Qed.
 
 Lemma pared_equiv_rename τ τ' x y :
   τ ≡ τ' ->
-  {x↦y}τ ≡ {x↦y}τ'.
+  <{ {x↦y}τ }> ≡ <{ {x↦y}τ' }>.
 Proof.
   eauto using lc, pared_equiv_subst2.
 Qed.
@@ -790,10 +841,10 @@ Proof.
 Qed.
 
 (* This is good enough for our purposes though it is weaker than it could be. *)
-Lemma pared_equiv_congr_pi τ1 τ1' τ2 x :
+Lemma pared_equiv_congr_pi l τ1 τ1' τ2 x :
   τ1 ≡ τ1' ->
   lc <{ τ2^x }> ->
-  <{ Π:τ1, τ2 }> ≡ <{ Π:τ1', τ2 }>.
+  <{ Π:{l}τ1, τ2 }> ≡ <{ Π:{l}τ1', τ2 }>.
 Proof.
   intros H; intros.
   induction H;
@@ -817,12 +868,12 @@ Tactic Notation "simpl_whnf_equiv" "by" tactic3(tac) :=
     | solve [tac] ]
   end.
 
-Tactic Notation "simpl_whnf_equiv" :=
+Ltac simpl_whnf_equiv :=
   simpl_whnf_equiv by eauto using whnf, otval_whnf.
 
 Ltac apply_pared_equiv_congr :=
   lazymatch goal with
-  | |- _ ⊢ Π:_, _ ≡ Π: _, _ => eapply pared_equiv_congr_pi
+  | |- _ ⊢ Π:{_}_, _ ≡ Π:{_}_, _ => eapply pared_equiv_congr_pi
   | |- _ ⊢ _ * _ ≡ _ * _ => eapply pared_equiv_congr_prod
   | |- _ ⊢ _ +{_} _ ≡ _ +{_} _ => eapply pared_equiv_congr_sum
   | |- _ ⊢ inj{_}@_<_> _ ≡ inj{_}@_<_> _ => eapply pared_equiv_congr_inj

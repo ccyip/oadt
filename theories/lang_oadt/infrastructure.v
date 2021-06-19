@@ -11,7 +11,7 @@ Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 
-Implicit Types (b : bool) (x X y Y z : atom) (L : aset).
+Implicit Types (b : bool) (x X y Y z : atom) (L : aset) (T : lexpr).
 
 #[local]
 Coercion EFVar : atom >-> expr.
@@ -30,8 +30,8 @@ Reserved Notation "'{' k '<~' x '}' e" (in custom oadt at level 20, k constr).
 Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   match e with
   | <{ fvar y }> => if decide (x = y) then <{ bvar k }> else e
-  | <{ Π:τ1, τ2 }> => <{ Π:{k<~x}τ1, {S k<~x}τ2 }>
-  | <{ \:τ => e }> => <{ \:{k<~x}τ => {S k<~x}e }>
+  | <{ Π:{l}τ1, τ2 }> => <{ Π:{l}({k<~x}τ1), {S k<~x}τ2 }>
+  | <{ \:{l}τ => e }> => <{ \:{l}({k<~x}τ) => {S k<~x}e }>
   | <{ let e1 in e2 }> => <{ let {k<~x}e1 in {S k<~x}e2 }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k<~x}e0 of {S k<~x}e1 | {S k<~x}e2 }>
   (** Congruence rules *)
@@ -45,6 +45,8 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k<~x}τ)> ({k<~x}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k<~x}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({k<~x}e) }>
+  | <{ mux e0 e1 e2 }> => <{ mux ({k<~x}e0) ({k<~x}e1) ({k<~x}e2) }>
+  | <{ tape e }> => <{ tape ({k<~x}e) }>
   | _ => e
   end
 
@@ -59,22 +61,24 @@ Fixpoint fv (e : expr) : aset :=
   match e with
   | <{ fvar x }> => {[x]}
   (* Congruence rules *)
-  | <{ \:τ => e }> | <{ inj{_}@_<τ> e }> | <{ [inj@_<τ> e] }> =>
+  | <{ \:{_}τ => e }> | <{ inj{_}@_<τ> e }> | <{ [inj@_<τ> e] }> =>
     fv τ ∪ fv e
-  | <{ Π:τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 +{_} τ2 }> =>
+  | <{ Π:{_}τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 +{_} τ2 }> =>
     fv τ1 ∪ fv τ2
   | <{ let e1 in e2 }> | <{ (e1, e2) }> | <{ e1 e2 }> =>
     fv e1 ∪ fv e2
-  | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }> =>
+  | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }>
+  | <{ mux e0 e1 e2 }> =>
     fv e0 ∪ fv e1 ∪ fv e2
   | <{ s𝔹 e }> | <{ π@_ e }>
-  | <{ fold<_> e }> | <{ unfold<_> e }> =>
+  | <{ fold<_> e }> | <{ unfold<_> e }>
+  | <{ tape e }> =>
     fv e
   | _ => ∅
   end.
 
 Definition tctx_fv : tctx -> aset :=
-  map_fold (fun x τ S => fv τ ∪ S) ∅.
+  map_fold (fun x T S => fv T ∪ S) ∅.
 
 Definition closed e := fv e ≡ ∅.
 
@@ -86,6 +90,9 @@ Arguments aset_stale /.
 
 Instance expr_stale : Stale expr := fv.
 Arguments expr_stale /.
+
+Instance lexpr_stale : Stale lexpr := (fun T => fv T.2).
+Arguments lexpr_stale /.
 
 Instance tctx_stale : Stale tctx := fun Γ => dom aset Γ ∪ tctx_fv Γ.
 Arguments tctx_stale /.
@@ -126,17 +133,32 @@ Ltac apply_lc_inv :=
   | H : lc ?e |- _ => head_constructor e; sinvert H
   end.
 
+Ltac apply_ectx_inv :=
+  lazymatch goal with
+  | H : ectx _ |- _ => sinvert H
+  | H : lectx _ |- _ => sinvert H
+  end; simplify_eq.
+
+Ltac destruct_lexpr :=
+  select! (lexpr) (fun H => let l := fresh "l" in
+                          let τ := fresh "τ" in
+                          destruct H as [l τ]).
+
 Ltac apply_gctx_wf :=
+  try destruct_lexpr;
   match goal with
-  | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = _ |- _ =>
+  | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = Some ?D |- _ =>
     dup_hyp H (fun H => apply Hwf in H; try simp_hyp H)
   end.
 
 Ltac relax_typing_type :=
   match goal with
-  | |- ?Σ; ?Γ ⊢ ?e : _ =>
-    refine (eq_ind _ (fun τ => Σ; Γ ⊢ e : τ) _ _ _)
+  | |- ?Σ; ?Γ ⊢ ?e :{?l} _ =>
+    refine (eq_ind _ (fun τ => Σ; Γ ⊢ e :{l} τ) _ _ _)
   end.
+
+Create HintDb lc discriminated.
+Hint Constructors lc : lc.
 
 (** ** Properties of openness *)
 (* NOTE: [inversion] is the culprit for the slowness of this proof. *)
@@ -249,7 +271,7 @@ Qed.
 
 Lemma subst_trans x y s e :
   y # e ->
-  {y↦s}({x↦y}e) = {x↦s}e.
+  <{ {y↦s}({x↦y}e) }> = <{ {x↦s}e }>.
 Proof.
   intros.
   induction e; simpl in *; eauto;
@@ -265,7 +287,7 @@ Proof.
 Qed.
 
 Lemma subst_id e x :
-  {x↦x}e = e.
+  <{ {x↦x}e }> = e.
 Proof.
   induction e; simpl; try case_decide; scongruence.
 Qed.
@@ -275,7 +297,14 @@ Lemma subst_tctx_id (Γ : tctx) x :
 Proof.
   rewrite <- map_fmap_id.
   apply map_fmap_ext.
-  scongruence use: subst_id.
+  unfold lexpr_subst.
+  scongruence use: subst_id, surjective_pairing.
+Qed.
+
+Lemma lexpr_subst_distr (l : bool) x s τ :
+  (l, <{ {x↦s}τ }>) = {x↦s}(l, τ).
+Proof.
+  reflexivity.
 Qed.
 
 (** We may prove this one using [subst_open_distr] and [subst_fresh], but a
@@ -296,19 +325,29 @@ Lemma otval_lc ω :
   otval ω ->
   lc ω.
 Proof.
-  induction 1; hauto ctrs: lc.
+  induction 1; eauto with lc.
 Qed.
+Hint Resolve otval_lc : lc.
 
 Lemma oval_lc v :
   oval v ->
   lc v.
 Proof.
-  induction 1; hauto ctrs: lc use: otval_lc.
+  induction 1; eauto with lc.
 Qed.
+Hint Resolve oval_lc : lc.
+
+Lemma woval_lc v :
+  woval v ->
+  lc v.
+Proof.
+  induction 1; eauto with lc.
+Qed.
+Hint Resolve woval_lc : lc.
 
 Lemma ovalty_elim v ω:
   ovalty v ω ->
-  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
+  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v :{⊥} ω.
 Proof.
   induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
 Qed.
@@ -322,17 +361,34 @@ Proof.
   hauto use: otval_lc, ovalty_elim ctrs: otval, lc.
 Qed.
 
+Lemma ovalty_lc1 v ω :
+  ovalty v ω ->
+  lc v.
+Proof.
+  hauto use: ovalty_lc.
+Qed.
+Hint Resolve ovalty_lc1 : lc.
+
+Lemma ovalty_lc2 v ω :
+  ovalty v ω ->
+  lc ω.
+Proof.
+  hauto use: ovalty_lc.
+Qed.
+Hint Resolve ovalty_lc2 : lc.
+
 (** Well-typed and well-kinded expressions are locally closed. *)
-Lemma typing_lc Σ Γ e τ :
-  Σ; Γ ⊢ e : τ ->
+Lemma typing_lc Σ Γ e l τ :
+  Σ; Γ ⊢ e :{l} τ ->
   lc e
 with kinding_lc  Σ Γ τ κ :
   Σ; Γ ⊢ τ :: κ ->
   lc τ.
 Proof.
-  all: destruct 1; try hauto q: on rew: off ctrs: lc use: ovalty_lc;
-    econstructor; simpl_cofin; qauto.
+  all : destruct 1; eauto with lc;
+    econstructor; simpl_cofin; eauto with lc.
 Qed.
+Hint Resolve typing_lc kinding_lc : lc.
 
 Lemma subst_lc x e s :
   lc s ->
@@ -341,9 +397,10 @@ Lemma subst_lc x e s :
 Proof.
   intros H.
   induction 1; simpl; try qauto ctrs: lc;
-    repeat econstructor; simpl_cofin?; eauto using lc;
+    repeat econstructor; simpl_cofin?; eauto with lc;
       rewrite <- subst_open_comm; eauto; fast_set_solver!!.
 Qed.
+Hint Resolve subst_lc : lc.
 
 Lemma subst_respect_lc x s t e :
   lc <{ {x↦s}e }> ->
@@ -351,7 +408,7 @@ Lemma subst_respect_lc x s t e :
   lc t ->
   lc <{ {x↦t}e }>.
 Proof.
-  intros H. intros Hs Ht. remember ({x↦s}e).
+  intros H. intros Hs Ht. remember <{ {x↦s}e }>.
   revert dependent e.
   induction H;
     intros []; simpl; inversion 1; subst; simp_hyps;
@@ -360,6 +417,7 @@ Proof.
           simpl_cofin?;
           rewrite <- ?subst_open_comm in *; eauto; fast_set_solver!!.
 Qed.
+Hint Resolve subst_respect_lc : lc.
 
 Lemma open_respect_lc e s t :
   lc <{ e^s }> ->
@@ -370,44 +428,39 @@ Proof.
   intros.
   destruct (exist_fresh (fv e)) as [y ?].
   erewrite subst_intro in *; eauto.
-  eauto using lc, subst_respect_lc.
+  eauto with lc.
 Qed.
+Hint Resolve open_respect_lc | 10 : lc.
 
 Lemma open_respect_lc_atom x e s :
   lc <{ e^x }> ->
   lc s ->
   lc <{ e^s }>.
 Proof.
-  intros.
-  eapply open_respect_lc; eauto using lc.
+  eauto with lc.
 Qed.
+Hint Resolve open_respect_lc_atom | 9 : lc.
 
 Lemma lc_rename e x y :
   lc <{ e^x }> ->
   lc <{ e^y }>.
 Proof.
-  eauto using lc, open_respect_lc_atom.
+  eauto with lc.
 Qed.
+Hint Resolve lc_rename | 8 : lc.
 
 (** The type of well-typed expression is also locally closed. *)
-Lemma typing_type_lc Σ Γ e τ :
+Lemma typing_type_lc Σ Γ e l τ :
   gctx_wf Σ ->
-  Σ; Γ ⊢ e : τ ->
+  Σ; Γ ⊢ e :{l} τ ->
   lc τ.
 Proof.
   intros Hwf.
-  induction 1; eauto using lc, kinding_lc;
-    try
-      lazymatch goal with
-      | H : Σ !! _ = Some _ |- _ =>
-        apply Hwf in H; simp_hyps; eauto using kinding_lc
-      | H : _; _ ⊢ _ : _ |- _ => apply typing_lc in H
-      | H : ovalty _ _ |- _ => apply ovalty_lc in H
-      end;
-    try apply_lc_inv; simpl_cofin?;
-      hauto l: on use: open_respect_lc, typing_lc, typing_lc ctrs: lc.
+  induction 1; try apply_gctx_wf;
+    try case_split; eauto using lc, kinding_lc;
+    try apply_lc_inv; simpl_cofin?; eauto with lc.
 Qed.
-
+Hint Resolve typing_type_lc : lc.
 
 (** ** Theories of free variables *)
 
@@ -453,7 +506,7 @@ Ltac induction_map_fold :=
   apply map_fold_ind.
 
 Lemma tctx_fv_consistent Γ x :
-  x ∉ tctx_fv Γ <-> map_Forall (fun _ τ => x # τ) Γ.
+  x ∉ tctx_fv Γ <-> map_Forall (fun _ T => x # T) Γ.
 Proof.
   unfold tctx_fv.
   split; induction_map_fold;
@@ -461,9 +514,9 @@ Proof.
     qauto use: map_Forall_insert solve: fast_set_solver.
 Qed.
 
-Lemma tctx_fv_subseteq Γ τ x :
-  Γ !! x = Some τ ->
-  fv τ ⊆ tctx_fv Γ.
+Lemma tctx_fv_subseteq Γ T x :
+  Γ !! x = Some T ->
+  fv T ⊆ tctx_fv Γ.
 Proof.
   intros. set_unfold. intros.
   (* Prove by contradiction; alternatively we can prove by [map_fold_ind]. *)
@@ -471,8 +524,8 @@ Proof.
   hauto use: tctx_fv_consistent.
 Qed.
 
-Lemma tctx_fv_insert_subseteq Γ x τ :
-  tctx_fv (<[x:=τ]>Γ) ⊆ fv τ ∪ tctx_fv Γ.
+Lemma tctx_fv_insert_subseteq Γ x T :
+  tctx_fv (<[x:=T]>Γ) ⊆ fv T ∪ tctx_fv Γ.
 Proof.
   intros ? H.
   apply dec_stable. contradict H.
@@ -480,9 +533,9 @@ Proof.
   qauto l: on use: tctx_fv_consistent, map_Forall_insert_2.
 Qed.
 
-Lemma tctx_fv_insert Γ x τ :
+Lemma tctx_fv_insert Γ x T :
   x ∉ dom aset Γ ->
-  tctx_fv (<[x:=τ]>Γ) ≡ fv τ ∪ tctx_fv Γ.
+  tctx_fv (<[x:=T]>Γ) ≡ fv T ∪ tctx_fv Γ.
 Proof.
   split; intros; try qauto use: tctx_fv_insert_subseteq.
   apply dec_stable.
@@ -491,7 +544,7 @@ Proof.
 Qed.
 
 Lemma tctx_stale_inv Γ x :
-  x # Γ -> x ∉ dom aset Γ /\ map_Forall (fun _ τ => x # τ) Γ.
+  x # Γ -> x ∉ dom aset Γ /\ map_Forall (fun _ T => x # T) Γ.
 Proof.
   hauto use: tctx_fv_consistent solve: fast_set_solver.
 Qed.
@@ -504,7 +557,9 @@ Proof.
   rewrite <- map_fmap_id.
   apply map_fmap_ext.
   intros; simpl.
+  unfold lexpr_subst.
   rewrite subst_fresh; eauto.
+  eauto using surjective_pairing.
   hauto use: tctx_fv_consistent solve: fast_set_solver.
 Qed.
 
@@ -520,6 +575,13 @@ Lemma oval_closed v :
   closed v.
 Proof.
   induction 1; qauto use: otval_closed solve: fast_set_solver*.
+Qed.
+
+Lemma woval_closed v :
+  woval v ->
+  closed v.
+Proof.
+  induction 1; qauto use: oval_closed, otval_closed solve: fast_set_solver*.
 Qed.
 
 Lemma ovalty_closed v ω :
@@ -563,7 +625,7 @@ Proof.
 Qed.
 
 Lemma close_fv_subseteq1 x e :
-  fv e ⊆ fv (close x e) ∪ {[ x ]}.
+  fv e ⊆ fv (close x e) ∪ {[x]}.
 Proof.
   unfold close. generalize 0.
   induction e; intros; simpl;
@@ -695,6 +757,8 @@ Ltac simpl_fv_core :=
     apply ovalty_closed in H; unfold closed in H; destruct H
   | H : oval _ |- _ =>
     apply oval_closed in H; unfold closed in H
+  | H : woval _ |- _ =>
+    apply woval_closed in H; unfold closed in H
   | H : otval _ |- _ =>
     apply otval_closed in H; unfold closed in H
   | H : ?Σ !! _ = Some ?D, Hwf : gctx_wf ?Σ |- _ =>
@@ -714,8 +778,8 @@ Smpl Add simpl_fv_core : fv.
 
 (** Well-typed and well-kinded terms are closed under typing context. *)
 Lemma typing_kinding_fv Σ :
-  (forall Γ e τ,
-      Σ; Γ ⊢ e : τ ->
+  (forall Γ e l τ,
+      Σ; Γ ⊢ e :{l} τ ->
       fv e ⊆ dom aset Γ) /\
   (forall Γ τ κ,
       Σ; Γ ⊢ τ :: κ ->
@@ -725,8 +789,8 @@ Proof.
     simpl_cofin?; simpl_fv; fast_set_solver*!.
 Qed.
 
-Lemma typing_fv Σ Γ e τ :
-  Σ; Γ ⊢ e : τ ->
+Lemma typing_fv Σ Γ e l τ :
+  Σ; Γ ⊢ e :{l} τ ->
   fv e ⊆ dom aset Γ.
 Proof.
   qauto use: typing_kinding_fv.
@@ -755,7 +819,7 @@ Lemma gctx_wf_closed Σ :
                 match D with
                 | DADT τ =>
                   closed τ
-                | DOADT τ e | DFun τ e =>
+                | DOADT τ e | DFun (_, τ) e =>
                   closed τ /\ closed e
                 end) Σ.
 Proof.
@@ -775,9 +839,9 @@ Ltac simpl_wf_fv :=
 Smpl Add simpl_wf_fv : fv.
 
 (** Lemmas about the free variables in the type of a well-typed term. *)
-Lemma typing_type_fv Σ Γ e τ :
+Lemma typing_type_fv Σ Γ e l τ :
   gctx_wf Σ ->
-  Σ; Γ ⊢ e : τ ->
+  Σ; Γ ⊢ e :{l} τ ->
   fv τ ⊆ dom aset Γ.
 Proof.
   intros Hwf.
@@ -801,8 +865,9 @@ Lemma pared_lc1 Σ e e' :
 Proof.
   intros ?.
   induction 1; eauto using lc;
+    repeat apply_lc_inv;
     repeat econstructor; eauto;
-      qauto use: ovalty_elim, oval_lc, otval_lc.
+      qauto l: on use: ovalty_elim db: lc.
 Qed.
 
 Lemma pared_lc2 Σ e e' :
@@ -811,12 +876,11 @@ Lemma pared_lc2 Σ e e' :
   lc e'.
 Proof.
   intros ?.
-  induction 1; eauto using lc;
-    try apply_gctx_wf;
+  induction 1; try apply_gctx_wf;
+    eauto using lc;
     simpl_cofin?;
-    eauto using open_respect_lc_atom, typing_lc, kinding_lc;
     repeat econstructor;
-    qauto use: open_respect_lc_atom, ovalty_elim, oval_lc.
+    try case_split; eauto with lc.
 Qed.
 
 Lemma pared_lc Σ e e' :

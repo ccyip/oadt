@@ -7,6 +7,7 @@ From oadt Require Import lang_oadt.properties.
 From oadt Require Import lang_oadt.admissible.
 From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.equivalence.
+From oadt Require Import lang_oadt.preservation.
 
 (** * Progress *)
 (** The progress metatheorem. *)
@@ -25,64 +26,121 @@ Section progress.
 Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
 
+#[local]
+Set Default Proof Using "Hwf".
+
+(** ** Lemmas *)
+
+Lemma pared_obliv_preservation_inv Γ τ τ' κ :
+  Σ ⊢ τ ==>! τ' ->
+  Σ; Γ ⊢ τ :: κ ->
+  Σ; Γ ⊢ τ' :: *@O ->
+  Σ; Γ ⊢ τ :: *@O.
+Proof.
+  induction 1; intros; try case_label;
+    apply_kind_inv;
+    simpl_cofin?;
+    simplify_eq;
+    try solve [ kinding_intro; eauto; set_shelve ];
+    try easy.
+
+  (* Product *)
+  hauto ctrs: kinding solve: lattice_naive_solver.
+
+  Unshelve.
+  all : fast_set_solver!!.
+Qed.
+
+Lemma pared_equiv_obliv_preservation Γ τ τ' κ :
+  Σ ⊢ τ ≡ τ' ->
+  Σ; Γ ⊢ τ :: *@O ->
+  Σ; Γ ⊢ τ' :: κ ->
+  Σ; Γ ⊢ τ' :: *@O.
+Proof.
+  induction 1; intros;
+    eauto using pared_obliv_preservation_inv, pared_kinding_preservation.
+Qed.
+
+Lemma wval_woval Γ v l τ :
+  Σ; Γ ⊢ v :{l} τ ->
+  Σ; Γ ⊢ τ :: *@O ->
+  wval v ->
+  woval v.
+Proof.
+  induction 1; intros;
+    try lazymatch goal with
+        | H : wval ?v |- _ => head_constructor v; sinvert H
+        end;
+    apply_kind_inv; simplify_eq;
+      try hauto lq: on ctrs: woval, kinding;
+      try easy.
+
+  (* TConv *)
+  apply_regularity.
+  auto_apply; eauto.
+  eapply pared_equiv_obliv_preservation; eauto.
+  equiv_naive_solver.
+Qed.
+
 (** ** Canonical forms *)
 Ltac canonical_form_solver :=
   inversion 1; intros; subst; eauto;
   apply_type_inv;
   apply_kind_inv;
-  simpl_whnf_equiv.
+  simpl_whnf_equiv;
+  eauto.
 
-Lemma canonical_form_unit Γ e :
+Lemma canonical_form_unit Γ l e :
   val e ->
-  Σ; Γ ⊢ e : 𝟙 ->
+  Σ; Γ ⊢ e :{l} 𝟙 ->
   e = <{ () }>.
 Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_abs Γ e τ2 τ1 :
+Lemma canonical_form_abs Γ l1 l2 e τ2 τ1 :
   val e ->
-  Σ; Γ ⊢ e : Π:τ2, τ1 ->
-  exists e' τ, e = <{ \:τ => e' }>.
+  Σ; Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
+  exists e' τ, e = <{ \:{l2}τ => e' }>.
 Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_bool Γ e :
+Lemma canonical_form_bool Γ l e :
   val e ->
-  Σ; Γ ⊢ e : 𝔹 ->
+  Σ; Γ ⊢ e :{l} 𝔹 ->
   exists b, e = <{ b }>.
 Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_obool Γ e :
+Lemma canonical_form_obool Γ l e :
   val e ->
-  Σ; Γ ⊢ e : ~𝔹 ->
+  Σ; Γ ⊢ e :{l} ~𝔹 ->
   exists b, e = <{ [b] }>.
 Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_prod Γ e τ1 τ2 :
+Lemma canonical_form_prod Γ l e τ1 τ2 :
   val e ->
-  Σ; Γ ⊢ e : τ1 * τ2 ->
+  Σ; Γ ⊢ e :{l} τ1 * τ2 ->
   exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
 Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_sum Γ e τ1 τ2 :
+Lemma canonical_form_sum Γ l e τ1 τ2 :
   val e ->
-  Σ; Γ ⊢ e : τ1 + τ2 ->
+  Σ; Γ ⊢ e :{l} τ1 + τ2 ->
   exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
 Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_osum Γ e τ1 τ2 :
+Lemma canonical_form_osum Γ l e τ1 τ2 :
   val e ->
-  Σ; Γ ⊢ e : τ1 ~+ τ2 ->
+  Σ; Γ ⊢ e :{l} τ1 ~+ τ2 ->
   exists b v ω1 ω2, oval v /\ otval ω1 /\ otval ω2 /\
                e = <{ [inj@b<ω1 ~+ ω2> v] }>.
 Proof.
@@ -95,23 +153,95 @@ Qed.
 
 (** Though it seems we should have a condition of [X] being an (public) ADT, this
 condition is not needed since it is implied by the typing judgment. *)
-Lemma canonical_form_fold Γ e X :
+Lemma canonical_form_fold Γ l e X :
   val e ->
-  Σ; Γ ⊢ e : gvar X ->
+  Σ; Γ ⊢ e :{l} gvar X ->
   exists v X', val v /\ e = <{ fold<X'> v }>.
 Proof.
-  inversion 1; inversion 1; intros; subst; eauto;
-  apply_type_inv;
-  apply_kind_inv;
-  simplify_eq;
-  simpl_whnf_equiv.
+  inversion 1; canonical_form_solver.
 Qed.
 
+(** Canonical forms for weak values *)
+
+Ltac canonical_form_weak_solver :=
+  inversion 1; intros; subst; eauto;
+  apply_type_inv;
+  apply_kind_inv;
+  try simpl_whnf_equiv;
+  try match goal with
+      | Hv : wval ?v, Ht : _; _ ⊢ ?v :{⊥} ~𝔹 |- _ =>
+        eapply canonical_form_obool in Ht;
+        [ simp_hyp Ht | eauto using wval_val ]
+      end; subst;
+  simplify_eq;
+  eauto 10.
+
+Lemma canonical_form_weak_unit Γ l e :
+  wval e ->
+  Σ; Γ ⊢ e :{l} 𝟙 ->
+  e = <{ () }> \/
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+Proof.
+  canonical_form_weak_solver.
+Qed.
+
+Lemma canonical_form_weak_abs Γ l1 l2 e τ2 τ1 :
+  wval e ->
+  Σ; Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
+  (exists e' τ, e = <{ \:{l2}τ => e' }>) \/
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+Proof.
+  canonical_form_weak_solver.
+Qed.
+
+Lemma canonical_form_weak_bool Γ l e :
+  wval e ->
+  Σ; Γ ⊢ e :{l} 𝔹 ->
+  (exists b, e = <{ b }>) \/
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+Proof.
+  canonical_form_weak_solver.
+Qed.
+
+Lemma canonical_form_weak_obool Γ e :
+  wval e ->
+  Σ; Γ ⊢ e :{⊥} ~𝔹 ->
+  exists b, e = <{ [b] }>.
+Proof.
+  canonical_form_weak_solver.
+Qed.
+
+Lemma canonical_form_weak_prod Γ l e τ1 τ2 :
+  wval e ->
+  Σ; Γ ⊢ e :{l} τ1 * τ2 ->
+  (exists v1 v2, wval v1 /\ wval v2 /\ e = <{ (v1, v2) }>) \/
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+Proof.
+  canonical_form_weak_solver.
+Qed.
+
+Lemma canonical_form_weak_sum Γ l e τ1 τ2 :
+  wval e ->
+  Σ; Γ ⊢ e :{l} τ1 + τ2 ->
+  (exists b v τ, wval v /\ e = <{ inj@b<τ> v }>) \/
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+Proof.
+  canonical_form_weak_solver.
+Qed.
+
+Lemma canonical_form_weak_fold Γ l e X :
+  wval e ->
+  Σ; Γ ⊢ e :{l} gvar X ->
+  (exists v X', wval v /\ e = <{ fold<X'> v }>) \/
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+Proof.
+  inversion 1; canonical_form_weak_solver.
+Qed.
 
 (** ** Progress *)
 
 (** Take a step through evaluation context. *)
-Ltac step_ectx_solver :=
+Ltac ectx_solver :=
   match goal with
   | H : _ ⊨ _ -->! _ |- exists _, _ ⊨ _ -->! _ =>
     eexists;
@@ -119,22 +249,42 @@ Ltac step_ectx_solver :=
     [ solve [apply H]
     | higher_order_reflexivity
     | higher_order_reflexivity
-    | solve [constructor; eauto] ]
+    | solve [constructor; eauto; constructor; eauto] ]
   end.
+
+Ltac apply_SOIte :=
+  match goal with
+  | |- _ ⊨ ?e -->! _ =>
+    match e with
+    | context E [<{ ~if ?b then ?v1 else ?v2 }>] =>
+      let ℇ := constr:(fun t : expr =>
+                ltac:(let t := context E [t] in exact t)) in
+      change e with (ℇ <{ ~if b then v1 else v2 }>)
+    end
+  end;
+  eapply SOIte.
+
+Ltac oite_solver :=
+  match goal with
+  | |- exists _, _ ⊨ _ -->! _ =>
+    eexists; apply_SOIte; eauto using lectx
+  end.
+
+Ltac ctx_solver := solve [ ectx_solver | oite_solver ].
 
 (** The combined progress theorems for expressions and types. *)
 Theorem progress_ :
-  (forall Γ e τ,
-      Σ; Γ ⊢ e : τ ->
+  (forall Γ e l τ,
+      Σ; Γ ⊢ e :{l} τ ->
       Γ = ∅ ->
-      val e \/ exists e', Σ ⊨ e -->! e') /\
+      wval e \/ exists e', Σ ⊨ e -->! e') /\
   (forall Γ τ κ,
      Σ; Γ ⊢ τ :: κ ->
      Γ = ∅ ->
      κ = <{ *@O }> ->
      otval τ \/ exists τ', Σ ⊨ τ -->! τ').
 Proof.
-  apply typing_kinding_mutind; intros; subst;
+  eapply typing_kinding_mutind; intros; subst;
     (* If a type is not used in the conclusion, the mutual inductive hypothesis
     for it is useless. Remove this hypothesis to avoid slowdown the
     automation. *)
@@ -142,56 +292,51 @@ Proof.
         | H : context [otval ?τ \/ _] |- val ?e \/ _ =>
           assert_fails contains e τ; clear H
         end;
-    (* Try solve the boring cases, unless they are the trickier ones. *)
-    first [ goal_is (val <{ ~case _ of _ | _ }> \/ _)
-          | goal_is (otval <{ _ + _ }> \/ _)
-          | match goal with
-            | |- otval ?τ \/ _ => is_var τ
-            end
-          (* Take care of the simple cases. *)
-          | goal_is (val <{ [inj@_<_> _] }> \/ _); sfirstorder use: oval_elim
-          | qauto q: on rew: off
+    (* Try solve the boring cases. *)
+    first [ qauto q: on rew: off
                   simp: simpl_map
-                  ctrs: val, otval, step, ectx
+                  ctrs: wval, otval, step
+                  solve: ctx_solver
           (* Take care of the more complex cases involving evaluation context. *)
-          (* For expression progress. *)
-          | goal_contains val;
-            qauto q: on
-                  ctrs: val, step
-                  solve: step_ectx_solver
-                  use: canonical_form_abs,
-                       canonical_form_bool,
-                       canonical_form_obool,
-                       canonical_form_prod,
-                       canonical_form_sum,
-                       canonical_form_fold
-          (* For oblivious type progress. *)
-          | goal_contains otval;
-            qauto q: on
-                  ctrs: otval, step
-                  solve: step_ectx_solver
-                  use: canonical_form_bool,
-                       canonical_form_sum
+          | qauto q: on
+                  ctrs: wval, otval, step
+                  solve: ctx_solver
+                  use: canonical_form_weak_abs,
+                       canonical_form_weak_bool,
+                       canonical_form_weak_obool,
+                       canonical_form_weak_prod,
+                       canonical_form_weak_sum,
+                       canonical_form_weak_fold
           | idtac ].
 
   (* Injection *)
-  - right. intuition; try qauto solve: step_ectx_solver.
+  - right. intuition; try qauto solve: ctx_solver.
     (* Step to boxed injection *)
     eexists. econstructor; eauto.
-    qauto l: on ctrs: otval inv: otval use: ovalty_elim, ovalty_intro_alt.
+    qauto l: on ctrs: otval inv: otval use: wval_val, ovalty_elim, ovalty_intro_alt.
 
   (* [~case _ of _ | _] *)
   - right. intuition.
     (* Discriminee is value. *)
-    + select (_; _ ⊢ _ : _) (fun H => apply canonical_form_osum in H); eauto.
+    + select (_; _ ⊢ _ : _) (fun H => apply canonical_form_osum in H);
+        eauto using wval_val.
       simp_hyps.
       select! (otval _) (fun H => use (ovalty_inhabited _ H)).
       hauto ctrs: step.
     (* Discriminee can take a step. *)
-    + hauto solve: step_ectx_solver ctrs: step.
+    + hauto solve: ctx_solver ctrs: step.
+
+  (* [tape _] *)
+  - right. simp_hyps.
+    select (wval _ \/ _) (fun H => destruct H);
+      [ | hauto solve: ctx_solver ctrs: step ].
+    select (wval _) (fun H => eapply wval_woval in H; eauto; sinvert H);
+      eauto using step.
+    apply_type_inv.
+    hauto lq:on ctrs: step use: canonical_form_weak_obool, woval_wval.
 
   (* [[inj@_<_> _]] *)
-  - sfirstorder use: ovalty_elim_alt.
+  - sfirstorder use: ovalty_elim_alt, val_wval.
 
   (* [_ + _]. This case is impossible. *)
   - enough (<{ *@P }> ⊑ <{ *@O }>) by easy.
@@ -201,11 +346,18 @@ Proof.
   - select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
 Qed.
 
-Theorem progress τ e :
-  Σ; ∅ ⊢ e : τ ->
-  val e \/ exists e', Σ ⊨ e -->! e'.
+Theorem progress_weak l τ e :
+  Σ; ∅ ⊢ e :{l} τ ->
+  wval e \/ exists e', Σ ⊨ e -->! e'.
 Proof.
   hauto use: progress_.
+Qed.
+
+Theorem progress τ e :
+  Σ; ∅ ⊢ e :{⊥} τ ->
+  val e \/ exists e', Σ ⊨ e -->! e'.
+Proof.
+  hauto use: progress_, wval_val.
 Qed.
 
 End progress.
