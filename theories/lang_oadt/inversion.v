@@ -339,6 +339,12 @@ Lemma type_inv_case Γ l e0 e1 e2 τ :
     Σ ⊢ τ ≡ τ'^e0.
 Proof.
   type_inv_solver.
+
+  all : intros;
+    lazymatch goal with
+    | H : _; _ ⊢ ?τ :: _ |- _ =>
+      rewrite (open_lc_intro τ) by eauto using kinding_lc
+    end; eauto; equiv_naive_solver.
 Qed.
 
 Lemma type_inv_ocase Γ l e0 e1 e2 τ :
@@ -399,15 +405,20 @@ Qed.
 
 Lemma type_inv_ite Γ l e0 e1 e2 τ :
   Σ; Γ ⊢ if e0 then e1 else e2 :{l} τ ->
-  exists l0 l1 l2 τ' κ,
+  exists l0 l1 l2 τ',
     Σ; Γ ⊢ e0 :{l0} 𝔹 /\
     Σ; Γ ⊢ e1 :{l1} τ'^(lit true) /\
     Σ; Γ ⊢ e2 :{l2} τ'^(lit false) /\
-    Σ; Γ ⊢ τ'^e0 :: κ /\
     l0 ⊔ l1 ⊔ l2 ⊑ l /\
     Σ ⊢ τ ≡ τ'^e0.
 Proof.
   type_inv_solver.
+
+  all :
+    lazymatch goal with
+    | H : _; _ ⊢ _ : ?τ |- _ =>
+      rewrite (open_lc_intro τ) by eauto using typing_type_lc
+    end; eauto; try equiv_naive_solver.
 Qed.
 
 Lemma type_inv_oite Γ l e0 e1 e2 τ :

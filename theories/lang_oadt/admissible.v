@@ -266,12 +266,12 @@ Section typing_kinding_intro.
     typing_intro_solver.
   Qed.
 
-  Lemma TCase_intro Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
-    <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x) ->
-    <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x) ->
-    Γ ⊢ e0 :{l0} τ1 + τ2 ->
+  Lemma TCase_intro Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
+    <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x) ->
+    <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x) ->
+    Γ ⊢ e0 :{⊥} τ1 + τ2 ->
     Γ ⊢ τ^e0 :: κ ->
-    l = l0 ⊔ l1 ⊔ l2 ->
+    l = l1 ⊔ l2 ->
     x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ case e0 of e1 | e2 :{l} τ^e0.
   Proof.
@@ -279,6 +279,18 @@ Section typing_kinding_intro.
 
     all : simpl; rewrite decide_True by eauto;
       rewrite !subst_fresh by fast_set_solver!!; eauto.
+  Qed.
+
+  Lemma TCaseNoDep_intro Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
+    <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ ->
+    <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ ->
+    Γ ⊢ e0 :{l0} τ1 + τ2 ->
+    Γ ⊢ τ :: κ ->
+    l = l0 ⊔ l1 ⊔ l2 ->
+    x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+    Γ ⊢ case e0 of e1 | e2 :{l} τ.
+  Proof.
+    typing_intro_solver.
   Qed.
 
   Lemma TOCase_intro Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ x :
@@ -335,65 +347,67 @@ uses the admissible rules. It also fails rather than applying [TConv]
 blindly. *)
 (* NOTE: it would be great if [econstructor] can apply all but some
 constructors. *)
-Ltac typing_intro_ Σ T :=
-  lazymatch T with
-  | Σ; _ ⊢ fvar _ : _ => eapply TFVar
-  | Σ; _ ⊢ gvar _ : _ => eapply TGVar
-  | Σ; _ ⊢ \:{_}_ => _ : _ => eapply TAbs_intro
-  | Σ; _ ⊢ let _ in _ : _ => eapply TLet_intro
-  | Σ; _ ⊢ _ _ : _ => eapply TApp
-  | Σ; _ ⊢ () : _ => eapply TUnit
-  | Σ; _ ⊢ lit _ : _ => eapply TLit
-  | Σ; _ ⊢ s𝔹 _ : _ => eapply TSec
-  | Σ; _ ⊢ (_, _) : _ => eapply TPair
-  | Σ; _ ⊢ ~if _ then _ else _ : _ => eapply TOIte
-  | Σ; _ ⊢ π@_ _ : _ => eapply TProj
-  | Σ; _ ⊢ inj@_<_> _ : _ => eapply TInj
-  | Σ; _ ⊢ ~inj@_<_> _ : _ => eapply TOInj
-  | Σ; _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
-  | Σ; _ ⊢ fold<_> _ : _ => eapply TFold
-  | Σ; _ ⊢ unfold<_> _ : _ => eapply TUnfold
-  | Σ; _ ⊢ if _ then _ else _ : _ => eapply TIte
-  | Σ; _ ⊢ case _ of _ | _ : _ => eapply TCase_intro
-  | Σ; _ ⊢ tape _ : _ => eapply TTape
-  | Σ; _ ⊢ mux _ _ _ : _ => eapply TMux
-  | Σ; _ ⊢ [_] : _ => eapply TBoxedLit
-  | Σ; _ ⊢ [inj@_<_> _] : _ => eapply TBoxedInj
-  | Σ; _ ⊢ ?e : ?τ => is_var e; assert_fails (is_evar τ); eapply TConv
+Ltac typing_intro_ :=
+  lazymatch goal with
+  | |- _; _ ⊢ fvar _ : _ => eapply TFVar
+  | |- _; _ ⊢ gvar _ : _ => eapply TGVar
+  | |- _; _ ⊢ \:{_}_ => _ : _ => eapply TAbs_intro
+  | |- _; _ ⊢ let _ in _ : _ => eapply TLet_intro
+  | |- _; _ ⊢ _ _ : _ => eapply TApp
+  | |- _; _ ⊢ () : _ => eapply TUnit
+  | |- _; _ ⊢ lit _ : _ => eapply TLit
+  | |- _; _ ⊢ s𝔹 _ : _ => eapply TSec
+  | |- _; _ ⊢ (_, _) : _ => eapply TPair
+  | |- _; _ ⊢ ~if _ then _ else _ : _ => eapply TOIte
+  | |- _; _ ⊢ π@_ _ : _ => eapply TProj
+  | |- _; _ ⊢ inj@_<_> _ : _ => eapply TInj
+  | |- _; _ ⊢ ~inj@_<_> _ : _ => eapply TOInj
+  | |- _; _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
+  | |- _; _ ⊢ fold<_> _ : _ => eapply TFold
+  | |- _; _ ⊢ unfold<_> _ : _ => eapply TUnfold
+  | H : _; _ ⊢ ?e :{⊥} _ |- _; _ ⊢ if ?e then _ else _ : _ => eapply TIte
+  | |- _; _ ⊢ if _ then _ else _ : _ => eapply TIteNoDep
+  | H : _; _ ⊢ ?e :{⊥} _ |- _; _ ⊢ case ?e of _ | _ : _ => eapply TCase_intro
+  | |- _; _ ⊢ case _ of _ | _ : _ => eapply TCaseNoDep_intro
+  | |- _; _ ⊢ tape _ : _ => eapply TTape
+  | |- _; _ ⊢ mux _ _ _ : _ => eapply TMux
+  | |- _; _ ⊢ [_] : _ => eapply TBoxedLit
+  | |- _; _ ⊢ [inj@_<_> _] : _ => eapply TBoxedInj
+  | |- _; _ ⊢ ?e : ?τ => is_var e; assert_fails (is_evar τ); eapply TConv
   end.
 
-Ltac kinding_intro_ Σ T :=
-  lazymatch T with
-  | Σ; _ ⊢ gvar _ :: _ => eapply KVarADT
-  | Σ; _ ⊢ 𝟙 :: _ => eapply KUnit
-  | Σ; _ ⊢ 𝔹{_} :: _ => eapply KBool
-  | Σ; _ ⊢ Π:{_}_, _ :: _ => eapply KPi_intro
-  | Σ; _ ⊢ (gvar _) _ :: _ => eapply KApp
-  | Σ; _ ⊢ _ * _ :: _ => eapply KProd_intro
-  | Σ; _ ⊢ _ + _ :: _ => eapply KSum
-  | Σ; _ ⊢ _ ~+ _ :: _ => eapply KOSum
-  | Σ; _ ⊢ if _ then _ else _ :: _ => eapply KIte
-  | Σ; _ ⊢ case _ of _ | _ :: _ => eapply KCase_intro
-  | Σ; _ ⊢ let _ in _ :: _ => eapply KLet_intro
-  | Σ; _ ⊢ ?τ :: _ => is_var τ; eapply KSub
+Ltac kinding_intro_ :=
+  lazymatch goal with
+  | |- _; _ ⊢ gvar _ :: _ => eapply KVarADT
+  | |- _; _ ⊢ 𝟙 :: _ => eapply KUnit
+  | |- _; _ ⊢ 𝔹{_} :: _ => eapply KBool
+  | |- _; _ ⊢ Π:{_}_, _ :: _ => eapply KPi_intro
+  | |- _; _ ⊢ (gvar _) _ :: _ => eapply KApp
+  | |- _; _ ⊢ _ * _ :: _ => eapply KProd_intro
+  | |- _; _ ⊢ _ + _ :: _ => eapply KSum
+  | |- _; _ ⊢ _ ~+ _ :: _ => eapply KOSum
+  | |- _; _ ⊢ if _ then _ else _ :: _ => eapply KIte
+  | |- _; _ ⊢ case _ of _ | _ :: _ => eapply KCase_intro
+  | |- _; _ ⊢ let _ in _ :: _ => eapply KLet_intro
+  | |- _; _ ⊢ ?τ :: ?κ => is_var τ; assert_fails (is_evar κ); eapply KSub
   end.
 
 Tactic Notation "typing_kinding_intro_" tactic3(tac) :=
   match goal with
-  | H : gctx_wf ?Σ |- ?T =>
-    tac Σ T;
+  | H : gctx_wf ?Σ |- _ =>
+    tac;
     try match goal with
         | |- gctx_wf Σ => apply H
         end
   end.
 
-Tactic Notation "typing_intro" :=
-  typing_kinding_intro_ (fun Σ T => typing_intro_ Σ T).
+Ltac typing_intro :=
+  typing_kinding_intro_ typing_intro_.
 
-Tactic Notation "kinding_intro" :=
-  typing_kinding_intro_ (fun Σ T => kinding_intro_ Σ T).
+Ltac kinding_intro :=
+  typing_kinding_intro_ kinding_intro_.
 
-Tactic Notation "typing_kinding_intro" :=
+Ltac typing_kinding_intro :=
   lazymatch goal with
   | |- _; _ ⊢ _ : _ => typing_intro
   | |- _; _ ⊢ _ :: _ => kinding_intro

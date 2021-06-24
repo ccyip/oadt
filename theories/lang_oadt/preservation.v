@@ -386,23 +386,25 @@ Proof.
   scongruence.
 Qed.
 
-Lemma subst_equiv_ Σ x l' τ1 τ2 :
+Lemma subst_conv_ Σ x l1 l2 τ1 τ2 :
   gctx_wf Σ ->
   Σ ⊢ τ1 ≡ τ2 ->
   (forall Γ' e l τ,
       Σ; Γ' ⊢ e :{l} τ ->
       forall Γ κ',
-        Γ' = <[x:=(l', τ1)]>Γ ->
+        Γ' = <[x:=(l1, τ1)]>Γ ->
         x ∉ dom aset Γ ->
         Σ; Γ ⊢ τ2 :: κ' ->
-        Σ; (<[x:=(l', τ2)]>Γ) ⊢ e :{l} τ) /\
+        l2 ⊑ l1 ->
+        Σ; (<[x:=(l2, τ2)]>Γ) ⊢ e :{l} τ) /\
   (forall Γ' τ κ,
       Σ; Γ' ⊢ τ :: κ ->
       forall Γ κ',
-        Γ' = <[x:=(l', τ1)]>Γ ->
+        Γ' = <[x:=(l1, τ1)]>Γ ->
         x ∉ dom aset Γ ->
         Σ; Γ ⊢ τ2 :: κ' ->
-        Σ; (<[x:=(l', τ2)]>Γ) ⊢ τ :: κ).
+        l2 ⊑ l1 ->
+        Σ; (<[x:=(l2, τ2)]>Γ) ⊢ τ :: κ).
 Proof.
   intros Hwf Heq.
   apply typing_kinding_mutind; intros; subst;
@@ -415,11 +417,12 @@ Proof.
     simpl_cofin?;
     repeat
       match goal with
-      | H : forall _ _, _ -> _ -> _ -> _ |- _ =>
+      | H : forall _ _, _ -> _ -> _ -> _ -> _ |- _ =>
         efeed specialize H;
           [ try reflexivity; rewrite insert_commute by shelve; reflexivity
           | fast_set_solver!!
           | eauto using kinding_weakening_insert
+          | solve [eauto]
           | .. ];
           try rewrite insert_commute in H by shelve
       end;
@@ -456,26 +459,28 @@ Proof.
   all : try fast_set_solver!!; simpl_fv; fast_set_solver!!.
 Qed.
 
-Lemma subst_equiv Σ Γ e l τ κ' x l' τ1 τ2 :
+Lemma subst_conv Σ Γ e l τ κ' x l1 l2 τ1 τ2 :
   gctx_wf Σ ->
-  Σ; (<[x:=(l', τ1)]>Γ) ⊢ e :{l} τ ->
+  Σ; (<[x:=(l1, τ1)]>Γ) ⊢ e :{l} τ ->
   Σ; Γ ⊢ τ2 :: κ' ->
   Σ ⊢ τ1 ≡ τ2 ->
+  l2 ⊑ l1 ->
   x ∉ dom aset Γ ->
-  Σ; (<[x:=(l', τ2)]>Γ) ⊢ e :{l} τ.
+  Σ; (<[x:=(l2, τ2)]>Γ) ⊢ e :{l} τ.
 Proof.
-  hauto use: subst_equiv_.
+  hauto use: subst_conv_.
 Qed.
 
-Lemma kinding_subst_equiv Σ Γ τ κ κ' x l' τ1 τ2 :
+Lemma kinding_subst_conv Σ Γ τ κ κ' x l1 l2 τ1 τ2 :
   gctx_wf Σ ->
-  Σ; (<[x:=(l', τ1)]>Γ) ⊢ τ :: κ ->
+  Σ; (<[x:=(l1, τ1)]>Γ) ⊢ τ :: κ ->
   Σ; Γ ⊢ τ2 :: κ' ->
   Σ ⊢ τ1 ≡ τ2 ->
+  l2 ⊑ l1 ->
   x ∉ dom aset Γ ->
-  Σ; (<[x:=(l', τ2)]>Γ) ⊢ τ :: κ.
+  Σ; (<[x:=(l2, τ2)]>Γ) ⊢ τ :: κ.
 Proof.
-  hauto use: subst_equiv_.
+  hauto use: subst_conv_.
 Qed.
 
 (** ** Preservation *)
@@ -555,26 +560,28 @@ Proof.
     lemmas. *)
     simpl_cofin?;
     simplify_eq;
-    (* Main solver. But delay some trickier proofs. *)
+    (* Main solver. But delay the trickier case of taping pair. *)
     first [ goal_contains <{ (tape _, tape _) }>
-          | goal_contains <{ ~if _ then (if _ then _ else _) else _ }>; admit
-          | goal_contains <{ ~if _ then (case _ of _ | _) else _ }>; admit
-          | repeat
+          (* For some reason, the case of abstraction stops early. My best guess
+          is it fails due to evars but then solves other goals and instantiates
+          the evars, but does not go back to solve the previously failing
+          goal. For now I use [do 2] to force it to continue. *)
+          | do 2 repeat
               (try case_ite_expr;
                eauto;
                match goal with
                (* Replace the types in context with an equivalent ones. *)
-               | |- _; (<[_:=_]>_) ⊢ _ : _ =>
-                 eapply subst_equiv
+               | H : _; (<[_:=_]>_) ⊢ _ :{?l} _ |- _; (<[_:=_]>_) ⊢ _ :{?l} _ =>
+                 eapply subst_conv
                | |- _; (<[_:=_]>_) ⊢ _ :: _ =>
-                 eapply kinding_subst_equiv
+                 eapply kinding_subst_conv
                (* Apply substitution/open lemmas. *)
-               | H : _; _ ⊢ ?e^(fvar _) : ?τ |- _; _ ⊢ ?e^_ : ?τ =>
+               | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) : ?τ |- _; ?Γ ⊢ ?e^_ : ?τ =>
                  eapply open_preservation_lc
-               | H : _; _ ⊢ ?e^(fvar _) : _^(fvar _) |- _; _ ⊢ ?e^_ : _ =>
+               | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) : _^(fvar _) |- _; ?Γ ⊢ ?e^_ : _ =>
                  eapply open_preservation
                (* This is for the dependent case expression. *)
-               | H : _; _ ⊢ ?e^(fvar _) : _^_ |- _; _ ⊢ ?e^_ : _ =>
+               | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) : _^_ |- _; ?Γ ⊢ ?e^_ : _ =>
                  eapply open_preservation_alt
                | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) :: _ |- _; ?Γ ⊢ ?e^_ :: _ =>
                  eapply kinding_open_preservation
@@ -584,7 +591,7 @@ Proof.
                | |- _; _ ⊢ _ : ?τ =>
                  assert_fails is_evar τ; eapply TConv
                (* Apply kinding rules. *)
-               | |- _; _ ⊢ _ :: _ =>
+               | |- _; _ ⊢ _ :: ?κ =>
                  eauto using kinding_weakening_empty; kinding_intro
                (* Solve equivalence. *)
                | |- _ ⊢ _ ≡ _ =>
@@ -662,7 +669,7 @@ Proof.
   Unshelve.
 
   all : fast_set_solver!!.
-Admitted.
+Qed.
 
 Lemma pared_preservation Σ Γ e l e' τ :
   gctx_wf Σ ->
