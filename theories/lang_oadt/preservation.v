@@ -562,17 +562,15 @@ Proof.
     simplify_eq;
     (* Main solver. But delay the trickier case of taping pair. *)
     first [ goal_contains <{ (tape _, tape _) }>
-          (* For some reason, the case of abstraction stops early. My best guess
-          is it fails due to evars but then solves other goals and instantiates
-          the evars, but does not go back to solve the previously failing
-          goal. For now I use [do 2] to force it to continue. *)
-          | do 2 repeat
+          | repeat
               (try case_ite_expr;
                eauto;
                match goal with
                (* Replace the types in context with an equivalent ones. *)
                | H : _; (<[_:=_]>_) ⊢ _ :{?l} _ |- _; (<[_:=_]>_) ⊢ _ :{?l} _ =>
                  eapply subst_conv
+               | |- _; (<[_:=_]>_) ⊢ _ :{?l} _ =>
+                 is_evar l; eapply subst_conv
                | |- _; (<[_:=_]>_) ⊢ _ :: _ =>
                  eapply kinding_subst_conv
                (* Apply substitution/open lemmas. *)
@@ -639,8 +637,8 @@ Proof.
     select! (ovalty _ _) (fun H => apply ovalty_elim in H; simp_hyp H);
     eapply TConv;
     [ eauto using weakening, map_empty_subseteq
-    | eauto
     | equiv_naive_solver
+    | eauto
     | reflexivity ].
 
   (* The case when we tape a pair: [RTapePair] *)

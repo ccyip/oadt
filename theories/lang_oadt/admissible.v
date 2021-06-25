@@ -257,8 +257,8 @@ Section typing_kinding_intro.
   Qed.
 
   Lemma TLet_intro Γ l1 l2 l e1 e2 τ1 τ2 x :
-    <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x ->
     Γ ⊢ e1 :{l1} τ1 ->
+    <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x ->
     l = l1 ⊔ l2 ->
     x ∉ fv e2 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ let e1 in e2 :{l} τ2^e1.
@@ -267,9 +267,9 @@ Section typing_kinding_intro.
   Qed.
 
   Lemma TCase_intro Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
+    Γ ⊢ e0 :{⊥} τ1 + τ2 ->
     <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x) ->
     <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x) ->
-    Γ ⊢ e0 :{⊥} τ1 + τ2 ->
     Γ ⊢ τ^e0 :: κ ->
     l = l1 ⊔ l2 ->
     x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
@@ -282,9 +282,9 @@ Section typing_kinding_intro.
   Qed.
 
   Lemma TCaseNoDep_intro Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
+    Γ ⊢ e0 :{l0} τ1 + τ2 ->
     <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ ->
     <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ ->
-    Γ ⊢ e0 :{l0} τ1 + τ2 ->
     Γ ⊢ τ :: κ ->
     l = l0 ⊔ l1 ⊔ l2 ->
     x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
@@ -294,9 +294,9 @@ Section typing_kinding_intro.
   Qed.
 
   Lemma TOCase_intro Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ x :
+    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
     <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ ->
     <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ ->
-    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
     Γ ⊢ τ :: κ ->
     x ∉ fv e1 ∪ fv e2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ.
@@ -314,9 +314,9 @@ Section typing_kinding_intro.
   Qed.
 
   Lemma KCase_intro Γ e0 τ1 τ2 τ1' τ2' x :
+    Γ ⊢ e0 :{⊥} τ1' + τ2' ->
     <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O ->
     <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O ->
-    Γ ⊢ e0 :{⊥} τ1' + τ2' ->
     x ∉ fv τ1 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ case e0 of τ1 | τ2 :: *@O.
   Proof.
@@ -324,8 +324,8 @@ Section typing_kinding_intro.
   Qed.
 
   Lemma KLet_intro Γ e τ τ' x :
-    <[x:=(⊥, τ')]>Γ ⊢ τ^x :: *@O ->
     Γ ⊢ e :{⊥} τ' ->
+    <[x:=(⊥, τ')]>Γ ⊢ τ^x :: *@O ->
     x ∉ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
     Γ ⊢ let e in τ :: *@O.
   Proof.

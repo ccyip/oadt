@@ -317,8 +317,8 @@ Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
     Γ ⊢ τ2 :: κ ->
     Γ ⊢ \:{l2}τ2 => e :{l1} (Π:{l2}τ2, τ1)
 | TLet Γ l1 l2 l e1 e2 τ1 τ2 L :
-    (forall x, x ∉ L -> <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x) ->
     Γ ⊢ e1 :{l1} τ1 ->
+    (forall x, x ∉ L -> <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x) ->
     l = l1 ⊔ l2 ->
     Γ ⊢ let e1 in e2 :{l} τ2^e1
 | TApp Γ l1 l2 e1 e2 τ1 τ2 :
@@ -358,23 +358,23 @@ Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
     Γ ⊢ τ1 ~+ τ2 :: *@O ->
     Γ ⊢ ~inj@b<τ1 ~+ τ2> e :{⊥} τ1 ~+ τ2
 | TCase Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+    Γ ⊢ e0 :{⊥} τ1 + τ2 ->
     (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x)) ->
     (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x)) ->
-    Γ ⊢ e0 :{⊥} τ1 + τ2 ->
     Γ ⊢ τ^e0 :: κ ->
     l = l1 ⊔ l2 ->
     Γ ⊢ case e0 of e1 | e2 :{l} τ^e0
 | TCaseNoDep Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+    Γ ⊢ e0 :{l0} τ1 + τ2 ->
     (forall x, x ∉ L1 -> <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ) ->
     (forall x, x ∉ L2 -> <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ) ->
-    Γ ⊢ e0 :{l0} τ1 + τ2 ->
     Γ ⊢ τ :: κ ->
     l = l0 ⊔ l1 ⊔ l2 ->
     Γ ⊢ case e0 of e1 | e2 :{l} τ
 | TOCase Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
     (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ) ->
     (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ) ->
-    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
     Γ ⊢ τ :: κ ->
     Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ
 | TPair Γ l1 l2 l e1 e2 τ1 τ2 :
@@ -413,8 +413,8 @@ since they are "encrypted" values. *)
 (** Type conversion *)
 | TConv Γ l l' e τ τ' κ :
     Γ ⊢ e :{l'} τ' ->
-    Γ ⊢ τ :: κ ->
     τ' ≡ τ ->
+    Γ ⊢ τ :: κ ->
     l' ⊑ l ->
     Γ ⊢ e :{l} τ
 
@@ -450,13 +450,13 @@ with kinding : tctx -> expr -> kind -> Prop :=
     Γ ⊢ τ2 :: *@O ->
     Γ ⊢ if e0 then τ1 else τ2 :: *@O
 | KCase Γ e0 τ1 τ2 τ1' τ2' L1 L2 :
+    Γ ⊢ e0 :{⊥} τ1' + τ2' ->
     (forall x, x ∉ L1 -> <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O) ->
     (forall x, x ∉ L2 -> <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O) ->
-    Γ ⊢ e0 :{⊥} τ1' + τ2' ->
     Γ ⊢ case e0 of τ1 | τ2 :: *@O
 | KLet Γ e τ τ' L :
-    (forall x, x ∉ L -> <[x:=(⊥, τ')]>Γ ⊢ τ^x :: *@O) ->
     Γ ⊢ e :{⊥} τ' ->
+    (forall x, x ∉ L -> <[x:=(⊥, τ')]>Γ ⊢ τ^x :: *@O) ->
     Γ ⊢ let e in τ :: *@O
 | KSub Γ τ κ κ' :
     Γ ⊢ τ :: κ' ->
