@@ -81,7 +81,6 @@ Module expr_notations.
 
 (* Adapted from _Software Foundations_. *)
 Coercion ELit : bool >-> expr.
-Coercion EBVar : nat >-> expr.
 Coercion lexpr_expr : lexpr >-> expr.
 
 (* Quote *)
@@ -276,31 +275,6 @@ Notation "[ 'inr' < τ > e ]" := (EBoxedInj false τ e)
                                       τ custom oadt at level 0,
                                       e custom oadt at level 0,
                                       format "[ inr < τ >  e ]").
-
-Notation "D" := D (in custom oadt_def at level 0, D constr at level 0).
-Notation "( D )" := D (in custom oadt_def, D at level 99).
-Notation "'data' X := e" := (X, DADT e) (in custom oadt_def at level 0,
-                                            X constr at level 0,
-                                            e custom oadt at level 99).
-Notation "'obliv' X ( : τ ) := e" := (X, DOADT τ e)
-                                       (in custom oadt_def at level 0,
-                                           X constr at level 0,
-                                           τ custom oadt at level 99,
-                                           e custom oadt at level 99,
-                                           format "obliv  X  ( : τ )  :=  e").
-Notation "'def' x ':{' l '}' τ := e" := (x, DFun (l, τ) e)
-                                          (in custom oadt_def at level 0,
-                                              x constr at level 0,
-                                              τ custom oadt at level 99,
-                                              e custom oadt at level 99,
-                                              format "'def'  x  ':{' l '}'  τ  :=  e").
-Notation "[{ x }]" := (cons x nil)
-                        (x custom oadt_def at level 99).
-Notation "[{ x ; y ; .. ; z }]" := (cons x (cons y .. (cons z nil) ..))
-                                     (x custom oadt_def at level 99,
-                                      y custom oadt_def at level 99,
-                                      z custom oadt_def at level 99,
-                                      format "[{ '[v  ' '/' x ; '/' y ; '/' .. ; '/' z ']' '//' }]").
 
 Notation "'ite' e0 e1 e2" := (if e0 then e1 else e2)
                                (in custom oadt at level 0,
