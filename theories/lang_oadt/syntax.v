@@ -66,9 +66,6 @@ Variant gdef :=
 | DOADT (τ e : expr)
 (* The function may leak if the label is [high]. *)
 | DFun (T : lexpr) (e : expr)
-(* This is for primitive types like integer that are not formalized yet. It is
-not used in semantics or typing, only here for convenience. *)
-| DPrimitive
 .
 
 (** ** Global context (Σ) *)

@@ -821,7 +821,6 @@ Lemma gctx_wf_closed Σ :
                   closed τ
                 | DOADT τ e | DFun (_, τ) e =>
                   closed τ /\ closed e
-                | _ => True
                 end) Σ.
 Proof.
   intros Hwf.
