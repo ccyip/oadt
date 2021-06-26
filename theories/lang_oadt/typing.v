@@ -490,14 +490,14 @@ Reserved Notation "Σ '⊢₁' D" (at level 40,
                                D constr at level 0).
 
 Inductive gdef_typing : gctx -> gdef -> Prop :=
-| TADT Σ X τ :
+| TADT Σ τ :
     Σ; ∅ ⊢ τ :: *@P ->
     Σ ⊢₁ (DADT τ)
-| TOADT Σ X τ e L :
+| TOADT Σ τ e L :
     Σ; ∅ ⊢ τ :: *@P ->
     (forall x, x ∉ L -> Σ; ({[x:=(⊥, τ)]}) ⊢ e^x :: *@O) ->
     Σ ⊢₁ (DOADT τ e)
-| TFun Σ X l τ e κ :
+| TFun Σ l τ e κ :
     Σ; ∅ ⊢ τ :: κ ->
     Σ; ∅ ⊢ e :{l} τ ->
     Σ ⊢₁ (DFun (l, τ) e)
