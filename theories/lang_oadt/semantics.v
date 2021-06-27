@@ -90,6 +90,7 @@ Variant ectx : (expr -> expr) -> Prop :=
 | CtxMux1 e1 e2 : ectx (fun e0 => <{ mux e0 e1 e2 }>)
 | CtxMux2 v0 e2 : wval v0 -> ectx (fun e1 => <{ mux v0 e1 e2 }>)
 | CtxMux3 v0 v1 : wval v0 -> wval v1 -> ectx (fun e2 => <{ mux v0 v1 e2 }>)
+(* A [lectx] is also a [ectx]. *)
 | CtxLeak ℇ : lectx ℇ -> ectx ℇ
 .
 
