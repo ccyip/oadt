@@ -160,3 +160,10 @@ Lemma woval_wval v :
 Proof.
   induction 1; eauto using wval.
 Qed.
+
+Lemma oval_woval v :
+  oval v ->
+  woval v.
+Proof.
+  induction 1; eauto using woval.
+Qed.
