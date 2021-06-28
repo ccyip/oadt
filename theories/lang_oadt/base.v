@@ -13,3 +13,6 @@ Opaque aset.
 
 #[global]
 Opaque is_atom.
+
+Declare Custom Entry oadt.
+Declare Custom Entry oadt_def.
