@@ -24,6 +24,9 @@ Definition r_tree : atom := "r_tree".
 Definition insert : atom := "insert".
 Definition oinsert : atom := "~insert".
 Notation "'~insert'" := (oinsert) (in custom oadt).
+Definition lookup : atom := "lookup".
+Definition olookup : atom := "~lookup".
+Notation "'~lookup'" := (olookup) (in custom oadt).
 
 Definition zero : atom := "zero".
 Definition succ : atom := "succ".
@@ -97,6 +100,20 @@ Definition defs := [{
       then node (($0).1.1, insert $2 ($0).1.2, ($0).2)
       else node (($0).1.1, ($0).1.2, insert $2 ($0).2);
 
+  def lookup :{⊤} Π~:int, Π~:tree, 𝔹 :=
+    \~:int => \~:tree =>
+    case unfold<tree> $0 of
+      false
+    | if $2 <= ($0).1.1
+      then if ($0).1.1 <= $2
+           then true
+           else lookup $2 ($0).1.2
+      else lookup $2 ($0).2;
+
+  def ~lookup :{⊥} Π:~int, Π:nat, Π:~tree $0, ~𝔹 :=
+    \:~int => \:nat => \:~tree $0 =>
+      tape (s𝔹 (lookup (r_int $2) (r_tree $1 $0)));
+
   def ~insert :{⊥} Π:~int, Π:nat, Π:~tree $0, ~tree (succ $1) :=
     \:~int => \:nat => \:~tree $0 =>
       s_tree (insert (r_int $2) (r_tree $1 $0)) (succ $1)
@@ -162,6 +179,72 @@ Defined.
 
 Definition ex_otree_v := ltac:(extract ex_otree_pack).
 Print ex_otree_v.
+
+(* Examples of lookup. *)
+Definition ex_lookup1 :
+  sigT (fun v => Σ ⊨ <{ lookup i(3) ex_tree }> -->* v /\ val v).
+Proof.
+  repeat esplit.
+  eapply mstep_alt_mstep.
+
+  repeat mstep_tac.
+
+  cbn.
+  constructor.
+  repeat step_tac; auto using VIntLit.
+Defined.
+
+Definition ex_lookup1_result := ltac:(extract ex_lookup1).
+Print ex_lookup1_result.
+
+Definition ex_lookup2 :
+  sigT (fun v => Σ ⊨ <{ lookup i(2) ex_tree }> -->* v /\ val v).
+Proof.
+  repeat esplit.
+  eapply mstep_alt_mstep.
+
+  repeat mstep_tac.
+
+  cbn.
+  constructor.
+  repeat step_tac; auto using VIntLit.
+Defined.
+
+Definition ex_lookup2_result := ltac:(extract ex_lookup2).
+Print ex_lookup2_result.
+
+(* Examples of oblivious lookup. *)
+Definition ex_olookup1 :
+  sigT (fun v => Σ ⊨ <{ ~lookup i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+Proof.
+  repeat esplit.
+  eapply mstep_alt_mstep.
+
+  repeat mstep_tac.
+
+  cbn.
+  constructor.
+  repeat step_tac.
+Defined.
+
+Definition ex_olookup1_result := ltac:(extract ex_olookup1).
+Print ex_olookup1_result.
+
+Definition ex_olookup2 :
+  sigT (fun v => Σ ⊨ <{ ~lookup i[2] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+Proof.
+  repeat esplit.
+  eapply mstep_alt_mstep.
+
+  repeat mstep_tac.
+
+  cbn.
+  constructor.
+  repeat step_tac.
+Defined.
+
+Definition ex_olookup2_result := ltac:(extract ex_olookup2).
+Print ex_olookup2_result.
 
 (* An example of insert. *)
 Definition ex_insert :

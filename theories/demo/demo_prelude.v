@@ -627,7 +627,7 @@ Ltac step_tac :=
      eapply OTOInt ||
      eapply SOIntLe ||
      eapply SIntRetLe1 || eapply SIntRetLe2 || eapply SIntRetLe3 ||
-     eapply SIntLe || eapply SCtxIntLe2 || eapply SCtxIntLe1 ||
+     eapply SIntLe || (eapply SCtxIntLe2 + eapply SCtxIntLe1) ||
      eapply SIntSec || eapply SIntSecRet || eapply SCtxIntSec ||
      eapply SIntRetOIte1 || eapply SIntRetOIte2 ||
      eapply SCtxIntRet))).
