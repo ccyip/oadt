@@ -189,7 +189,7 @@ Proof.
 
   repeat mstep_tac.
 
-  cbn.
+  simpl.
   constructor.
   repeat step_tac; auto using VIntLit.
 Defined.
@@ -198,7 +198,7 @@ Definition ex_lookup1_result := ltac:(extract ex_lookup1).
 Print ex_lookup1_result.
 
 Definition ex_lookup2 :
-  sigT (fun v => Σ ⊨ <{ lookup i(2) ex_tree }> -->* v /\ val v).
+  sigT (fun v => Σ ⊨ <{ lookup i(1) ex_tree }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -231,7 +231,7 @@ Definition ex_olookup1_result := ltac:(extract ex_olookup1).
 Print ex_olookup1_result.
 
 Definition ex_olookup2 :
-  sigT (fun v => Σ ⊨ <{ ~lookup i[2] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sigT (fun v => Σ ⊨ <{ ~lookup i[1] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
