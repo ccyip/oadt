@@ -9,8 +9,8 @@ From oadt Require Import demo.demo_prelude.
 
 Import notations int_notations.
 
-(** ** This demo contains the oblivious tree, search and insert functions
-appeared in the paper. *)
+(** This demo contains the oblivious tree, search and insert functions appeared
+in the paper. *)
 
 (* When we write a name, it means global variable. *)
 Coercion EGVar : atom >-> expr.

@@ -9,6 +9,9 @@ From oadt Require Import demo.demo_prelude.
 
 Import notations int_notations.
 
+(** This demo shows that higher-order function also works in this sytem. We use
+ map function as an example. *)
+
 Coercion EGVar : atom >-> expr.
 
 (* Names *)

@@ -9,6 +9,9 @@ From oadt Require Import demo.demo_prelude.
 
 Import notations int_notations.
 
+(** This demo contains some extra oblivious ADT definitions: oblivious list,
+oblivious tree with spine as its bound, etc. *)
+
 Coercion EGVar : atom >-> expr.
 
 (* Names *)

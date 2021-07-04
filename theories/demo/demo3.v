@@ -9,6 +9,10 @@ From oadt Require Import demo.demo_prelude.
 
 Import notations int_notations.
 
+(** This demo contains the definition of an oblivious tree whose bound is the
+upper bound of the number of its vertices. It shows we can have bounds that are
+rather intricate, though this bound is probably not very practical. *)
+
 Coercion EGVar : atom >-> expr.
 
 (* Names *)
