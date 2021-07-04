@@ -17,8 +17,6 @@ primitive integers. *)
 (* Don't understand why Coq doesn't allow me to use the name "prelude.v" even if
 another file with the same name lives in a different path. *)
 
-Arguments open /.
-
 #[local]
 Set Default Proof Using "Type".
 
@@ -245,9 +243,13 @@ End step.
 Section typing_kinding_alt.
 
 Context (Σ : gctx).
-Implicit Types (L : aset).
+Implicit Types (x : atom) (L : aset).
+#[local]
+Coercion EFVar : atom >-> expr.
 
 Import notations.
+
+Arguments open /.
 
 Notation "Γ '⊢' e ':{' l '}' τ" := (Σ; Γ ⊢ e :{l} τ)
                                      (at level 40,
@@ -363,6 +365,312 @@ Proof.
     simpl; rewrite ?open_lc; eauto.
 Qed.
 
+Lemma open_lc_body_ e i s x :
+  lc <{ e^x }> ->
+  i <> 0 ->
+  <{ {i~>s}e }> = e.
+Proof.
+  intros.
+  rewrite (open_lc_) with (i:=0) (s:=x).
+  reflexivity.
+  rewrite open_lc.
+  reflexivity.
+  eauto.
+  eauto.
+Qed.
+
+Lemma open_lc_body e s x :
+  lc <{ e^x }> ->
+  <{ {1~>s}e }> = e.
+Proof.
+  eauto using open_lc_body_.
+Qed.
+
+Lemma pared_equiv_case1 τ1 τ2 τ e :
+  lc e ->
+  lc τ ->
+  lc <{ τ1^e }> ->
+  lc <{ τ2^e }> ->
+  Σ ⊢ case inl<τ> e of τ1 | τ2 ≡ τ1^e.
+Proof.
+  intros.
+  econstructor; eauto.
+  econstructor; eauto.
+  econstructor; eauto.
+  simpl_cofin.
+  econstructor.
+  eapply open_respect_lc; eauto with lc.
+  simpl_cofin.
+  econstructor.
+  eapply open_respect_lc; eauto with lc.
+  econstructor; eauto with lc.
+Qed.
+
+Lemma pared_equiv_case2 τ1 τ2 τ e :
+  lc e ->
+  lc τ ->
+  lc <{ τ1^e }> ->
+  lc <{ τ2^e }> ->
+  Σ ⊢ case inr<τ> e of τ1 | τ2 ≡ τ2^e.
+Proof.
+  intros.
+  econstructor; eauto.
+  econstructor; eauto.
+  econstructor; eauto.
+  simpl_cofin.
+  econstructor.
+  eapply open_respect_lc; eauto with lc.
+  simpl_cofin.
+  econstructor.
+  eapply open_respect_lc; eauto with lc.
+  econstructor; eauto with lc.
+Qed.
+
+Lemma TCase_alt_ Γ l1 l2 l e0 e1 e2 τ1 τ2 τ1' τ2' κ1 κ2 L1 L2 L3 L4 :
+  Γ ⊢ e0 :{⊥} τ1' + τ2' ->
+  (forall x, x ∉ L1 -> <[x:=(⊥, τ1')]>Γ ⊢ e1^x :{l1} τ1^x) ->
+  (forall x, x ∉ L2 -> <[x:=(⊥, τ2')]>Γ ⊢ e2^x :{l2} τ2^x) ->
+  (forall x, x ∉ L3 -> <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O) ->
+  (forall x, x ∉ L4 -> <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O) ->
+  Γ ⊢ τ1' :: κ1 ->
+  Γ ⊢ τ2' :: κ2 ->
+  l = l1 ⊔ l2 ->
+  Γ ⊢ case e0 of e1 | e2 :{l} case e0 of τ1 | τ2.
+Proof.
+  intros.
+  eapply TConv with (τ' := <{ (case $0 of τ1 | τ2)^e0 }>); eauto.
+  eapply TCase; eauto.
+  - dup_hyp H2 (fun H => block_hyp H).
+    dup_hyp H3 (fun H => block_hyp H).
+    simpl_cofin?; simpl.
+    erewrite ?open_lc_body by eauto using kinding_lc.
+    eapply TConv; eauto.
+    symmetry. eapply pared_equiv_case1; eauto with lc.
+    econstructor.
+    econstructor.
+    econstructor.
+    simplify_map_eq. reflexivity.
+    eauto using kinding_weakening_insert.
+    eapply KSum_alt.
+    eauto using kinding_weakening_insert.
+    eauto using kinding_weakening_insert.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+  - dup_hyp H2 (fun H => block_hyp H).
+    dup_hyp H3 (fun H => block_hyp H).
+    simpl_cofin?; simpl.
+    erewrite ?open_lc_body by eauto using kinding_lc.
+    eapply TConv; eauto.
+    symmetry. eapply pared_equiv_case2; eauto with lc.
+    econstructor.
+    econstructor.
+    econstructor.
+    simplify_map_eq. reflexivity.
+    eauto using kinding_weakening_insert.
+    eapply KSum_alt.
+    eauto using kinding_weakening_insert.
+    eauto using kinding_weakening_insert.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+  - simpl.
+    econstructor; eauto.
+    simpl_cofin.
+    erewrite !open_lc_body by eauto using kinding_lc.
+    eauto.
+    simpl_cofin.
+    erewrite !open_lc_body by eauto using kinding_lc.
+    eauto.
+
+  - simpl.
+    simpl_cofin.
+    erewrite !open_lc_body by eauto using kinding_lc.
+    reflexivity.
+  - econstructor; eauto.
+Qed.
+
+Lemma TCase_alt_pi_ Γ l1 l2 l l' e0 e1 e2 τ τ1 τ2 τ1' τ2' κ κ1 κ2 L1 L2 L3 L4 :
+  Γ ⊢ e0 :{⊥} τ1' + τ2' ->
+  (forall x, x ∉ L1 -> <[x:=(⊥, τ1')]>Γ ⊢ e1^x :{l1} Π:{l'}τ1^x, τ) ->
+  (forall x, x ∉ L2 -> <[x:=(⊥, τ2')]>Γ ⊢ e2^x :{l2} Π:{l'}τ2^x, τ) ->
+  (forall x, x ∉ L3 -> <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O) ->
+  (forall x, x ∉ L4 -> <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O) ->
+  Γ ⊢ τ1' :: κ1 ->
+  Γ ⊢ τ2' :: κ2 ->
+  Γ ⊢ τ :: κ ->
+  l = l1 ⊔ l2 ->
+  Γ ⊢ case e0 of e1 | e2 :{l} Π:{l'}case e0 of τ1 | τ2, τ.
+Proof.
+  intros.
+  eapply TConv with (τ' := <{ (Π:{l'}case $0 of τ1 | τ2, τ)^e0 }>); eauto.
+  eapply TCase; eauto.
+  - dup_hyp H2 (fun H => block_hyp H).
+    dup_hyp H3 (fun H => block_hyp H).
+    simpl_cofin?; simpl.
+    erewrite ?open_lc_body by eauto using kinding_lc.
+    rewrite (open_lc τ) by eauto using kinding_lc.
+    eapply TConv; eauto.
+    symmetry.
+    econstructor. econstructor.
+    econstructor. econstructor; eauto with lc.
+    simpl_cofin. econstructor; eauto using kinding_lc.
+    simpl_cofin. econstructor; eauto using kinding_lc.
+    eauto with lc.
+    simpl_cofin. econstructor. simpl. rewrite open_lc by eauto using kinding_lc.
+    eauto using kinding_lc.
+    reflexivity.
+
+    econstructor.
+    simpl_cofin.
+    simpl. rewrite open_lc by eauto using kinding_lc.
+    eapply kinding_weakening_insert; eauto.
+    eapply kinding_weakening_insert; eauto.
+    fast_set_solver!!.
+    econstructor.
+    econstructor.
+    econstructor.
+    simplify_map_eq. reflexivity.
+    eauto using kinding_weakening_insert.
+    eapply KSum_alt.
+    eauto using kinding_weakening_insert.
+    eauto using kinding_weakening_insert.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+  - dup_hyp H2 (fun H => block_hyp H).
+    dup_hyp H3 (fun H => block_hyp H).
+    simpl_cofin?; simpl.
+    erewrite ?open_lc_body by eauto using kinding_lc.
+    rewrite (open_lc τ) by eauto using kinding_lc.
+    eapply TConv; eauto.
+    symmetry.
+    econstructor. econstructor.
+    econstructor. econstructor; eauto with lc.
+    simpl_cofin. econstructor; eauto using kinding_lc.
+    simpl_cofin. econstructor; eauto using kinding_lc.
+    eauto with lc.
+    simpl_cofin. econstructor. simpl. rewrite open_lc by eauto using kinding_lc.
+    eauto using kinding_lc.
+    reflexivity.
+
+    econstructor.
+    simpl_cofin.
+    simpl. rewrite open_lc by eauto using kinding_lc.
+    eapply kinding_weakening_insert; eauto.
+    eapply kinding_weakening_insert; eauto.
+    fast_set_solver!!.
+    econstructor.
+    econstructor.
+    econstructor.
+    simplify_map_eq. reflexivity.
+    eauto using kinding_weakening_insert.
+    eapply KSum_alt.
+    eauto using kinding_weakening_insert.
+    eauto using kinding_weakening_insert.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+    unblock_hyps.
+    simpl_cofin?; simpl.
+    rewrite insert_commute by fast_set_solver!!.
+    eapply kinding_weakening_insert.
+    eauto. fast_set_solver!!.
+
+  - simpl.
+    econstructor; eauto.
+    simpl_cofin. simpl.
+    rewrite !(open_lc τ) by eauto using kinding_lc.
+    eapply kinding_weakening_insert; eauto.
+    econstructor; eauto.
+    simpl_cofin.
+    erewrite !open_lc_body by eauto using kinding_lc.
+    eauto.
+    simpl_cofin.
+    erewrite !open_lc_body by eauto using kinding_lc.
+    eauto.
+
+  - simpl.
+    simpl_cofin.
+    erewrite !open_lc_body by eauto using kinding_lc.
+    rewrite open_lc by eauto using kinding_lc.
+    reflexivity.
+  - econstructor; eauto.
+    simpl_cofin.
+    simpl. rewrite open_lc by eauto using kinding_lc.
+    eapply kinding_weakening_insert; eauto.
+    econstructor; eauto.
+Qed.
+
+Lemma TCase_alt Γ l1 l2 l e0 e1 e2 τ1 τ2 τ1' τ2' κ1 κ2 L1 L2 L3 L4 :
+  Γ ⊢ e0 :{⊥} τ1' + τ2' ->
+  (forall x, x ∉ L1 -> exists τ', <[x:=(⊥, τ1')]>Γ ⊢ e1^#x :{l1} τ' /\ lc τ' /\ τ1 = close x τ') ->
+  (forall x, x ∉ L2 -> exists τ', <[x:=(⊥, τ2')]>Γ ⊢ e2^#x :{l2} τ' /\ lc τ' /\ τ2 = close x τ') ->
+  (forall x, x ∉ L3 -> <[x:=(⊥, τ1')]>Γ ⊢ τ1^#x :: *@O) ->
+  (forall x, x ∉ L4 -> <[x:=(⊥, τ2')]>Γ ⊢ τ2^#x :: *@O) ->
+  Γ ⊢ τ1' :: κ1 ->
+  Γ ⊢ τ2' :: κ2 ->
+  l = l1 ⊔ l2 ->
+  Γ ⊢ case e0 of e1 | e2 :{l} case e0 of τ1 | τ2.
+Proof.
+  intros.
+  eapply TCase_alt_; eauto.
+  simpl_cofin. simp_hyps. subst. rewrite open_close; eauto.
+  simpl_cofin. simp_hyps. subst. rewrite open_close; eauto.
+Qed.
+
+Lemma TCase_alt_pi Γ l1 l2 l l' e0 e1 e2 τ τ1 τ2 τ1' τ2' κ κ1 κ2 L1 L2 L3 L4 :
+  Γ ⊢ e0 :{⊥} τ1' + τ2' ->
+  (forall x, x ∉ L1 -> exists τ', <[x:=(⊥, τ1')]>Γ ⊢ e1^x :{l1} Π:{l'}τ', τ /\ lc τ' /\ τ1 = close x τ') ->
+  (forall x, x ∉ L2 -> exists τ', <[x:=(⊥, τ2')]>Γ ⊢ e2^x :{l2} Π:{l'}τ', τ /\ lc τ' /\ τ2 = close x τ') ->
+  (forall x, x ∉ L3 -> <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O) ->
+  (forall x, x ∉ L4 -> <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O) ->
+  Γ ⊢ τ1' :: κ1 ->
+  Γ ⊢ τ2' :: κ2 ->
+  Γ ⊢ τ :: κ ->
+  l = l1 ⊔ l2 ->
+  Γ ⊢ case e0 of e1 | e2 :{l} Π:{l'}case e0 of τ1 | τ2, τ.
+Proof.
+  intros.
+  eapply TCase_alt_pi_; eauto.
+  simpl_cofin. simp_hyps. eauto. subst. rewrite open_close; eauto.
+  simpl_cofin. simp_hyps. eauto. subst. rewrite open_close; eauto.
+Qed.
+
 Lemma pared_equiv_oadtapp X τ e1 e1' e2 :
   Σ !! X = Some (DOADT τ e1) ->
   lc e2 ->
@@ -450,11 +758,11 @@ Axiom SCtxIntSec : forall e e', e -->! e' -> <{ s_int e }> -->! <{ s_int e' }>.
 Axiom SCtxIntRet : forall e e', e -->! e' -> <{ r_int e }> -->! <{ r_int e' }>.
 Axiom SIntSec : forall m, <{ s_int i(m) }> -->! <{ i[m] }>.
 Axiom SIntSecRet : forall m, <{ s_int (r_int i[m]) }> -->! <{ i[m] }>.
-Axiom SIntRetOIte1 : forall b v1 v2 e2,
+Axiom SIntLeOIte1 : forall b v1 v2 e2,
     wval v1 -> wval v2 -> wval e2 ->
     <{ (~if [b] then v1 else v2) <= e2 }> -->!
       <{ ~if [b] then (v1 <= e2) else (v2 <= e2) }>.
-Axiom SIntRetOIte2 : forall b v1 v2 m,
+Axiom SIntLeOIte2 : forall b v1 v2 m,
     wval v1 -> wval v2 ->
     <{ i(m) <= (~if [b] then v1 else v2) }> -->!
       <{ ~if [b] then (i(m) <= v2) else (i(m) <= v2) }>.
@@ -612,8 +920,8 @@ Hint Rewrite open_int open_intle open_intsec open_intret open_lit open_boxedlit
 
 Ltac simpl_open :=
   unfold open; fold open_; simpl open_;
-  (* Slightly faster than autorewrite *)
-  rewrite ?open_int, ?open_intle, ?open_intsec, ?open_intret, ?open_lit, ?open_boxedlit.
+  (* rewrite ?open_int, ?open_intle, ?open_intsec, ?open_intret, ?open_lit, ?open_boxedlit. *)
+  autorewrite with open.
 
 Ltac simpl_ovalty :=
   simpl ovalty_val;
@@ -629,7 +937,7 @@ Ltac step_tac :=
      eapply SIntRetLe1 || eapply SIntRetLe2 || eapply SIntRetLe3 ||
      eapply SIntLe || (eapply SCtxIntLe2 + eapply SCtxIntLe1) ||
      eapply SIntSec || eapply SIntSecRet || eapply SCtxIntSec ||
-     eapply SIntRetOIte1 || eapply SIntRetOIte2 ||
+     eapply SIntLeOIte1 || eapply SIntLeOIte2 ||
      eapply SCtxIntRet))).
 
 Ltac mstep_tac :=
@@ -644,6 +952,10 @@ Ltac typing_tac :=
     eapply TConv; [ eapply TIte_alt_pi with (τ := τ') | .. ]
   | |- _; _ ⊢ if _ then _ else _ : _ _ =>
     eapply TConv; [ eapply TIte_alt | .. ]
+  | |- _; _ ⊢ case _ of _ | _ : Π:{_}_ _, ?τ' =>
+    eapply TConv; [ eapply TCase_alt_pi with (τ := τ') | .. ]
+  | |- _; _ ⊢ case _ of _ | _ : _ _ =>
+    eapply TConv; [ eapply TCase_alt | .. ]
   | |- _; _ ⊢ _ : _ => typing_intro
   | |- _; _ ⊢ _ :: _ => kinding_intro
   | |- _ ⊢₁ _ => econstructor
@@ -656,5 +968,9 @@ Ltac typing_tac :=
   | |- _ ⊢ _ ≡ _ _ => symmetry
   | |- _ ⊢ _ _ ≡ _ => eapply pared_equiv_oadtapp
   | |- forall _, _ ∉ _ -> _ => simpl_cofin || simpl_cofin (∅ : aset)
-  | |- lc _ => eauto with lc
+  | |- lc _ => solve [ repeat econstructor | eauto 10 with lc ]
+  | |- exists _, _ => repeat esplit
+  | |- _ = close _ _ =>
+    unfold close; simpl close_;
+    rewrite ?decide_True by auto; reflexivity
   end.

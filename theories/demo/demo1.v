@@ -9,12 +9,25 @@ From oadt Require Import demo.demo_prelude.
 
 Import notations int_notations.
 
+(** ** This demo contains the oblivious tree, search and insert functions
+appeared in the paper. *)
+
 (* When we write a name, it means global variable. *)
 Coercion EGVar : atom >-> expr.
 
 (* Names *)
 Definition nat : atom := "nat".
 Definition tree : atom := "tree".
+
+(* Define introduction/elimination as notations for convenience.
+Alternatively, we can also define them directly inside lambda oadt. *)
+Notation "'zero'" := <{ fold<nat> (inl<𝟙 + @nat> ()) }>
+                     (in custom oadt).
+Notation "'succ' e" := <{ fold<nat> (inr<𝟙 + @nat> e) }>
+                       (in custom oadt at level 1,
+                           e custom oadt at level 0).
+
+
 Definition is_zero : atom := "is_zero".
 Definition pred : atom := "pred".
 Definition otree : atom := "~tree".
@@ -28,18 +41,6 @@ Definition lookup : atom := "lookup".
 Definition olookup : atom := "~lookup".
 Notation "'~lookup'" := (olookup) (in custom oadt).
 
-Definition zero : atom := "zero".
-Definition succ : atom := "succ".
-Definition leaf : atom := "leaf".
-Definition node : atom := "node".
-
-(* Define introduction/elimination as notations for convenience.
-Alternatively, we can also define them directly inside lambda oadt. *)
-Notation "'zero'" := <{ fold<nat> (inl<𝟙 + @nat> ()) }>
-                     (in custom oadt).
-Notation "'succ' e" := <{ fold<nat> (inr<𝟙 + @nat> e) }>
-                       (in custom oadt at level 1,
-                           e custom oadt at level 0).
 Notation "'leaf'" := <{ fold<tree> (inl<𝟙 + int * @tree * @tree> ()) }>
                      (in custom oadt).
 Notation "'node' e" := <{ fold<tree> (inr<𝟙 + int * @tree * @tree> e) }>
