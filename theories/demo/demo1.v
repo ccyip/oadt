@@ -190,7 +190,7 @@ Proof.
 
   repeat mstep_tac.
 
-  simpl.
+  cbn.
   constructor.
   repeat step_tac; auto using VIntLit.
 Defined.
