@@ -822,6 +822,9 @@ Axiom WIntRet : forall m, wval <{ r_int i[m] }>.
 
 Axiom ovalty_val_oint : ovalty_val <{ ~int }> = <{ i[0] }>.
 
+(* lc. *)
+Axiom lc_int : forall l, lc <{ int{l} }>.
+
 (* Opening. *)
 Axiom open_int : forall k s l, <{ {k~>s}int{l} }> = <{ int{l} }>.
 Axiom open_intle : forall k s l e1 e2, <{ {k~>s}(e1 <={l} e2) }> = <{ ({k~>s}e1) <={l} ({k~>s}e2) }>.
@@ -829,6 +832,9 @@ Axiom open_intsec : forall k s e, <{ {k~>s}(s_int e) }> = <{ s_int ({k~>s}e) }>.
 Axiom open_intret : forall k s e, <{ {k~>s}(r_int e) }> = <{ r_int ({k~>s}e) }>.
 Axiom open_lit : forall k s n, <{ {k~>s}(i(n)) }> = <{ i(n) }>.
 Axiom open_boxedlit : forall k s n, <{ {k~>s}(i[n]) }> = <{ i[n] }>.
+
+(* Closing. *)
+Axiom close_int : forall i x l, close_ i x <{ int{l} }> = <{ int{l} }>.
 
 End int_axioms.
 
@@ -968,9 +974,9 @@ Ltac typing_tac :=
   | |- _ ⊢ _ ≡ _ _ => symmetry
   | |- _ ⊢ _ _ ≡ _ => eapply pared_equiv_oadtapp
   | |- forall _, _ ∉ _ -> _ => simpl_cofin || simpl_cofin (∅ : aset)
-  | |- lc _ => solve [ repeat econstructor | eauto 10 with lc ]
+  | |- lc _ => solve [ repeat econstructor; eauto using lc_int | eauto 10 with lc ]
   | |- exists _, _ => repeat esplit
   | |- _ = close _ _ =>
     unfold close; simpl close_;
-    rewrite ?decide_True by auto; reflexivity
+    rewrite ?decide_True by auto; rewrite ?close_int; reflexivity
   end.
