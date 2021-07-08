@@ -8,3 +8,8 @@
 - [coq-hammer-tactics](https://coqhammer.github.io) (1.3.1+8.12)
 
 All dependencies can be easily installed via opam.
+
+## Building
+
+Run `make` in the top-level directory. Demos ("theories/demo/demo?.v") are not
+compiled by default, but they can be stepped over after building the project.
