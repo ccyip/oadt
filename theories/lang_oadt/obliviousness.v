@@ -88,7 +88,7 @@ Lemma indistinguishable_wval_ v v' :
   lc v' ->
   wval v'.
 Proof.
-  induction 1; intros; hauto l: on ctrs: wval inv: wval, lc.
+  induction 1; intros; hauto l: on ctrs: wval inv: wval, lc, indistinguishable.
 Qed.
 
 Lemma indistinguishable_wval v v' Σ Γ l τ :
@@ -107,10 +107,13 @@ Lemma indistinguishable_wval_is_nf Σ v v' :
 Proof.
   intros H. revert v'.
   induction H; intros ?? [];
-    select (_ ≈ _) (fun H => sinvert H);
-    select (_ ⊨ _ -->! _) (fun H => sinvert H);
-    repeat apply_ectx_inv;
-    simplify_eq; eauto; sfirstorder.
+    repeat match goal with
+           | H : ?e ≈ _ |- _ => head_constructor e; sinvert H
+           | H : _ ⊨ ?e -->! _ |- _ =>
+             head_constructor e; sinvert H;
+               repeat apply_ectx_inv; simplify_eq
+           end;
+    eauto; sfirstorder.
 Qed.
 
 Lemma indistinguishable_otval_is_nf Σ ω ω' :

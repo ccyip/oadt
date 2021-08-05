@@ -168,11 +168,6 @@ Ltac canonical_form_weak_solver :=
   apply_type_inv;
   apply_kind_inv;
   try simpl_whnf_equiv;
-  try match goal with
-      | Hv : wval ?v, Ht : _; _ ⊢ ?v :{⊥} ~𝔹 |- _ =>
-        eapply canonical_form_obool in Ht;
-        [ simp_hyp Ht | eauto using wval_val ]
-      end; subst;
   simplify_eq;
   eauto 10.
 
@@ -332,8 +327,6 @@ Proof.
       [ | hauto solve: ctx_solver ctrs: step ].
     select (wval _) (fun H => eapply wval_woval in H; eauto; sinvert H);
       eauto using step.
-    apply_type_inv.
-    hauto lq:on ctrs: step use: canonical_form_weak_obool, woval_wval.
 
   (* [[inj@_<_> _]] *)
   - sfirstorder use: ovalty_elim_alt, val_wval.

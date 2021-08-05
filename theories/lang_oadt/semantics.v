@@ -17,9 +17,9 @@ Inductive wval : expr -> Prop :=
 | WFold X v : wval v -> wval <{ fold<X> v }>
 | WBoxedLit b : wval <{ [b] }>
 | WBoxedInj b ω v : otval ω -> oval v -> wval <{ [inj@b<ω> v] }>
-| WIte v0 v1 v2 :
-    wval v0 -> wval v1 -> wval v2 ->
-    wval <{ ~if v0 then v1 else v2 }>
+| WIte b v1 v2 :
+    wval v1 -> wval v2 ->
+    wval <{ ~if [b] then v1 else v2 }>
 .
 
 (** ** Weak oblivious values *)
@@ -28,9 +28,9 @@ Inductive woval : expr -> Prop :=
 | OWBoxedLit b : woval <{ [b] }>
 | OWPair v1 v2 : woval v1 -> woval v2 -> woval <{ (v1, v2) }>
 | OWBoxedInj b ω v : otval ω -> oval v -> woval <{ [inj@b<ω> v] }>
-| OWIte v0 v1 v2 :
-    woval v0 -> woval v1 -> woval v2 ->
-    woval <{ ~if v0 then v1 else v2 }>
+| OWIte b v1 v2 :
+    woval v1 -> woval v2 ->
+    woval <{ ~if [b] then v1 else v2 }>
 .
 
 (** ** OADT value typing *)

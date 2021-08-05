@@ -52,7 +52,10 @@ Lemma pared_woval ω τ :
   woval τ.
 Proof.
   intros H. revert τ.
-  induction H; intros ?; inversion 1; intros; subst;
+  induction H; intros;
+    repeat match goal with
+           | H : ?e ==>! _ |- _ => head_constructor e; sinvert H
+           end; subst;
     try case_split; eauto using woval.
 Qed.
 
