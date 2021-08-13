@@ -1,0 +1,34 @@
+opam-version: "2.0"
+maintainer: "yeqianchuan@gmail.com"
+version: "dev"
+
+homepage: "https://github.com/ccyip/oadt"
+dev-repo: "git+https://github.com/ccyip/oadt.git"
+bug-reports: "https://github.com/ccyip/oadt/issues"
+license: "MIT"
+
+authors: [
+  "Qianchuan Ye"
+  "Benjamin Delaware"
+]
+
+build: [
+  [make "-j%{jobs}%"]
+  [make "html"] {with-doc}
+]
+install: [make "install"]
+
+depends: [
+  "ocaml"
+  "coq" {>= "8.12"}
+  "coq-stdpp" {>= "1.5.0"}
+  "coq-hammer-tactics" {>= "1.3.1+8.12"}
+  "coq-smpl" {>= "8.12.0.1"}
+]
+
+synopsis: "Oblivious algebraic data types"
+description: """
+Formalization of core calculus with oblivious algebraic data types.
+"""
+tags: [
+]
