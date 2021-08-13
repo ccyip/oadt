@@ -1,46 +1,46 @@
 From oadt Require Import lang_oadt.base.
 
-(** * Syntax *)
-
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 Declare Custom Entry oadt.
 Declare Custom Entry oadt_def.
 
+(** * Definitions *)
+
 (** ** Expressions (e, τ) *)
 Inductive expr :=
-(** Variables *)
+(* Variables *)
 | EBVar (k : nat)
 | EFVar (x : atom)
 | EGVar (x : atom)
-(** Expressions with binders *)
+(* Expressions with binders *)
 | EPi (τ1 τ2: expr)
 | EAbs (τ e : expr)
 | ELet (e1 e2 : expr)
-(** Oblivious case if the label is [high], otherwise public case *)
+(* Oblivious case if the label is [high], otherwise public case *)
 | ECase (l : bool) (e0 : expr) (e1 : expr) (e2 : expr)
-(** Types *)
+(* Types *)
 | EUnitT
-(** Oblivious Boolean if the label is [high], otherwise public Boolean *)
+(* Oblivious Boolean if the label is [high], otherwise public Boolean *)
 | EBool (l : bool)
 | EProd (τ1 τ2 : expr)
-(** Oblivious sum if the label is [high], otherwise public sum *)
+(* Oblivious sum if the label is [high], otherwise public sum *)
 | ESum (l : bool) (τ1 τ2 : expr)
-(** Other expressions *)
+(* Other expressions *)
 | EApp (e1 e2 : expr)
 | EUnitV
 | ELit (b : bool)
 | ESec (e : expr)
-(** Oblivious condition (i.e. MUX) if the label is [high], otherwise public
+(* Oblivious condition (i.e. MUX) if the label is [high], otherwise public
 condition *)
 | EIte (l : bool) (e0 e1 e2 : expr)
 | EPair (e1 e2 : expr)
 | EProj (b : bool) (e : expr)
-(** Oblivious injection if the label is [high], otherwise public injection *)
+(* Oblivious injection if the label is [high], otherwise public injection *)
 | EInj (l : bool) (b : bool) (τ e : expr)
 | EFold (X : atom) (e : expr)
 | EUnfold (X : atom) (e : expr)
-(** Runtime expressions *)
+(* Runtime expressions *)
 | EBoxedLit (b : bool)
 | EBoxedInj (b : bool) (τ e : expr)
 .
@@ -60,14 +60,18 @@ Notation gctx := (amap gdef).
 Notation program := (gctx * expr).
 
 
-(** ** Notations for expressions *)
+(** * Notations for expressions *)
 Module expr_notations.
 
 (* Adapted from _Software Foundations_. *)
 Coercion ELit : bool >-> expr.
 Coercion EBVar : nat >-> expr.
 
+(** Quote *)
 Notation "<{ e }>" := e (e custom oadt at level 99).
+(** Lispy unquote *)
+Notation "',(' e ')'" := e (in custom oadt at level 0,
+                               e constr at level 0).
 
 Notation "'high'" := (true) (only parsing).
 Notation "'low'" := (false) (only parsing).
@@ -261,7 +265,7 @@ Notation "'ite' e0 e1 e2" := (if e0 then e1 else e2)
 End expr_notations.
 
 
-(** ** Various Definitions *)
+(** * More Definitions *)
 Section definitions.
 
 Import expr_notations.
@@ -273,11 +277,13 @@ Coercion EFVar : atom >-> expr.
 (** Instead of formalizing an observe function and considering two expressions
 indistinguishable if they are observed the same, we directly formalize the
 indistinguishability relation as the equivalence induced by the observe
-function. *)
+function.
+
+All rules but the rules for boxed expressions are just congruence rules. Some
+rules are not necessary if the expressions are well-typed, but we include them
+anyway. *)
 Reserved Notation "e '≈' e'" (at level 40).
-(** All rules but the rules for boxed expressions are just congruence rules.
-Some rules are not necessary if the expressions are well-typed, but we include
-them anyway. *)
+
 Inductive indistinguishable : expr -> expr -> Prop :=
 | IBVar k : <{ bvar k }> ≈ <{ bvar k }>
 | IFVar x : <{ fvar x }> ≈ <{ fvar x }>
@@ -357,11 +363,6 @@ where "e '≈' e'" := (indistinguishable e e').
 (** ** Variable opening  *)
 Reserved Notation "'{' k '~>' s '}' e" (in custom oadt at level 20, k constr).
 
-(* NOTE: recursively opening the types is probably not needed for [+] and [inj],
-since their type arguments are always public, meaning that no bound variable is
-possibly inside them. But I do it anyway for consistency, and possibly in the
-future we allow oblivious types inside them. Let's see how this goes. I will
-change it if it turns out to be too annoying for proofs. *)
 Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   match e with
   | <{ bvar n }> => if decide (k = n) then s else e
@@ -369,7 +370,7 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | <{ \:τ => e }> => <{ \:{k~>s}τ => {S k~>s}e }>
   | <{ let e1 in e2 }> => <{ let {k~>s}e1 in {S k~>s}e2 }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
-  (** Congruence rules *)
+  (* Congruence rules *)
   | <{ τ1 * τ2 }> => <{ ({k~>s}τ1) * ({k~>s}τ2) }>
   | <{ τ1 +{l} τ2 }> => <{ ({k~>s}τ1) +{l} ({k~>s}τ2) }>
   | <{ e1 e2 }> => <{ ({k~>s}e1) ({k~>s}e2) }>
@@ -388,13 +389,13 @@ where "'{' k '~>' s '}' e" := (open_ k s e) (in custom oadt).
 Definition open s e := open_ 0 s e.
 Notation "e ^ s" := (open s e) (in custom oadt at level 20).
 
-(** ** Substitution (for local free variables) *)
+(** ** Substitution (for locally free variables) *)
 Reserved Notation "'{' x '↦' s '}' e" (in custom oadt at level 20, x constr).
 
 Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   match e with
   | <{ fvar y }> => if decide (x = y) then s else e
-  (** Congruence rules *)
+  (* Congruence rules *)
   | <{ Π:τ1, τ2 }> => <{ Π:{x↦s}τ1, {x↦s}τ2 }>
   | <{ \:τ => e }> => <{ \:{x↦s}τ => {x↦s}e }>
   | <{ let e1 in e2 }> => <{ let {x↦s}e1 in {x↦s}e2 }>
@@ -442,7 +443,7 @@ Inductive val : expr -> Prop :=
 | VBoxedInj b ω v : otval ω -> oval v -> val <{ [inj@b<ω> v] }>
 .
 
-(** ** Local closure as expression well-formedness *)
+(** ** Local closure and well-formedness of expressions *)
 Inductive lc : expr -> Prop :=
 | LCFVar x : lc <{ fvar x }>
 | LCGVar x : lc <{ gvar x }>
@@ -459,7 +460,7 @@ Inductive lc : expr -> Prop :=
     (forall x, x ∉ L1 -> lc <{ e1^x }>) ->
     (forall x, x ∉ L2 -> lc <{ e2^x }>) ->
     lc e0 -> lc <{ case{l} e0 of e1 | e2 }>
-(** Congruence rules *)
+(* Congruence rules *)
 | LCUnitT : lc <{ 𝟙 }>
 | LCBool l : lc <{ 𝔹{l} }>
 | LCProd τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 * τ2 }>
@@ -482,7 +483,7 @@ well-formedness. *)
 
 End definitions.
 
-(** ** Notations *)
+(** * Notations *)
 Module notations.
 
 Export expr_notations.

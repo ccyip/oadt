@@ -1,20 +1,11 @@
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 
-(** * Dynamic semantics *)
-
 Import syntax.notations.
 
 Implicit Types (b : bool).
 
-(** ** Polynomial algebraic data type (α) *)
-Inductive padt : expr -> Prop :=
-| PUnitT : padt <{ 𝟙 }>
-| PBool : padt <{ 𝔹 }>
-| PProd α1 α2 : padt α1 -> padt α2 -> padt <{ α1 * α2 }>
-| PSum α1 α2 : padt α1 -> padt α2 -> padt <{ α1 + α2 }>
-| PGVar (X : atom) : padt <{ gvar X }>
-.
+(** * Definitions *)
 
 (** ** OADT value typing *)
 (** [ovalty v ω] means [v] is an oblivious value of oblivious type value [ω].
@@ -34,17 +25,18 @@ Inductive ovalty : expr -> expr -> Prop :=
 .
 
 (** ** Evaluation context (ℇ) *)
-(* This style is inspired by Iron Lambda. *)
+(* This style is inspired by Iron Lambda. Maybe I should try other encoding
+style later. This one can be quite annoying for proof automation. *)
 (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
 the hole in [ℇ] with [e]. [ectx ℇ] asserts that [ℇ] is a well-formed
-context. *)
+context.
+
+NOTE: we reduce applications from right to left for some subtle reason. *)
 Inductive ectx : (expr -> expr) -> Prop :=
-(* | CtxTop : ectx (fun e => e) *)
 | CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 * τ2 }>)
 | CtxProd2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
 | CtxOSum2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
-(** We reduce applications from right to left for some subtle reason. *)
 | CtxApp1 e1 : ectx (fun e2 => <{ e1 e2 }>)
 | CtxApp2 v2 : val v2 -> ectx (fun e1 => <{ e1 v2 }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
@@ -67,9 +59,11 @@ Inductive ectx : (expr -> expr) -> Prop :=
 (** ** Small-step relation *)
 Section step.
 
+Context (Σ : gctx).
+
 Reserved Notation "e '-->!' e'" (at level 40).
 
-Inductive step (Σ : gctx) : expr -> expr -> Prop :=
+Inductive step : expr -> expr -> Prop :=
 | SApp τ e v :
     val v ->
     <{ (\:τ => e) v }> -->! <{ e^v }>
@@ -79,7 +73,7 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
 | SCase b τ v e1 e2 :
     val v ->
     <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
-(** The most interesting rule *)
+(* One of the most interesting rules. *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
     oval v ->
     ovalty v1 ω1 -> ovalty v2 ω2 ->
@@ -97,8 +91,6 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
 | SIte b e1 e2 :
     <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>
-(** If we also want runtime obliviousness (e.g., against malicious adversaries),
-we can check [v1] and [v2] are oblivious values in this rule. *)
 | SMux b v1 v2 :
     val v1 -> val v2 ->
     <{ ~if [b] then v1 else v2 }> -->! <{ ite b v1 v2 }>
@@ -110,17 +102,17 @@ we can check [v1] and [v2] are oblivious values in this rule. *)
     <{ unfold<X> (fold <X'> v) }> -->! v
 | SSec b :
     <{ s𝔹 b }> -->! <{ [b] }>
-(** Step under evaluation context *)
+(* Step under evaluation context *)
 | SCtx ℇ e e' :
     ectx ℇ ->
     e -->! e' ->
     ℇ e -->! ℇ e'
 
-where "e '-->!' e'" := (step _ e e').
+where "e '-->!' e'" := (step e e').
 
 End step.
 
-(** Notations *)
+(** * Notations *)
 Module notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,

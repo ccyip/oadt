@@ -1,11 +1,10 @@
+(** Admissible rules for semantics, typing and kinding. *)
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.equivalence.
-
-(** * Admissible rules *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -16,8 +15,10 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-(** This lemma is equivalent to [SCtx] constructor, but more friendly for
-automation. *)
+(** * Admissible step introduction rules *)
+
+(** These lemma is equivalent to the corresponding constructor, but more
+friendly for automation. *)
 Lemma SCtx_intro Σ ℇ e e' E E' :
     Σ ⊨ e -->! e' ->
     ℇ e = E ->
@@ -28,9 +29,8 @@ Proof.
   hauto ctrs: step.
 Qed.
 
-(** ** Renaming lemmas *)
+(** * Renaming lemmas *)
 
-(* Warning: this lemma is rather slow. *)
 Lemma typing_kinding_rename_ Σ x y τ' :
   gctx_wf Σ ->
   (forall Γ' e τ,
@@ -217,7 +217,7 @@ Proof.
   eapply typing_rename; eauto.
 Qed.
 
-(** ** Admissible typing and kinding introduction rules *)
+(** * Admissible typing and kinding introduction rules *)
 Section typing_kinding_intro.
 
   Context {Σ : gctx} (Hwf : gctx_wf Σ).
@@ -322,6 +322,8 @@ Section typing_kinding_intro.
   Qed.
 
 End typing_kinding_intro.
+
+(** * Tactics *)
 
 (** Tactics for apply typing/kinding rules. Similar to [econstructor], but it
 uses the admissible rules. It also fails rather than applying [TConv]

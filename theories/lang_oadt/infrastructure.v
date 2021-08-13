@@ -1,11 +1,9 @@
+(** Common tactics and lemmas, and definitions related to locally nameless
+representation and free variables. *)
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
-
-(** * Infrastructure *)
-(** Common tactics and lemmas, and definitions related to locally nameless
-representation and free variables. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -16,11 +14,7 @@ Implicit Types (b : bool) (x X y Y z : atom) (L : aset).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-(** [kind] forms a [SemiLattice].  *)
-Instance kind_semilattice : SemiLattice kind.
-Proof.
-  split; try reflexivity; repeat intros []; auto.
-Qed.
+(** * Definitions *)
 
 (** ** Variable closing *)
 Section close.
@@ -73,6 +67,7 @@ Fixpoint fv (e : expr) : aset :=
   | _ => ∅
   end.
 
+(** Free variables in the range of [tctx]. *)
 Definition tctx_fv : tctx -> aset :=
   map_fold (fun x τ S => fv τ ∪ S) ∅.
 
@@ -92,7 +87,16 @@ Arguments tctx_stale /.
 
 Arguments stale /.
 
-(** ** Tactics *)
+(** * Instances *)
+
+(** [kind] forms a [SemiLattice].  *)
+Instance kind_semilattice : SemiLattice kind.
+Proof.
+  split; try reflexivity; repeat intros []; auto.
+Qed.
+
+(** * Tactics *)
+
 Ltac set_shelve :=
   lazymatch goal with
   | |- _ ∉ _ => shelve
@@ -138,7 +142,10 @@ Ltac relax_typing_type :=
     refine (eq_ind _ (fun τ => Σ; Γ ⊢ e : τ) _ _ _)
   end.
 
-(** ** Properties of openness *)
+(** * Lemmas *)
+
+(** ** Properties of opening and closing *)
+
 (* NOTE: [inversion] is the culprit for the slowness of this proof. *)
 Lemma open_lc_ e : forall s u i j,
   <{ {j~>u}({i~>s}e) }> = <{ {i~>s}e }> ->
@@ -165,8 +172,8 @@ Proof.
 Qed.
 
 (* Rather slow because we have to do induction on [e1] and then destruct [e2],
-which produces a lot of cases (square of the number of the language constructs).
-A better way to handle this may be to prove a "lock-step" induction
+which produces a lot of cases (quadratic in the number of the language
+constructs). A better way to handle this may be to prove a "lock-step" induction
 principle, similar to [rect2] for [Vector]. *)
 Lemma open_inj x e1 : forall e2,
   <{ e1^x }> = <{ e2^x }> ->
@@ -221,6 +228,8 @@ Proof.
       (eapply open_inj; [ unfold open; rewrite open_close_ | ]);
       eauto; fast_set_solver!!.
 Qed.
+
+(** ** Properties of substitution *)
 
 Lemma subst_fresh e : forall x s,
   x # e -> <{ {x↦s}e }> = e.
@@ -292,6 +301,17 @@ Proof.
     try auto_apply; fast_set_solver*!.
 Qed.
 
+(** ** Properties of values *)
+
+Lemma ovalty_elim v ω:
+  ovalty v ω ->
+  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
+Proof.
+  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
+Qed.
+
+(** ** Properties of local closure *)
+
 Lemma otval_lc ω :
   otval ω ->
   lc ω.
@@ -304,13 +324,6 @@ Lemma oval_lc v :
   lc v.
 Proof.
   induction 1; hauto ctrs: lc use: otval_lc.
-Qed.
-
-Lemma ovalty_elim v ω:
-  ovalty v ω ->
-  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
-Proof.
-  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
 Qed.
 
 Lemma ovalty_lc v ω :
@@ -409,7 +422,7 @@ Proof.
 Qed.
 
 
-(** ** Theories of free variables *)
+(** ** Properties of free variables *)
 
 Lemma open_fv_l e s :
   fv <{ e^s }> ⊆ fv e ∪ fv s.
@@ -599,7 +612,7 @@ Proof.
   fast_set_solver*!!.
 Qed.
 
-(** Simplifier for free variable reasoning *)
+(** Simplifier for free variables. *)
 
 Tactic Notation "fv_rewrite" constr(T) :=
   match T with
@@ -748,7 +761,7 @@ Ltac simpl_typing_kinding_fv :=
   end.
 Smpl Add simpl_typing_kinding_fv : fv.
 
-(** Simplifier given well-formed contexts. *)
+(** Well-formed contexts are closed. *)
 Lemma gctx_wf_closed Σ :
   gctx_wf Σ ->
   map_Forall (fun _ D =>
@@ -774,7 +787,8 @@ Ltac simpl_wf_fv :=
   end.
 Smpl Add simpl_wf_fv : fv.
 
-(** Lemmas about the free variables in the type of a well-typed term. *)
+(** Free variables in the type of a well-typed term are bounded in typing
+context. *)
 Lemma typing_type_fv Σ Γ e τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ e : τ ->
@@ -793,7 +807,7 @@ Ltac simpl_typing_type_fv :=
   end.
 Smpl Add simpl_typing_type_fv : fv.
 
-(** Lemmas about parallel reduction *)
+(** ** Properties of parallel reduction and local closure *)
 Lemma pared_lc1 Σ e e' :
   gctx_wf Σ ->
   Σ ⊢ e ==>! e' ->

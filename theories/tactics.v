@@ -119,11 +119,11 @@ Ltac concl_head T :=
 
 (** ** Set solving *)
 
-(* Much faster set solving tactic, with less solving strength. *)
+(** Much faster set solving tactic, with less solving strength. *)
 Tactic Notation "fast_set_solver" :=
   solve [try fast_done; repeat (set_unfold; subst; intuition)].
 
-(* Faster set solving tactic. Stronger than [fast_set_solver], but also
+(** Faster set solving tactic. Stronger than [fast_set_solver], but also
 slower. *)
 Tactic Notation "fast_set_solver" "*" :=
   try fast_done; set_unfold; qauto.
@@ -132,7 +132,7 @@ Ltac set_fold_not :=
   change (?x ∈ ?v -> False) with (x ∉ v) in *;
   change (?x = ?v -> False) with (x <> v) in *.
 
-(** Pruning the hypotheses before set solving can *dramatically* improve
+(** Pruning the hypotheses before set solving can _dramatically_ improve
 performance. The following pruning tactics are based on heuristics, and they can
 make the goal unprovable. While they are unsound, they still work fine in our
 cases. A better approach is probably similar to finding a transitive closure of

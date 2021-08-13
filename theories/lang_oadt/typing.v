@@ -2,12 +2,12 @@ From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 
-(** * Typing *)
-
 Import syntax.notations.
 Import semantics.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
+
+(** * Definitions *)
 
 (** ** Kinds (κ) *)
 (** Essentially a kind is a security label. We do not need kind abstraction. *)
@@ -18,12 +18,12 @@ Variant kind :=
 | KMixed
 .
 
-(** [kind] has (semi-)lattice operators. *)
+(** [kind] has (semi-)lattice operators.
 
-(** We define the partial order [⊑] on [kind] directly as a computable
-function. Alternatively, we may define an "immediate" relation as the kernel,
-and then take its reflexive-transitive closure. But [kind] is simple enough, so
-let's do it in a simple way.
+We define the partial order [⊑] on [kind] directly as a computable function.
+Alternatively, we may define an "immediate" relation as the kernel, and then
+take its reflexive-transitive closure. But [kind] is simple enough, so let's do
+it in a simple way.
 
 [κ1 ⊑ κ2] means [κ2] is stricter than or as strict as [κ1]. The relation can be
 visualized as follow.
@@ -80,10 +80,7 @@ Section fix_gctx.
 
 Context (Σ : gctx).
 
-(** ** Expression Equivalence *)
-(** We directly define equivalence in terms of parallel reduction. *)
-
-(** *** Parallel Reduction *)
+(** ** Parallel reduction *)
 Reserved Notation "e '==>!' e'" (at level 40,
                                  e' constr at level 0).
 
@@ -206,8 +203,12 @@ Notation "e '==>*' e'" := (clos_refl_trans _ pared e e')
                             (at level 40,
                              e' custom oadt at level 99).
 
+(** ** Expression equivalence *)
+(** We directly define equivalence in terms of parallel reduction. *)
+
 (** This definition is the same as saying two expressions multi-reduce to the
-same expression, but easier for induction in some cases. *)
+same expression (i.e. [pared_equiv_join] below), but easier for induction in
+most cases. *)
 Inductive pared_equiv : expr -> expr -> Prop :=
 | QRRefl e : e ≡ e
 | QRRedL e1 e1' e2 :
@@ -222,6 +223,7 @@ Inductive pared_equiv : expr -> expr -> Prop :=
 where "e ≡ e'" := (pared_equiv e e')
 .
 
+(** This is equivalent to [pared_equiv]. *)
 Inductive pared_equiv_join : expr -> expr -> Prop :=
 | QRJoin e1 e2 e :
     e1 ==>* e ->
@@ -229,7 +231,7 @@ Inductive pared_equiv_join : expr -> expr -> Prop :=
     pared_equiv_join e1 e2
 .
 
-(** ** Expression typing and kinding *)
+(** ** Typing and kinding *)
 (** They are mutually defined. *)
 Reserved Notation "Γ '⊢' e ':' τ" (at level 40,
                                    e custom oadt at level 99,
@@ -310,14 +312,14 @@ Inductive typing : tctx -> expr -> expr -> Prop :=
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e : gvar X ->
     Γ ⊢ unfold<X> e : τ
-(** Typing for runtime expressions is for metatheories. These expressions do not
+(* Typing for runtime expressions is for metatheories. These expressions do not
 appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
 | TBoxedLit Γ b : Γ ⊢ [b] : ~𝔹
 | TBoxedInj Γ b v ω :
     ovalty <{ [inj@b<ω> v] }> ω ->
     Γ ⊢ [inj@b<ω> v] : ω
-(** Type conversion *)
+(* Type conversion *)
 | TConv Γ e τ τ' κ :
     Γ ⊢ e : τ' ->
     Γ ⊢ τ :: κ ->
@@ -374,6 +376,12 @@ where "Γ '⊢' e ':' τ" := (typing Γ e τ) and "Γ '⊢' τ '::' κ" := (kind
 
 End fix_gctx.
 
+(** Better induction principle. *)
+Scheme typing_kinding_ind := Minimality for typing Sort Prop
+  with kinding_typing_ind := Minimality for kinding Sort Prop.
+Combined Scheme typing_kinding_mutind
+         from typing_kinding_ind, kinding_typing_ind.
+
 Notation "Σ '⊢' e '≡' e'" := (pared_equiv Σ e e')
                                (at level 40,
                                 e custom oadt at level 99,
@@ -416,9 +424,11 @@ Definition gctx_typing (Σ : gctx) : Prop :=
 Definition program_typing (Σ : gctx) (e : expr) (τ : expr) :=
   gctx_typing Σ /\ Σ; ∅ ⊢ e : τ.
 
-(** ** Well-formedness of [gctx] *)
-(* Equivalent to [gctx_typing]. Essentially saying all definitions in [Σ] are
+(** ** Well-formedness of global context *)
+(** Equivalent to [gctx_typing]. Essentially saying all definitions in [Σ] are
 well-typed. *)
+(* TODO: I should use a weaker assumption in some proofs, such as all global
+definitions are locally closed. *)
 Definition gctx_wf (Σ : gctx) :=
   map_Forall (fun _ D =>
                 match D with
@@ -434,13 +444,7 @@ Definition gctx_wf (Σ : gctx) :=
 
 End typing.
 
-(** Better induction principle. *)
-Scheme typing_kinding_ind := Minimality for typing Sort Prop
-  with kinding_typing_ind := Minimality for kinding Sort Prop.
-Combined Scheme typing_kinding_mutind
-         from typing_kinding_ind, kinding_typing_ind.
-
-(** ** Notations *)
+(** * Notations *)
 (* Unfortunately I have to copy-paste all notations here again. *)
 Module notations.
 

@@ -1,3 +1,4 @@
+(** Typing and kinding inversion lemmas. *)
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
@@ -14,15 +15,15 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-
-(** * Inversion Lemmas *)
-
 Section inversion.
 
 Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
 
-(** ** Kind inversion  *)
+#[local]
+Set Default Proof Using "Type".
+
+(** * Kind inversion  *)
 Tactic Notation "kind_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?τ :: _ -> _ => remember τ
@@ -184,7 +185,7 @@ Proof.
   kind_inv_solver.
 Qed.
 
-(** ** Type inversion *)
+(** * Type inversion *)
 Tactic Notation "type_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?e : _ -> _ => remember e
@@ -194,6 +195,22 @@ Tactic Notation "type_inv_solver" "by" tactic3(tac) :=
 
 Tactic Notation "type_inv_solver" :=
   type_inv_solver by (repeat esplit; eauto; equiv_naive_solver).
+
+Lemma type_inv_prod Γ τ1 τ2 τ :
+  Σ; Γ ⊢ τ1 * τ2 : τ -> False.
+Proof.
+  type_inv_solver.
+Qed.
+
+Lemma type_inv_sum Γ l τ1 τ2 τ :
+  Σ; Γ ⊢ τ1 +{l} τ2 : τ -> False.
+Proof.
+  type_inv_solver.
+Qed.
+
+(** From now on proofs rely on well-formedness of global context. *)
+#[local]
+Set Default Proof Using "Hwf".
 
 Lemma type_inv_unit Γ τ :
   Σ; Γ ⊢ () : τ ->
@@ -324,18 +341,6 @@ Proof.
   type_inv_solver by (repeat (esplit; eauto); equiv_naive_solver).
 Qed.
 
-Lemma type_inv_prod Γ τ1 τ2 τ :
-  Σ; Γ ⊢ τ1 * τ2 : τ -> False.
-Proof.
-  type_inv_solver.
-Qed.
-
-Lemma type_inv_sum Γ l τ1 τ2 τ :
-  Σ; Γ ⊢ τ1 +{l} τ2 : τ -> False.
-Proof.
-  type_inv_solver.
-Qed.
-
 Lemma type_inv_app Γ e1 e2 τ :
   Σ; Γ ⊢ e1 e2 : τ ->
   exists τ1 τ2,
@@ -408,6 +413,8 @@ Proof.
 Qed.
 
 End inversion.
+
+(** * Tactics *)
 
 Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   lazymatch type of H with

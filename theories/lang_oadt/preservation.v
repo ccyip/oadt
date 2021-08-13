@@ -3,13 +3,10 @@ From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.properties.
+From oadt Require Import lang_oadt.values.
 From oadt Require Import lang_oadt.admissible.
 From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.equivalence.
-
-(** * Preservation *)
-(** The preservation metatheorem. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -21,7 +18,7 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 Coercion EFVar : atom >-> expr.
 
 
-(** ** Weakening lemmas  *)
+(** * Weakening lemmas  *)
 Lemma pared_weakening Σ e e' :
   Σ ⊢ e ==>! e' ->
   forall Σ', Σ ⊆ Σ' ->
@@ -108,7 +105,7 @@ Proof.
   eauto using kinding_weakening, insert_fresh_subseteq.
 Qed.
 
-(** ** Substitution lemma *)
+(** * Substitution lemmas *)
 
 Lemma subst_tctx_typing_kinding_ Σ x s :
   gctx_wf Σ ->
@@ -349,6 +346,8 @@ Proof.
   eapply open_preservation; eauto.
 Qed.
 
+(** * Other lemmas *)
+
 (** Types of well-typed expressions are well-kinded *)
 Lemma regularity Σ Γ e τ :
   gctx_wf Σ ->
@@ -385,6 +384,7 @@ Proof.
   scongruence.
 Qed.
 
+(** We can substitute with an equivalent type in the typing contexts. *)
 Lemma subst_equiv_ Σ x τ1 τ2 :
   gctx_wf Σ ->
   Σ ⊢ τ1 ≡ τ2 ->
@@ -477,7 +477,7 @@ Proof.
   hauto use: subst_equiv_.
 Qed.
 
-(** ** Preservation *)
+(** * Preservation *)
 
 (** The combined preservation theorems for parallel reduction. *)
 Lemma pared_preservation_ Σ :
@@ -651,7 +651,7 @@ Proof.
   hauto use: pared_preservation_.
 Qed.
 
-(* The preservation theorem for [step]. *)
+(** The preservation theorem for [step]. *)
 Theorem preservation Σ Γ e e' τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ e : τ ->

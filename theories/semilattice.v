@@ -15,6 +15,7 @@ Class SemiLattice A `{Join A, Top A, Bottom A, SqSubsetEq A} := {
   join_consistent (x y : A) : x ⊑ y <-> y = x ⊔ y
 }.
 
+(** * Theorems *)
 Section theorems.
 
 Context `{SemiLattice A}.
@@ -109,6 +110,26 @@ Proof.
 Qed.
 
 End theorems.
+
+(** * Instances *)
+
+(** Boolean is also a semilattice. *)
+
+Instance bool_join : Join bool := orb.
+Instance bool_top : Top bool := true.
+Instance bool_bot : Bottom bool := false.
+Instance bool_le : SqSubsetEq bool := implb.
+
+Instance bool_semilattice : SemiLattice bool.
+Proof.
+  split; hnf; repeat intros []; easy.
+Qed.
+
+(** * Tactics *)
+Tactic Notation "lattice_naive_solver" "by" tactic3(tac) :=
+  solve [ reflexivity
+        | tac
+        | etrans; tac ].
 
 Ltac lattice_naive_solver :=
   solve [ reflexivity

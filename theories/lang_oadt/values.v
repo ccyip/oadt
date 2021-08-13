@@ -1,3 +1,4 @@
+(** Properties of various value definitions. *)
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
@@ -5,9 +6,6 @@ From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.equivalence.
-
-(** * Properties *)
-(** Lemmas for various definitions. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -17,8 +15,6 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
-
-(** ** Properties of oblivious values *)
 
 Lemma oval_val v :
   oval v ->
