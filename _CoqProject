@@ -5,7 +5,6 @@ theories/tactics.v
 theories/ln.v
 theories/semilattice.v
 theories/prelude.v
-# theories/playground/lang_stlc.v
 theories/lang_oadt/base.v
 theories/lang_oadt/syntax.v
 theories/lang_oadt/semantics.v
