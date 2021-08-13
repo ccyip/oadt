@@ -1,13 +1,21 @@
 .DEFAULT_GOAL := all
 
-%: Makefile.coq
-	@$(MAKE) -f Makefile.coq $@
+COQMAKEFILE := Makefile.coq
+COQDOCMAKEFILE ?= coqdocjs/Makefile.doc
+COQDOCJS_CP := true
+COQDOCJS_CUSTOM := doc
+COQDOCEXTRAFLAGS := --external 'https://plv.mpi-sws.org/coqdoc/stdpp' stdpp
+
+-include $(COQDOCMAKEFILE)
+
+%: $(COQMAKEFILE)
+	@$(MAKE) -f $(COQMAKEFILE) $@
 
 clean: cleanall
-	$(RM) Makefile.coq Makefile.coq.conf
+	$(RM) $(COQMAKEFILE) $(COQMAKEFILE).conf
 .PHONY: clean
 
-Makefile.coq: _CoqProject
+$(COQMAKEFILE): _CoqProject
 	@coq_makefile -f _CoqProject -o $@
 
-Makefile _CoqProject: ;
+Makefile $(COQDOCMAKEFILE) _CoqProject: ;
