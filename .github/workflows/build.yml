@@ -1,0 +1,64 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_COQ_VERSION: 8.13
+      TARGET_OCAML_VERSION: 4.11-flambda
+    strategy:
+      matrix:
+        coq_version:
+          - '8.13'
+          - '8.12'
+        ocaml_version:
+          - '4.11-flambda'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: ccyip/coqdocjs
+          path: coqdocjs
+          ref: 370c96d749a244b52628f93e9273868103361b8e
+
+      - uses: coq-community/docker-coq-action@v1
+        with:
+          opam_file: 'coq-oadt.opam'
+          coq_version: ${{ matrix.coq_version }}
+          ocaml_version: ${{ matrix.ocaml_version }}
+          before_script: |
+            startGroup "Workaround permission issue"
+              sudo chown -R coq:coq .
+            endGroup
+          script: |
+            startGroup "Build project"
+              opam exec -- make -j 2
+            endGroup
+            startGroup "Build documentation"
+              opam exec -- make html
+            endGroup
+          uninstall: ''
+      - name: Revert permissions
+        # to avoid a warning at cleanup time
+        if: ${{ always() }}
+        run: sudo chown -R 1001:116 .
+
+      - name: Deploy documentation
+        if: |-
+          ${{
+            github.event_name == 'push' &&
+            matrix.coq_version == env.TARGET_COQ_VERSION &&
+            matrix.ocaml_version == env.TARGET_OCAML_VERSION
+          }}
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: gh-pages
+          folder: html
+          target-folder: master
+          git-config-name: 'Qianchuan Ye'
