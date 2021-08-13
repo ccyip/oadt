@@ -15,7 +15,7 @@ rather intricate, though this bound is probably not very practical. *)
 
 Coercion EGVar : atom >-> expr.
 
-(* Names *)
+(** Names. *)
 Definition nat : atom := "nat".
 Definition list : atom := "list".
 Definition olist : atom := "~list".
@@ -53,6 +53,7 @@ Notation "'node' e" := <{ fold<tree> (inr<𝟙 + 𝔹 * @tree * @tree> e) }>
 
 Notation "'~tree'" := (olist) (in custom oadt).
 
+(** Global definitions. *)
 Definition defs := [{
   data nat := 𝟙 + nat;
 
@@ -136,7 +137,7 @@ Definition defs := [{
 
 Definition Σ : gctx := list_to_map defs.
 
-(* We can type this global context. *)
+(** We can type this global context. *)
 Example example_gctx_typing : gctx_typing Σ.
 Proof.
   eapply gctx_gdefs_typing; [ reflexivity | compute_done | ].

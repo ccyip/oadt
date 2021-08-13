@@ -1,11 +1,11 @@
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 
-(** * Dynamic semantics *)
-
 Import syntax.notations.
 
 Implicit Types (b : bool).
+
+(** * Definitions *)
 
 (** ** Weak values *)
 Inductive wval : expr -> Prop :=
@@ -51,12 +51,13 @@ Inductive ovalty : expr -> expr -> Prop :=
 .
 
 (** ** Evaluation context (ℇ) *)
-(* This style is inspired by Iron Lambda. *)
+(* This style is inspired by Iron Lambda. Maybe I should try other encoding
+style later. This one can be quite annoying for proof automation. *)
 (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
 the hole in [ℇ] with [e]. [ectx ℇ] asserts that [ℇ] is a well-formed
-context. *)
+context.
 
-(** Note that we reduce applications from right to left for some subtle reason. *)
+NOTE: we reduce applications from right to left for some subtle reason. *)
 
 (** The evaluation context enclosing possibly leaking expressions. *)
 Variant lectx : (expr -> expr) -> Prop :=
@@ -97,9 +98,11 @@ Variant ectx : (expr -> expr) -> Prop :=
 (** ** Small-step relation *)
 Section step.
 
+Context (Σ : gctx).
+
 Reserved Notation "e '-->!' e'" (at level 40).
 
-Inductive step (Σ : gctx) : expr -> expr -> Prop :=
+Inductive step : expr -> expr -> Prop :=
 | SApp l τ e v :
     wval v ->
     <{ (\:{l}τ => e) v }> -->! <{ e^v }>
@@ -109,7 +112,7 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
 | SCase b τ v e1 e2 :
     wval v ->
     <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
-(** One of the most interesting rules. *)
+(* One of the most interesting rules. *)
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
     oval v ->
     ovalty v1 ω1 -> ovalty v2 ω2 ->
@@ -144,7 +147,7 @@ Inductive step (Σ : gctx) : expr -> expr -> Prop :=
 | STapePair v1 v2 :
     woval v1 -> woval v2 ->
     <{ tape (v1, v2) }> -->! <{ (tape v1, tape v2) }>
-(** [tape v] is a no-op if [v] is an oblivious value (except for pair). Spell
+(* [tape v] is a no-op if [v] is an oblivious value (except for pair). Spell
 out all the cases here for determinism and proof convenience. *)
 | STapeUnitV :
     <{ tape () }> -->! <{ () }>
@@ -157,17 +160,17 @@ out all the cases here for determinism and proof convenience. *)
     lectx ℇ ->
     wval v1 -> wval v2 ->
     ℇ <{ ~if [b] then v1 else v2 }> -->! <{ ~if [b] then ,(ℇ v1) else ,(ℇ v2) }>
-(** Step under evaluation context *)
+(* Step under evaluation context *)
 | SCtx ℇ e e' :
     ectx ℇ ->
     e -->! e' ->
     ℇ e -->! ℇ e'
 
-where "e '-->!' e'" := (step _ e e').
+where "e '-->!' e'" := (step e e').
 
 End step.
 
-(** Notations *)
+(** * Notations *)
 Module notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,

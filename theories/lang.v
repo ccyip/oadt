@@ -5,7 +5,7 @@ From oadt Require lang_oadt.semantics.
 From oadt Require lang_oadt.typing.
 From oadt Require lang_oadt.infrastructure.
 From oadt Require lang_oadt.admissible.
-From oadt Require lang_oadt.properties.
+From oadt Require lang_oadt.values.
 From oadt Require lang_oadt.progress.
 From oadt Require lang_oadt.preservation.
 From oadt Require lang_oadt.obliviousness.

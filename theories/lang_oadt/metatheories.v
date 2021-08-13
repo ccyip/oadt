@@ -3,13 +3,10 @@ From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.properties.
+From oadt Require Import lang_oadt.values.
 From oadt Require Import lang_oadt.progress.
 From oadt Require Import lang_oadt.preservation.
 From oadt Require Import lang_oadt.obliviousness.
-
-(** * Metatheories *)
-(** The high level metatheories. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -27,12 +24,12 @@ Proof.
   intros ??. inversion 1; eauto.
 Qed.
 
-(** ** Soundness *)
+(** * Soundness *)
 
 Definition stuck (Σ : gctx) (e : expr) : Prop :=
   nf (@step Σ) e /\ ¬val e.
 
-(* If a program is well-typed, it will never get stuck. *)
+(** If a program is well-typed, it will never get stuck. *)
 Corollary soundness e Σ τ e' :
   Σ; e ▷ τ ->
   Σ ⊨ e -->* e' ->
@@ -43,9 +40,9 @@ Proof.
     qauto use: progress, preservation unfold: stuck, nf.
 Qed.
 
-(** ** Obliviousness *)
+(** * Obliviousness *)
 
-(* Essentially a noninterference theorem. Indistinguishable well-typed
+(** Essentially a noninterference theorem. Indistinguishable well-typed
 expressions can always take the same steps and new expressions remain
 indistinguishable. *)
 Theorem obliviousness Σ e1 e1' e2 τ τ' n :

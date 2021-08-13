@@ -164,6 +164,8 @@ Tactic Notation "simpl_cofin" := simpl_cofin tt.
 
 Tactic Notation "simpl_cofin" "?" := try simpl_cofin.
 
+(** [pick_fresh] simply introduces a sufficiently fresh atom and does nothing
+more. *)
 Tactic Notation "pick_fresh" constr(S) :=
   let H := fresh "Hfresh" in
   let S := collect_stales S in

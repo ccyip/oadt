@@ -1,3 +1,8 @@
+(** This file contains (possibly dirty and hacky) auxiliary definitions, lemmas
+and tactics to ease the encoding of examples. It also contains the axiomatized
+primitive integers. *)
+(* Don't understand why Coq doesn't allow me to use the name "prelude.v" even
+though another file with the same name lives in a different path. *)
 From oadt Require Import prelude.
 From Coq Require Import Int63.Int63.
 From oadt Require Import lang_oadt.base.
@@ -9,16 +14,12 @@ From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.preservation.
 From oadt Require Import lang_oadt.equivalence.
-From oadt Require Import lang_oadt.properties.
-
-(** This file contains (possibly dirty and hacky) auxiliary definitions, lemmas
-and tactics to ease the encoding of examples. It also contains the axiomatized
-primitive integers. *)
-(* Don't understand why Coq doesn't allow me to use the name "prelude.v" even if
-another file with the same name lives in a different path. *)
+From oadt Require Import lang_oadt.values.
 
 #[local]
 Set Default Proof Using "Type".
+
+(** * Notations *)
 
 Module notations.
 
@@ -26,7 +27,7 @@ Export syntax.notations.
 Export semantics.notations.
 Export typing.notations.
 
-(* But sometimes we do need a more explicit notation. *)
+(** Sometimes we want a more explicit notation. *)
 Notation "'$' n" := (EBVar n) (in custom oadt at level 0,
                                   n constr at level 0,
                                   format "'$' n").
@@ -37,13 +38,13 @@ Notation "'#' x" := (EFVar x) (in custom oadt at level 0,
                                   x constr at level 0,
                                   format "'#' x").
 
-(* Alternative to π1 and π2. *)
+(** Alternatives to π1 and π2. *)
 Notation "e '.1'" := <{ π1 e }> (in custom oadt at level 0,
                                     format "e '.1'").
 Notation "e '.2'" := <{ π2 e }> (in custom oadt at level 0,
                                     format "e '.2'").
 
-(* Global definitions. *)
+(** Global definitions. *)
 Notation "D" := D (in custom oadt_def at level 0, D constr at level 0).
 Notation "( D )" := D (in custom oadt_def, D at level 99).
 Notation "'data' X := e" := (X, DADT e) (in custom oadt_def at level 0,
@@ -73,7 +74,9 @@ End notations.
 
 Import notations.
 
-(** Alternative step relation that is easier to use in examples. *)
+(** * Alternative step rules *)
+
+(** An equivalent step relation that is easier to use in examples. *)
 Section step.
 
 Context (Σ : gctx).
@@ -97,7 +100,7 @@ Qed.
 
 Reserved Notation "e '-->!' e'" (at level 40).
 
-(* Expand evaluation context and re-order the rules. *)
+(** Expand evaluation context and re-order the rules. *)
 Inductive step_alt : expr -> expr -> Prop :=
 | SApp l τ e v :
     wval v ->
@@ -239,7 +242,7 @@ Qed.
 
 End step.
 
-(* Alternative typing rules that are easier for examples. *)
+(** * Alternative typing and kinding rules *)
 Section typing_kinding_alt.
 
 Context (Σ : gctx).
@@ -385,6 +388,8 @@ Lemma open_lc_body e s x :
 Proof.
   eauto using open_lc_body_.
 Qed.
+
+(* FIXME: the next few lemmas are very dirty. *)
 
 Lemma pared_equiv_case1 τ1 τ2 τ e :
   lc e ->
@@ -695,8 +700,9 @@ Qed.
 
 End typing_kinding_alt.
 
-(** ** Axiomatized primitive integers *)
+(** * Axiomatized primitive integers *)
 
+(** ** Extensions *)
 Axiom EInt : bool -> expr.
 Axiom EIntLe : bool -> expr -> expr -> expr.
 Axiom EIntLit : int -> expr.
@@ -704,6 +710,7 @@ Axiom EBoxedIntLit : int -> expr.
 Axiom EIntSec : expr -> expr.
 Axiom EIntRet : expr -> expr.
 
+(** ** Notations *)
 Module int_notations.
 
 Import notations.
@@ -747,7 +754,7 @@ Context (Σ : gctx).
 
 Import Int63.
 
-(* Semantics *)
+(** ** Semantics *)
 Notation "e '-->!' e'" := (step_alt Σ e e') (at level 40).
 
 Axiom SCtxIntLe1 : forall e1 e1' e2, e1 -->! e1' -> <{ e1 <= e2 }> -->! <{ e1' <= e2 }>.
@@ -771,7 +778,7 @@ Axiom SIntRetLe2 : forall m n, <{ r_int i[m] <= i(n) }> -->! <{ r𝔹 (i[m] ~<= 
 Axiom SIntRetLe3 : forall m n, <{ i(m) <= r_int i[n] }> -->! <{ r𝔹 (i[m] ~<= i[n]) }>.
 Axiom STapeOInt : forall m, <{ tape i[m] }> -->! <{ i[m] }>.
 
-(* Typing rules *)
+(** ** Typing rules *)
 Notation "Γ '⊢' e ':{' l '}' τ" := (Σ; Γ ⊢ e :{l} τ)
                                      (at level 40,
                                       e custom oadt at level 99,
@@ -799,9 +806,7 @@ Axiom TIntRet : forall Γ a,
     Γ ⊢ a :{⊥} ~int ->
     Γ ⊢ r_int a :{⊤} int.
 
-(* Other metafunctions. *)
-
-(* Values *)
+(** ** Values *)
 Axiom VIntLit : forall n, val <{ i(n) }>.
 Axiom OVOIntLit : forall n, oval <{ i[n] }>.
 Lemma WIntLit : forall n, wval <{ i(n) }>.
@@ -822,10 +827,10 @@ Axiom WIntRet : forall m, wval <{ r_int i[m] }>.
 
 Axiom ovalty_val_oint : ovalty_val <{ ~int }> = <{ i[0] }>.
 
-(* lc. *)
+(** ** Local closure *)
 Axiom lc_int : forall l, lc <{ int{l} }>.
 
-(* Opening. *)
+(** ** Opening *)
 Axiom open_int : forall k s l, <{ {k~>s}int{l} }> = <{ int{l} }>.
 Axiom open_intle : forall k s l e1 e2, <{ {k~>s}(e1 <={l} e2) }> = <{ ({k~>s}e1) <={l} ({k~>s}e2) }>.
 Axiom open_intsec : forall k s e, <{ {k~>s}(s_int e) }> = <{ s_int ({k~>s}e) }>.
@@ -833,12 +838,14 @@ Axiom open_intret : forall k s e, <{ {k~>s}(r_int e) }> = <{ r_int ({k~>s}e) }>.
 Axiom open_lit : forall k s n, <{ {k~>s}(i(n)) }> = <{ i(n) }>.
 Axiom open_boxedlit : forall k s n, <{ {k~>s}(i[n]) }> = <{ i[n] }>.
 
-(* Closing. *)
+(** ** Closing *)
 Axiom close_int : forall i x l, close_ i x <{ int{l} }> = <{ int{l} }>.
 
 End int_axioms.
 
-(* Global context typing through definition list. *)
+(** * Alternative global context typing *)
+
+(** Global context typing through definition list. *)
 Lemma gdefs_typing Ds :
   NoDup Ds.*1 ->
   gctx_typing (list_to_map Ds) <-> Forall (fun KD => (list_to_map Ds) ⊢₁ (KD.2)) Ds.
@@ -861,7 +868,7 @@ Proof.
   hauto use: gdefs_typing.
 Qed.
 
-(* Tactics. *)
+(** * Tactics *)
 Ltac kinding_intro :=
   match goal with
   | |- _; _ ⊢ int :: _ => eapply KInt

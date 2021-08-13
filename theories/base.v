@@ -5,9 +5,11 @@ From Hammer Require Export Tactics.
 
 (** * Definitions *)
 
+(** Normal form *)
 Definition nf {A : Type} (R : relation A) (a : A) : Prop :=
   ¬ exists a', R a a'.
 
+(** Transitive extensions *)
 Section trans_ext.
 
   Variable A : Type.

@@ -12,15 +12,15 @@ Import notations int_notations.
 (** This demo contains the oblivious tree, search and insert functions appeared
 in the paper. *)
 
-(* When we write a name, it means global variable. *)
+(** When we write a name, it means global variable. *)
 Coercion EGVar : atom >-> expr.
 
-(* Names *)
+(** Names. *)
 Definition nat : atom := "nat".
 Definition tree : atom := "tree".
 
-(* Define introduction/elimination as notations for convenience.
-Alternatively, we can also define them directly inside lambda oadt. *)
+(** Define introduction/elimination as notations for convenience. Alternatively,
+we can also define them directly inside lambda oadt. *)
 Notation "'zero'" := <{ fold<nat> (inl<𝟙 + @nat> ()) }>
                      (in custom oadt).
 Notation "'succ' e" := <{ fold<nat> (inr<𝟙 + @nat> e) }>
@@ -63,7 +63,7 @@ Notation "'snode' e" := <{ fold<spine> (inr<𝟙 + @spine * @spine> e) }>
                             e custom oadt at level 0).
 
 
-(* Global definitions. *)
+(** Global definitions. *)
 Definition defs := [{
   data nat := 𝟙 + nat;
   data tree := 𝟙 + int * tree * tree;
@@ -169,8 +169,9 @@ Definition defs := [{
 
 Definition Σ : gctx := list_to_map defs.
 
-(** Typing *)
-(* We can type this global context. *)
+(** Test typing: *)
+
+(** We can type this global context. *)
 Example example_gctx_typing : gctx_typing Σ.
 Proof.
   eapply gctx_gdefs_typing; [ reflexivity | compute_done | ].
@@ -179,16 +180,17 @@ Proof.
 Qed.
 
 
-(** Semantics. *)
+(** Test semantics: *)
+
 (* Warning: very slow. *)
 
 
-(* An example oblivious tree type, with index 2. *)
+(** An example oblivious tree type, with index 2. *)
 Example ex_tree_type :=
   <{ ~tree (succ (succ zero)) }>.
 Print ex_tree_type.
 
-(* It can be evalute to type value. *)
+(** It can be evalute to type value. *)
 Definition ex_tree_type_pack :
   sigT (fun ω => Σ ⊨ ex_tree_type -->* ω /\ otval ω).
 Proof.
@@ -204,16 +206,16 @@ Defined.
 Definition ex_tree_type_v := ltac:(extract ex_tree_type_pack).
 Print ex_tree_type_v.
 
-(* An example tree. *)
+(** An example tree. *)
 Definition ex_tree :=
   <{ node (i(2), node (i(1), leaf, leaf), node (i(4), leaf, leaf)) }>.
 Print ex_tree.
 
-(* An example oblivious tree *)
+(** An example oblivious tree *)
 Definition ex_otree :=
   <{ s_tree ex_tree (succ (succ zero)) }>.
 
-(* We can evaluate it to an oblivious value. *)
+(** We can evaluate it to an oblivious value. *)
 Definition ex_otree_pack :
   sigT (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
 Proof.
@@ -229,7 +231,7 @@ Defined.
 Definition ex_otree_v := ltac:(extract ex_otree_pack).
 Print ex_otree_v.
 
-(* Examples of lookup. *)
+(** Examples of lookup. *)
 Definition ex_lookup1 :
   sigT (fun v => Σ ⊨ <{ lookup i(3) ex_tree }> -->* v /\ val v).
 Proof.
@@ -262,7 +264,7 @@ Defined.
 Definition ex_lookup2_result := ltac:(extract ex_lookup2).
 Print ex_lookup2_result.
 
-(* Examples of oblivious lookup. *)
+(** Examples of oblivious lookup. *)
 Definition ex_olookup1 :
   sigT (fun v => Σ ⊨ <{ ~lookup i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
@@ -296,7 +298,7 @@ Definition ex_olookup2_result := ltac:(extract ex_olookup2).
 Print ex_olookup2_result.
 
 
-(* An example of [~lookup'] which uses a different public view. *)
+(** An example of [~lookup'] which uses a different public view. *)
 Notation "'ex_spine'" := <{ snode ((snode (sleaf, sleaf)), sleaf) }>
                          (in custom oadt, only parsing).
 
@@ -320,16 +322,16 @@ Defined.
 Definition ex_spine_tree_type_v := ltac:(extract ex_spine_tree_type_pack).
 Print ex_spine_tree_type_v.
 
-(* An example tree. *)
+(** An example tree. *)
 Definition ex_spine_tree :=
   <{ node (i(2), node (i(1), leaf, leaf), leaf) }>.
 Print ex_spine_tree.
 
-(* An example oblivious tree *)
+(** An example oblivious tree *)
 Definition ex_spine_otree :=
   <{ s_tree' ex_spine_tree ex_spine }>.
 
-(* We can evaluate it to an oblivious value. *)
+(** We can evaluate it to an oblivious value. *)
 Definition ex_spine_otree_pack :
   sigT (fun v => Σ ⊨ ex_spine_otree -->* v /\ oval v).
 Proof.
@@ -346,7 +348,7 @@ Defined.
 Definition ex_spine_otree_v := ltac:(extract ex_spine_otree_pack).
 Print ex_spine_otree_v.
 
-(* Examples of oblivious lookup. *)
+(** Examples of oblivious lookup. *)
 Definition ex_spine_olookup1 :
   sigT (fun v => Σ ⊨ <{ ~lookup' i[1] ex_spine ex_spine_otree_v }> -->* v /\ val v).
 Proof.
@@ -364,7 +366,7 @@ Definition ex_spine_olookup1_result := ltac:(extract ex_spine_olookup1).
 Print ex_spine_olookup1_result.
 
 
-(* An example of insert. *)
+(** An example of insert. *)
 Definition ex_insert :
   sigT (fun v => Σ ⊨ <{ insert i(3) ex_tree }> -->* v /\ val v).
 Proof.
@@ -380,7 +382,7 @@ Defined.
 Definition ex_insert_result := ltac:(extract ex_insert).
 Print ex_insert_result.
 
-(* An example of oblivious insert. *)
+(** An example of oblivious insert. *)
 Definition ex_oinsert :
   sigT (fun v => Σ ⊨ <{ ~insert i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.

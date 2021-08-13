@@ -3,14 +3,11 @@ From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.properties.
+From oadt Require Import lang_oadt.values.
 From oadt Require Import lang_oadt.admissible.
 From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.equivalence.
 From oadt Require Import lang_oadt.preservation.
-
-(** * Progress *)
-(** The progress metatheorem. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -29,7 +26,7 @@ Context (Hwf : gctx_wf Σ).
 #[local]
 Set Default Proof Using "Hwf".
 
-(** ** Lemmas *)
+(** * Lemmas about obliviousness *)
 
 Lemma pared_obliv_preservation_inv Γ τ τ' κ :
   Σ ⊢ τ ==>! τ' ->
@@ -82,7 +79,7 @@ Proof.
   equiv_naive_solver.
 Qed.
 
-(** ** Canonical forms *)
+(** * Canonical forms *)
 Ltac canonical_form_solver :=
   inversion 1; intros; subst; eauto;
   apply_type_inv;
@@ -161,7 +158,7 @@ Proof.
   inversion 1; canonical_form_solver.
 Qed.
 
-(** Canonical forms for weak values *)
+(** * Canonical forms for weak values *)
 
 Ltac canonical_form_weak_solver :=
   inversion 1; intros; subst; eauto;
@@ -233,9 +230,9 @@ Proof.
   inversion 1; canonical_form_weak_solver.
 Qed.
 
-(** ** Progress *)
+(** * Progress *)
 
-(** Take a step through evaluation context. *)
+(** Dealing with evaluation context. *)
 Ltac ectx_solver :=
   match goal with
   | H : _ ⊨ _ -->! _ |- exists _, _ ⊨ _ -->! _ =>

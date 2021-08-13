@@ -1,11 +1,9 @@
+(** Lemmas about parallel reduction and equivalence. *)
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
-
-(** * Expression Equivalence *)
-(** Lemmas for expression equivalence. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -27,6 +25,10 @@ Set Default Proof Using "Type".
 Notation "e '==>!' e'" := (Σ ⊢ e ==>! e')
                             (at level 40,
                              e' constr at level 0).
+
+(** * Lemmas about parallel reduction *)
+
+(** ** Properties of oblivious values *)
 
 Lemma pared_oval v e :
   oval v ->
@@ -59,7 +61,7 @@ Proof.
     try case_split; eauto using woval.
 Qed.
 
-(** ** Renaming Lemmas *)
+(** ** Substitution lemmas *)
 
 (* Technically [lc e1] should imply [lc e1'], but I have this assumption for
 convenience. *)
@@ -76,7 +78,7 @@ Proof.
       rewrite <- !subst_open_comm by (eauto; fast_set_solver!!); eauto.
 Qed.
 
-(* From now on, well-formedness of [Σ] is needed. *)
+(** From now on, well-formedness of [Σ] is needed. *)
 #[local]
 Set Default Proof Using "Hwf".
 
@@ -175,7 +177,7 @@ Proof.
   econstructor; eauto using lc.
 Qed.
 
-(** ** Admissible Rules *)
+(** ** Admissible introduction rules *)
 
 Ltac intro_solver :=
   intros; econstructor; eauto; simpl_cofin;
@@ -263,7 +265,7 @@ Proof.
   intro_solver.
 Qed.
 
-(** ** Inversion Lemmas *)
+(** ** Inversion lemmas *)
 
 Ltac inv_solver :=
   inversion 1; subst; try apply_lc_inv; repeat esplit; eauto using pared.
@@ -344,7 +346,7 @@ Ltac apply_pared_inv :=
 Tactic Notation "lcrefl" "by" tactic3(tac) := eapply RRefl; tac.
 Tactic Notation "lcrefl" := lcrefl by eauto with lc.
 
-(** ** Confluence *)
+(** ** Confluence theorem *)
 
 Section equivalence.
 
@@ -368,6 +370,7 @@ Ltac relax_pared :=
     refine (eq_ind _ (fun e' => e ==>! e') _ _ _)
   end.
 
+(** The diamond property. *)
 Lemma pared_diamond e e1 e2 :
   e ==>! e1 ->
   e ==>! e2 ->
@@ -418,7 +421,7 @@ Proof using Hwf.
                       | _ ==>! ?e =>
                         try assert (lc e) by eauto using pared_lc2
                       end);
-          (* Mung induction hypotheses. *)
+          (* Mung the induction hypotheses. *)
           repeat
             match goal with
             | H : context [exists _, ?u ==>! _ /\ _] |- _ =>
@@ -544,6 +547,8 @@ Proof using Hwf.
            end.
     hauto use: rt_trans.
 Qed.
+
+(** * Lemmas about expression equivalence *)
 
 Lemma pared_equiv_iff_join e1 e2 :
   e1 ≡ e2 <-> pared_equiv_join Σ e1 e2.
@@ -689,6 +694,8 @@ Proof.
   induction 1; sfirstorder.
 Qed.
 
+(** ** Relation to operational semantics *)
+
 (** [pared] refines [step]. *)
 Lemma pared_step e e' :
   Σ ⊨ e -->! e' ->
@@ -707,6 +714,7 @@ Proof.
   eauto using pared_equiv.
 Qed.
 
+(** expressions always step to equivalent expressions. *)
 Lemma pared_equiv_step e e' :
   Σ ⊨ e -->! e' ->
   lc e ->
@@ -718,7 +726,7 @@ Qed.
 #[local]
 Set Default Proof Using "Hwf".
 
-(** Substitution lemmas for [pared_equiv] *)
+(** ** Substitution lemmas *)
 Lemma pared_equiv_subst1 e s s' x :
   s ≡ s' ->
   lc e ->
@@ -739,7 +747,7 @@ Proof.
     hauto ctrs: pared_equiv, pared using pared_subst.
 Qed.
 
-(* Different combinations of local closure conditions are possible. *)
+(** Different combinations of local closure conditions are possible. *)
 Lemma pared_equiv_subst e e' s s' x :
   e ≡ e' ->
   s ≡ s' ->
@@ -760,7 +768,7 @@ Proof.
   eauto using lc, pared_equiv_subst2.
 Qed.
 
-(* A few alternative statements exist, e.g., having [x] as an argument. But this
+(** A few alternative statements exist, e.g., having [x] as an argument. But this
 one is the most convenient. *)
 Lemma pared_equiv_open1 e s s' L :
   s ≡ s' ->
@@ -800,7 +808,7 @@ Proof.
   eauto using pared_equiv_subst.
 Qed.
 
-(** ** Congruence Lemmas *)
+(** ** Congruence lemmas *)
 
 (* Another proof strategy is to reduce them to [pared_equiv_subst]. *)
 
@@ -843,7 +851,7 @@ Proof.
   congr_solver.
 Qed.
 
-(* This is good enough for our purposes though it is weaker than it could be. *)
+(** This is good enough for our purposes though it is weaker than it could be. *)
 Lemma pared_equiv_congr_pi l τ1 τ1' τ2 x :
   τ1 ≡ τ1' ->
   lc <{ τ2^x }> ->
@@ -859,6 +867,8 @@ Qed.
 End equivalence.
 
 Hint Extern 0 (gctx_wf _) => eassumption : typeclass_instances.
+
+(** * Tactics *)
 
 (** Simplify type equivalence to [whnf_equiv]. Possibly derive contradiction if
 two equivalent types in [whnf] have different head. *)

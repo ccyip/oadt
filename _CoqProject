@@ -5,19 +5,17 @@ theories/tactics.v
 theories/ln.v
 theories/semilattice.v
 theories/prelude.v
-# theories/playground/lang_stlc.v
 theories/lang_oadt/base.v
 theories/lang_oadt/syntax.v
 theories/lang_oadt/semantics.v
 theories/lang_oadt/typing.v
 theories/lang_oadt/infrastructure.v
+theories/lang_oadt/equivalence.v
 theories/lang_oadt/admissible.v
 theories/lang_oadt/inversion.v
-theories/lang_oadt/equivalence.v
-theories/lang_oadt/properties.v
-theories/lang_oadt/progress.v
+theories/lang_oadt/values.v
 theories/lang_oadt/preservation.v
+theories/lang_oadt/progress.v
 theories/lang_oadt/obliviousness.v
 theories/lang_oadt/metatheories.v
 theories/lang.v
-theories/demo/demo_prelude.v

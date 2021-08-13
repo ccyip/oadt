@@ -14,7 +14,7 @@ oblivious tree with spine as its bound, etc. *)
 
 Coercion EGVar : atom >-> expr.
 
-(* Names *)
+(** Names. *)
 Definition nat : atom := "nat".
 Definition tree : atom := "tree".
 Definition list : atom := "list".
@@ -57,6 +57,7 @@ Notation "'snode' e" := <{ fold<spine> (inr<𝟙 + @spine * @spine> e) }>
                         (in custom oadt at level 0,
                             e custom oadt at level 0).
 
+(** Global definitions. *)
 Definition defs := [{
   data nat := 𝟙 + nat;
 
@@ -85,27 +86,6 @@ Definition defs := [{
           ~case $0 of
             nil
           | cons (r𝔹 ($0).1, r_list $2 ($0).2);
-
-  (* Index is the exact length. *)
-  (* obliv olist' (:nat) := *)
-  (*   case unfold<nat> $0 of *)
-  (*     𝟙 *)
-  (*   | ~𝔹 * (olist $0); *)
-  (* def s_list' :{⊥} Π~:list, Π:nat, olist' $0 := *)
-  (*   \~:list => \:nat => *)
-  (*     case unfold<nat> $0 of *)
-  (*       () *)
-  (*     | tape (case unfold<list> $2 of *)
-  (*               tape (s𝔹 ($0).1, s_list ($0).2 $1)) *)
-  (*             | tape (s𝔹 ($0).1, s_list ($0).2 $1)); *)
-  (* def r_list' :{⊤} Π:nat, Π:olist' $0, list := *)
-  (*   \:nat => *)
-  (*     case unfold<nat> $0 of *)
-  (*       \:𝟙 => nil *)
-  (*     | \:𝟙 ~+ ~𝔹 * (olist $0) => *)
-  (*         ~case $0 of *)
-  (*           nil *)
-  (*         | cons (r𝔹 ($0).1, r_list $2 ($0).2); *)
 
   (* Index is the upper bound of its spine *)
   obliv ostree (:spine) :=
@@ -136,6 +116,7 @@ Definition defs := [{
 
 Definition Σ : gctx := list_to_map defs.
 
+(** We can type this global context. *)
 Example example_gctx_typing : gctx_typing Σ.
 Proof.
   eapply gctx_gdefs_typing; [ reflexivity | compute_done | ].

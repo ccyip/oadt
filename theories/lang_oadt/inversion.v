@@ -1,3 +1,4 @@
+(** Typing and kinding inversion lemmas. *)
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
@@ -14,9 +15,6 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-
-(** * Inversion Lemmas *)
-
 Section inversion.
 
 Context (Σ : gctx).
@@ -25,7 +23,7 @@ Context (Hwf : gctx_wf Σ).
 #[local]
 Set Default Proof Using "Type".
 
-(** ** Kind inversion  *)
+(** * Kind inversion  *)
 Tactic Notation "kind_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?τ :: _ -> _ => remember τ
@@ -199,7 +197,7 @@ Proof.
   kind_inv_solver.
 Qed.
 
-(** ** Type inversion *)
+(** * Type inversion *)
 Tactic Notation "type_inv_solver" "by" tactic3(tac) :=
   match goal with
   | |- _; _ ⊢ ?e : _ -> _ => remember e
@@ -478,6 +476,8 @@ Proof.
 Qed.
 
 End inversion.
+
+(** * Tactics *)
 
 Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   lazymatch type of H with

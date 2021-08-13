@@ -3,15 +3,12 @@ From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.properties.
+From oadt Require Import lang_oadt.values.
 From oadt Require Import lang_oadt.admissible.
 From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.equivalence.
 From oadt Require Import lang_oadt.progress.
 From oadt Require Import lang_oadt.preservation.
-
-(** * Obliviousness *)
-(** The obliviousness metatheorem. Essentially a noninterference property. *)
 
 Import syntax.notations.
 Import semantics.notations.
@@ -22,7 +19,9 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 #[local]
 Coercion EFVar : atom >-> expr.
 
-(** Indistinguishability is equivalence. *)
+(** * Properties of indistinguishability *)
+
+(** Indistinguishability is an equivalence. *)
 Instance indistinguishable_is_equiv : Equivalence indistinguishable.
 Proof.
   split.
@@ -195,6 +194,9 @@ Ltac apply_canonical_form :=
     apply_canonical_form_ H τ; eauto; try simp_hyp H
   end; subst.
 
+(** [indistinguishable_obliv_val] and [indistinguishable_val_type] are two of
+the most important lemmas. *)
+
 Lemma indistinguishable_obliv_val Σ Γ v v' l l' τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ v :{l} τ ->
@@ -306,6 +308,8 @@ Ltac val_step_absurd :=
               | eauto using wval
               | eauto ] ] ]
   end.
+
+(** * Obliviousness theorem *)
 
 Lemma indistinguishable_step Σ e1 e1' e2 l l' τ τ' :
   gctx_wf Σ ->

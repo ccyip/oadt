@@ -14,7 +14,7 @@ Import notations int_notations.
 
 Coercion EGVar : atom >-> expr.
 
-(* Names *)
+(** Names. *)
 Definition nat : atom := "nat".
 Definition tree : atom := "tree".
 Definition otree : atom := "~tree".
@@ -37,6 +37,7 @@ Notation "'node' e" := <{ fold<tree> (inr<𝟙 + 𝔹 * @tree * @tree> e) }>
                            e custom oadt at level 0).
 
 
+(** Global definitions. *)
 Definition defs := [{
   data nat := 𝟙 + nat;
 
@@ -82,6 +83,7 @@ Definition defs := [{
 
 Definition Σ : gctx := list_to_map defs.
 
+(** We can type this global context. *)
 Example example_gctx_typing : gctx_typing Σ.
 Proof.
   eapply gctx_gdefs_typing; [ reflexivity | compute_done | ].
@@ -89,12 +91,12 @@ Proof.
   all : repeat typing_tac.
 Qed.
 
-(* An example tree. *)
+(** An example tree. *)
 Definition ex_tree :=
   <{ node (true, node (true, leaf, leaf), node (false, leaf, leaf)) }>.
 Print ex_tree.
 
-(* An example oblivious tree *)
+(** An example oblivious tree *)
 Definition ex_otree :=
   <{ s_tree ex_tree (succ (succ zero)) }>.
 
@@ -113,7 +115,7 @@ Defined.
 Definition ex_otree_v := ltac:(extract ex_otree_pack).
 Print ex_otree_v.
 
-(* Map a negation function. *)
+(** Map a negation function. *)
 Definition ex_omap :
   sigT (fun v => Σ ⊨ <{ ~map (\~:𝔹 => if $0 then false else true) (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
