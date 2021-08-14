@@ -36,3 +36,4 @@ Makefile.coq.conf
 .dir-locals.el
 /snippets
 /_CoqProject.all
+/TODO.md
