@@ -39,10 +39,10 @@ jobs:
             endGroup
           script: |
             startGroup "Build project"
-              opam exec -- make -j 2
+              opam exec -- make -j 2 COQPROJECT=_CoqProject.all
             endGroup
             startGroup "Build documentation"
-              opam exec -- make html
+              opam exec -- make COQPROJECT=_CoqProject.all html
             endGroup
           uninstall: ''
       - name: Revert permissions
