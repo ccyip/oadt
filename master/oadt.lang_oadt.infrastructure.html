@@ -264,7 +264,8 @@ Free variables in the range of <span class="inlinecode"><a class="idref" href="o
 
 <br/>
 <span class="id" title="var">Create</span> <span class="id" title="var">HintDb</span> <span class="id" title="var">lc</span> <span class="id" title="var">discriminated</span>.<br/>
-<span class="id" title="keyword">Hint Constructors</span> <a class="idref" href="oadt.lang_oadt.infrastructure.html#lc"><span class="id" title="inductive">lc</span></a> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Constructors</span> <a class="idref" href="oadt.lang_oadt.infrastructure.html#lc"><span class="id" title="inductive">lc</span></a> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 </div>
@@ -508,7 +509,8 @@ constraint).
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">otval_lc</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">otval_lc</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="oval_lc" class="idref" href="#oval_lc"><span class="id" title="lemma">oval_lc</span></a> <a id="v:77" class="idref" href="#v:77"><span class="id" title="binder">v</span></a> :<br/>
@@ -517,7 +519,8 @@ constraint).
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">oval_lc</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">oval_lc</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="woval_lc" class="idref" href="#woval_lc"><span class="id" title="lemma">woval_lc</span></a> <a id="v:78" class="idref" href="#v:78"><span class="id" title="binder">v</span></a> :<br/>
@@ -526,7 +529,8 @@ constraint).
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">woval_lc</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">woval_lc</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="ovalty_lc" class="idref" href="#ovalty_lc"><span class="id" title="lemma">ovalty_lc</span></a> <a id="v:79" class="idref" href="#v:79"><span class="id" title="binder">v</span></a> <a id="e9e63352d12b6933bcf02449df2d1b00" class="idref" href="#e9e63352d12b6933bcf02449df2d1b00"><span class="id" title="binder">ω</span></a> :<br/>
@@ -546,7 +550,8 @@ constraint).
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">hauto</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.infrastructure.html#ovalty_lc"><span class="id" title="lemma">ovalty_lc</span></a>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">ovalty_lc1</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">ovalty_lc1</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="ovalty_lc2" class="idref" href="#ovalty_lc2"><span class="id" title="lemma">ovalty_lc2</span></a> <a id="v:83" class="idref" href="#v:83"><span class="id" title="binder">v</span></a> <a id="8397606f2a95502a48b02ea1c89c6ee9" class="idref" href="#8397606f2a95502a48b02ea1c89c6ee9"><span class="id" title="binder">ω</span></a> :<br/>
@@ -555,7 +560,8 @@ constraint).
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">hauto</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.infrastructure.html#ovalty_lc"><span class="id" title="lemma">ovalty_lc</span></a>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">ovalty_lc2</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">ovalty_lc2</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 </div>
@@ -574,7 +580,8 @@ Well-typed and well-kinded expressions are locally closed.
 &nbsp;&nbsp;<span class="id" title="var">all</span> : <span class="id" title="tactic">destruct</span> 1; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">econstructor</span>; <span class="id" title="var">simpl_cofin</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">typing_lc</span> <span class="id" title="var">kinding_lc</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">typing_lc</span> <span class="id" title="var">kinding_lc</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="subst_lc" class="idref" href="#subst_lc"><span class="id" title="lemma">subst_lc</span></a> <a id="x:94" class="idref" href="#x:94"><span class="id" title="binder">x</span></a> <a id="e:95" class="idref" href="#e:95"><span class="id" title="binder">e</span></a> <a id="s:96" class="idref" href="#s:96"><span class="id" title="binder">s</span></a> :<br/>
@@ -587,7 +594,8 @@ Well-typed and well-kinded expressions are locally closed.
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="tactic">econstructor</span>; <span class="id" title="var">simpl_cofin</span>?; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <a class="idref" href="oadt.lang_oadt.infrastructure.html#subst_open_comm"><span class="id" title="lemma">subst_open_comm</span></a>; <span class="id" title="tactic">eauto</span>; <span class="id" title="var">fast_set_solver</span>!!.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">subst_lc</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">subst_lc</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="subst_respect_lc" class="idref" href="#subst_respect_lc"><span class="id" title="lemma">subst_respect_lc</span></a> <a id="x:97" class="idref" href="#x:97"><span class="id" title="binder">x</span></a> <a id="s:98" class="idref" href="#s:98"><span class="id" title="binder">s</span></a> <a id="t:99" class="idref" href="#t:99"><span class="id" title="binder">t</span></a> <a id="e:100" class="idref" href="#e:100"><span class="id" title="binder">e</span></a> :<br/>
@@ -605,7 +613,8 @@ Well-typed and well-kinded expressions are locally closed.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simpl_cofin</span>?;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- ?<a class="idref" href="oadt.lang_oadt.infrastructure.html#subst_open_comm"><span class="id" title="lemma">subst_open_comm</span></a> <span class="id" title="tactic">in</span> *; <span class="id" title="tactic">eauto</span>; <span class="id" title="var">fast_set_solver</span>!!.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">subst_respect_lc</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">subst_respect_lc</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="open_respect_lc" class="idref" href="#open_respect_lc"><span class="id" title="lemma">open_respect_lc</span></a> <a id="e:101" class="idref" href="#e:101"><span class="id" title="binder">e</span></a> <a id="s:102" class="idref" href="#s:102"><span class="id" title="binder">s</span></a> <a id="t:103" class="idref" href="#t:103"><span class="id" title="binder">t</span></a> :<br/>
@@ -619,7 +628,8 @@ Well-typed and well-kinded expressions are locally closed.
 &nbsp;&nbsp;<span class="id" title="var">erewrite</span> <a class="idref" href="oadt.lang_oadt.infrastructure.html#subst_intro"><span class="id" title="lemma">subst_intro</span></a> <span class="id" title="tactic">in</span> *; <span class="id" title="tactic">eauto</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">open_respect_lc</span> | 10 : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">open_respect_lc</span> | 10 : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="open_respect_lc_atom" class="idref" href="#open_respect_lc_atom"><span class="id" title="lemma">open_respect_lc_atom</span></a> <a id="x:104" class="idref" href="#x:104"><span class="id" title="binder">x</span></a> <a id="e:105" class="idref" href="#e:105"><span class="id" title="binder">e</span></a> <a id="s:106" class="idref" href="#s:106"><span class="id" title="binder">s</span></a> :<br/>
@@ -629,7 +639,8 @@ Well-typed and well-kinded expressions are locally closed.
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">open_respect_lc_atom</span> | 9 : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">open_respect_lc_atom</span> | 9 : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="lc_rename" class="idref" href="#lc_rename"><span class="id" title="lemma">lc_rename</span></a> <a id="e:107" class="idref" href="#e:107"><span class="id" title="binder">e</span></a> <a id="x:108" class="idref" href="#x:108"><span class="id" title="binder">x</span></a> <a id="y:109" class="idref" href="#y:109"><span class="id" title="binder">y</span></a> :<br/>
@@ -638,7 +649,8 @@ Well-typed and well-kinded expressions are locally closed.
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">lc_rename</span> | 8 : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">lc_rename</span> | 8 : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 </div>
@@ -657,7 +669,8 @@ The type of well-typed expression is also locally closed.
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">case_split</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.syntax.html#lc"><span class="id" title="inductive">lc</span></a>, <a class="idref" href="oadt.lang_oadt.infrastructure.html#kinding_lc"><span class="id" title="lemma">kinding_lc</span></a>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_lc_inv</span>; <span class="id" title="var">simpl_cofin</span>?; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">lc</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">typing_type_lc</span> : <span class="id" title="var">lc</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">typing_type_lc</span> : <span class="id" title="var">lc</span>.<br/>
 
 <br/>
 </div>
