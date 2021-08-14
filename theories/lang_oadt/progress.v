@@ -84,8 +84,9 @@ Ltac canonical_form_solver :=
   inversion 1; intros; subst; eauto;
   apply_type_inv;
   apply_kind_inv;
-  simpl_whnf_equiv;
-  eauto.
+  try simpl_whnf_equiv;
+  simplify_eq;
+  eauto 10.
 
 Lemma canonical_form_unit Γ l e :
   val e ->
@@ -160,21 +161,13 @@ Qed.
 
 (** * Canonical forms for weak values *)
 
-Ltac canonical_form_weak_solver :=
-  inversion 1; intros; subst; eauto;
-  apply_type_inv;
-  apply_kind_inv;
-  try simpl_whnf_equiv;
-  simplify_eq;
-  eauto 10.
-
 Lemma canonical_form_weak_unit Γ l e :
   wval e ->
   Σ; Γ ⊢ e :{l} 𝟙 ->
   e = <{ () }> \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_weak_solver.
+  canonical_form_solver.
 Qed.
 
 Lemma canonical_form_weak_abs Γ l1 l2 e τ2 τ1 :
@@ -183,7 +176,7 @@ Lemma canonical_form_weak_abs Γ l1 l2 e τ2 τ1 :
   (exists e' τ, e = <{ \:{l2}τ => e' }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_weak_solver.
+  canonical_form_solver.
 Qed.
 
 Lemma canonical_form_weak_bool Γ l e :
@@ -192,7 +185,7 @@ Lemma canonical_form_weak_bool Γ l e :
   (exists b, e = <{ b }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_weak_solver.
+  canonical_form_solver.
 Qed.
 
 Lemma canonical_form_weak_obool Γ e :
@@ -200,7 +193,7 @@ Lemma canonical_form_weak_obool Γ e :
   Σ; Γ ⊢ e :{⊥} ~𝔹 ->
   exists b, e = <{ [b] }>.
 Proof.
-  canonical_form_weak_solver.
+  canonical_form_solver.
 Qed.
 
 Lemma canonical_form_weak_prod Γ l e τ1 τ2 :
@@ -209,7 +202,7 @@ Lemma canonical_form_weak_prod Γ l e τ1 τ2 :
   (exists v1 v2, wval v1 /\ wval v2 /\ e = <{ (v1, v2) }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_weak_solver.
+  canonical_form_solver.
 Qed.
 
 Lemma canonical_form_weak_sum Γ l e τ1 τ2 :
@@ -218,7 +211,7 @@ Lemma canonical_form_weak_sum Γ l e τ1 τ2 :
   (exists b v τ, wval v /\ e = <{ inj@b<τ> v }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_weak_solver.
+  canonical_form_solver.
 Qed.
 
 Lemma canonical_form_weak_fold Γ l e X :
@@ -227,7 +220,7 @@ Lemma canonical_form_weak_fold Γ l e X :
   (exists v X', wval v /\ e = <{ fold<X'> v }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  inversion 1; canonical_form_weak_solver.
+  inversion 1; canonical_form_solver.
 Qed.
 
 (** * Progress *)

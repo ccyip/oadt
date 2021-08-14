@@ -224,6 +224,7 @@ Proof.
   type_inv_solver.
 Qed.
 
+(** From now on the proofs rely on the well-formedness of global context. *)
 #[local]
 Set Default Proof Using "Hwf".
 
