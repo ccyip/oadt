@@ -3,7 +3,7 @@
 [![Build status][action-badge]][action-link]
 [![coqdoc][doc-badge]][doc-link]
 
-[action-badge]: https://github.com/ccyip/oadt/actions/workflows/build.yml/badge.svg?branch=master
+[action-badge]: https://github.com/ccyip/oadt/actions/workflows/build.yml/badge.svg?branch=tape
 [action-link]: https://github.com/ccyip/oadt/actions
 
 [doc-badge]: https://img.shields.io/badge/docs-coqdoc-blue.svg
