@@ -162,6 +162,7 @@ Ltac relax_typing_type :=
   end.
 
 Create HintDb lc discriminated.
+#[export]
 Hint Constructors lc : lc.
 
 (** * Lemmas *)
@@ -347,6 +348,7 @@ Lemma otval_lc ω :
 Proof.
   induction 1; eauto with lc.
 Qed.
+#[export]
 Hint Resolve otval_lc : lc.
 
 Lemma oval_lc v :
@@ -355,6 +357,7 @@ Lemma oval_lc v :
 Proof.
   induction 1; eauto with lc.
 Qed.
+#[export]
 Hint Resolve oval_lc : lc.
 
 Lemma woval_lc v :
@@ -363,6 +366,7 @@ Lemma woval_lc v :
 Proof.
   induction 1; eauto with lc.
 Qed.
+#[export]
 Hint Resolve woval_lc : lc.
 
 Lemma ovalty_lc v ω :
@@ -380,6 +384,7 @@ Lemma ovalty_lc1 v ω :
 Proof.
   hauto use: ovalty_lc.
 Qed.
+#[export]
 Hint Resolve ovalty_lc1 : lc.
 
 Lemma ovalty_lc2 v ω :
@@ -388,6 +393,7 @@ Lemma ovalty_lc2 v ω :
 Proof.
   hauto use: ovalty_lc.
 Qed.
+#[export]
 Hint Resolve ovalty_lc2 : lc.
 
 (** Well-typed and well-kinded expressions are locally closed. *)
@@ -401,6 +407,7 @@ Proof.
   all : destruct 1; eauto with lc;
     econstructor; simpl_cofin; eauto with lc.
 Qed.
+#[export]
 Hint Resolve typing_lc kinding_lc : lc.
 
 Lemma subst_lc x e s :
@@ -413,6 +420,7 @@ Proof.
     repeat econstructor; simpl_cofin?; eauto with lc;
       rewrite <- subst_open_comm; eauto; fast_set_solver!!.
 Qed.
+#[export]
 Hint Resolve subst_lc : lc.
 
 Lemma subst_respect_lc x s t e :
@@ -430,6 +438,7 @@ Proof.
           simpl_cofin?;
           rewrite <- ?subst_open_comm in *; eauto; fast_set_solver!!.
 Qed.
+#[export]
 Hint Resolve subst_respect_lc : lc.
 
 Lemma open_respect_lc e s t :
@@ -443,6 +452,7 @@ Proof.
   erewrite subst_intro in *; eauto.
   eauto with lc.
 Qed.
+#[export]
 Hint Resolve open_respect_lc | 10 : lc.
 
 Lemma open_respect_lc_atom x e s :
@@ -452,6 +462,7 @@ Lemma open_respect_lc_atom x e s :
 Proof.
   eauto with lc.
 Qed.
+#[export]
 Hint Resolve open_respect_lc_atom | 9 : lc.
 
 Lemma lc_rename e x y :
@@ -460,6 +471,7 @@ Lemma lc_rename e x y :
 Proof.
   eauto with lc.
 Qed.
+#[export]
 Hint Resolve lc_rename | 8 : lc.
 
 (** The type of well-typed expression is also locally closed. *)
@@ -473,6 +485,7 @@ Proof.
     try case_split; eauto using lc, kinding_lc;
     try apply_lc_inv; simpl_cofin?; eauto with lc.
 Qed.
+#[export]
 Hint Resolve typing_type_lc : lc.
 
 (** ** Properties of free variables *)
