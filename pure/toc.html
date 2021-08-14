@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<link href="custom/custom.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="custom/custom.js"></script>
+<script type="text/javascript" src="resources/config.js"></script>
+<script type="text/javascript" src="resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a id="project-page" href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<div id="toc">
+<h2><a href="oadt.base.html">oadt.base</a></h2>
+<ul class="doclist">
+<li><a href="oadt.base.html#lab1">Definitions</a>
+
+</li>
+<li><a href="oadt.base.html#lab2">Lemmas</a>
+
+</li>
+<li><a href="oadt.base.html#lab3">More setoid rewriting for sets</a>
+
+</li>
+</ul>
+<h2><a href="oadt.tactics.html">oadt.tactics</a></h2>
+<ul class="doclist">
+<li><a href="oadt.tactics.html#lab4">Fold over hypotheses</a>
+
+</li>
+<li><a href="oadt.tactics.html#lab5">General purpose tactics</a>
+<ul class="doclist">
+<li><a href="oadt.tactics.html#lab6">Set solving</a>
+
+</li>
+<li><a href="oadt.tactics.html#lab7">Forward reasoning</a>
+
+</li>
+<li><a href="oadt.tactics.html#lab8">Hypothesis application</a>
+
+</li>
+<li><a href="oadt.tactics.html#lab9">General solvers</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<h2><a href="oadt.ln.html">oadt.ln</a></h2>
+<ul class="doclist">
+<li><a href="oadt.ln.html#lab10">Atom</a>
+
+</li>
+<li><a href="oadt.ln.html#lab11">Tactics for cofinite quantifiers</a>
+
+</li>
+</ul>
+<h2><a href="oadt.semilattice.html">oadt.semilattice</a></h2>
+<ul class="doclist">
+<li><a href="oadt.semilattice.html#lab12">Semi-lattice</a>
+
+</li>
+<li><a href="oadt.semilattice.html#lab13">Theorems</a>
+
+</li>
+<li><a href="oadt.semilattice.html#lab14">Instances</a>
+
+</li>
+<li><a href="oadt.semilattice.html#lab15">Tactics</a>
+
+</li>
+</ul>
+<h2><a href="oadt.prelude.html">oadt.prelude</a></h2>
+<h2><a href="oadt.lang_oadt.base.html">oadt.lang_oadt.base</a></h2>
+<h2><a href="oadt.lang_oadt.syntax.html">oadt.lang_oadt.syntax</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.syntax.html#lab16">Definitions</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.syntax.html#lab17">Expressions (e, τ)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab18">Global definitions (D)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab19">Global context (Σ)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab20">Programs (P)</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab21">Notations for expressions</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab22">More Definitions</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.syntax.html#lab23">Indistinguishability</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab24">Variable opening</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab25">Substitution (for locally free variables)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab26">Oblivious type values (ω)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab27">Oblivious values (v)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab28">Values (v)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab29">Local closure and well-formedness of expressions</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="oadt.lang_oadt.syntax.html#lab30">Notations</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.semantics.html">oadt.lang_oadt.semantics</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.semantics.html#lab31">Definitions</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.semantics.html#lab32">OADT value typing</a>
+
+</li>
+<li><a href="oadt.lang_oadt.semantics.html#lab33">Evaluation context (ℇ)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.semantics.html#lab34">Small-step relation</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="oadt.lang_oadt.semantics.html#lab35">Notations</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.typing.html">oadt.lang_oadt.typing</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.typing.html#lab36">Definitions</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.typing.html#lab37">Kinds (κ)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab38">Typing context (Γ)</a>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab39">Parallel reduction</a>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab40">Expression equivalence</a>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab41">Typing and kinding</a>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab42">Global definitions typing</a>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab43">Program typing</a>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab44">Well-formedness of global context</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="oadt.lang_oadt.typing.html#lab45">Notations</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.infrastructure.html">oadt.lang_oadt.infrastructure</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.infrastructure.html#lab46">Definitions</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.infrastructure.html#lab47">Variable closing</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab48">Free variables</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab49">Instances</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab50">Tactics</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab51">Lemmas</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.infrastructure.html#lab52">Properties of opening and closing</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab53">Properties of substitution</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab54">Properties of values</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab55">Properties of local closure</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab56">Properties of free variables</a>
+
+</li>
+<li><a href="oadt.lang_oadt.infrastructure.html#lab57">Properties of parallel reduction and local closure</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.equivalence.html">oadt.lang_oadt.equivalence</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.equivalence.html#lab58">Lemmas about parallel reduction</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.equivalence.html#lab59">Properties of oblivious values</a>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab60">Substitution lemmas</a>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab61">Admissible introduction rules</a>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab62">Inversion lemmas</a>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab63">Confluence theorem</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab64">Lemmas about expression equivalence</a>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.equivalence.html#lab65">Weak head normal form</a>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab66">Relation to operational semantics</a>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab67">Substitution lemmas</a>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab68">Congruence lemmas</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="oadt.lang_oadt.equivalence.html#lab69">Tactics</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.admissible.html">oadt.lang_oadt.admissible</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.admissible.html#lab70">Admissible step introduction rules</a>
+
+</li>
+<li><a href="oadt.lang_oadt.admissible.html#lab71">Renaming lemmas</a>
+
+</li>
+<li><a href="oadt.lang_oadt.admissible.html#lab72">Admissible typing and kinding introduction rules</a>
+
+</li>
+<li><a href="oadt.lang_oadt.admissible.html#lab73">Tactics</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.inversion.html">oadt.lang_oadt.inversion</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.inversion.html#lab74">Kind inversion</a>
+
+</li>
+<li><a href="oadt.lang_oadt.inversion.html#lab75">Type inversion</a>
+
+</li>
+<li><a href="oadt.lang_oadt.inversion.html#lab76">Tactics</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.values.html">oadt.lang_oadt.values</a></h2>
+<h2><a href="oadt.lang_oadt.preservation.html">oadt.lang_oadt.preservation</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.preservation.html#lab77">Weakening lemmas</a>
+
+</li>
+<li><a href="oadt.lang_oadt.preservation.html#lab78">Substitution lemmas</a>
+
+</li>
+<li><a href="oadt.lang_oadt.preservation.html#lab79">Other lemmas</a>
+
+</li>
+<li><a href="oadt.lang_oadt.preservation.html#lab80">Preservation</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.progress.html">oadt.lang_oadt.progress</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.progress.html#lab81">Canonical forms</a>
+
+</li>
+<li><a href="oadt.lang_oadt.progress.html#lab82">Progress</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.obliviousness.html">oadt.lang_oadt.obliviousness</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.obliviousness.html#lab83">Properties of indistinguishability</a>
+
+</li>
+<li><a href="oadt.lang_oadt.obliviousness.html#lab84">Obliviousness theorem</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang_oadt.metatheories.html">oadt.lang_oadt.metatheories</a></h2>
+<ul class="doclist">
+<li><a href="oadt.lang_oadt.metatheories.html#lab85">Soundness</a>
+
+</li>
+<li><a href="oadt.lang_oadt.metatheories.html#lab86">Obliviousness</a>
+
+</li>
+</ul>
+<h2><a href="oadt.lang.html">oadt.lang</a></h2>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

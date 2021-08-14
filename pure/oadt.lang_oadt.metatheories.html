@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<link href="custom/custom.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="custom/custom.js"></script>
+<script type="text/javascript" src="resources/config.js"></script>
+<script type="text/javascript" src="resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a id="project-page" href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">oadt.lang_oadt.metatheories</h1>
+
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.base.html#"><span class="id" title="library">lang_oadt.base</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.syntax.html#"><span class="id" title="library">lang_oadt.syntax</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.semantics.html#"><span class="id" title="library">lang_oadt.semantics</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.typing.html#"><span class="id" title="library">lang_oadt.typing</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.infrastructure.html#"><span class="id" title="library">lang_oadt.infrastructure</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.values.html#"><span class="id" title="library">lang_oadt.values</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.progress.html#"><span class="id" title="library">lang_oadt.progress</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.preservation.html#"><span class="id" title="library">lang_oadt.preservation</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.lang_oadt.obliviousness.html#"><span class="id" title="library">lang_oadt.obliviousness</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">syntax.notations</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">semantics.notations</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">typing.notations</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span> (<span class="id" title="var">b</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">X</span> <span class="id" title="var">y</span> <span class="id" title="var">Y</span> : <a class="idref" href="oadt.lang_oadt.base.html#atom"><span class="id" title="axiom">atom</span></a>) (<span class="id" title="var">L</span> : <a class="idref" href="oadt.lang_oadt.base.html#aset"><span class="id" title="axiom">aset</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="gdefs_typing_wf" class="idref" href="#gdefs_typing_wf"><span class="id" title="lemma">gdefs_typing_wf</span></a> <a id="0101b9beac487b383a5ba2a8f6922788" class="idref" href="#0101b9beac487b383a5ba2a8f6922788"><span class="id" title="binder">Σ</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.typing.html#gctx_typing"><span class="id" title="definition">gctx_typing</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#0101b9beac487b383a5ba2a8f6922788"><span class="id" title="variable">Σ</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.typing.html#gctx_wf"><span class="id" title="definition">gctx_wf</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#0101b9beac487b383a5ba2a8f6922788"><span class="id" title="variable">Σ</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">eapply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin_maps.html#map_Forall_impl"><span class="id" title="lemma">map_Forall_impl</span></a>; <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> ??. <span class="id" title="tactic">inversion</span> 1; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab85"></a><h1 class="section">Soundness</h1>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a id="stuck" class="idref" href="#stuck"><span class="id" title="definition">stuck</span></a> (<a id="ebf069dbc779b42a15c441a6d39d5f83" class="idref" href="#ebf069dbc779b42a15c441a6d39d5f83"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="abbreviation">gctx</span></a>) (<a id="e:3" class="idref" href="#e:3"><span class="id" title="binder">e</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#expr"><span class="id" title="inductive">expr</span></a>) : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.base.html#nf"><span class="id" title="definition">nf</span></a> (@<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#ebf069dbc779b42a15c441a6d39d5f83"><span class="id" title="variable">Σ</span></a>) <a class="idref" href="oadt.lang_oadt.metatheories.html#e:3"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Unicode.Utf8_core.html#b02645851bc60f28087c4c8d90376442"><span class="id" title="notation">¬</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e:3"><span class="id" title="variable">e</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If a program is well-typed, it will never get stuck. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Corollary</span> <a id="soundness" class="idref" href="#soundness"><span class="id" title="lemma">soundness</span></a> <a id="e:4" class="idref" href="#e:4"><span class="id" title="binder">e</span></a> <a id="48bbc240c70629f9166b6605559525f0" class="idref" href="#48bbc240c70629f9166b6605559525f0"><span class="id" title="binder">Σ</span></a> <a id="3e04709bb11b5bba5059773458c0fe1c" class="idref" href="#3e04709bb11b5bba5059773458c0fe1c"><span class="id" title="binder">τ</span></a> <a id="e':7" class="idref" href="#e':7"><span class="id" title="binder">e'</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.metatheories.html#48bbc240c70629f9166b6605559525f0"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#c97dc0443fca8b4321211d7aa55e8d72"><span class="id" title="notation">;</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e:4"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#c97dc0443fca8b4321211d7aa55e8d72"><span class="id" title="notation">▷</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#3e04709bb11b5bba5059773458c0fe1c"><span class="id" title="variable">τ</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.metatheories.html#48bbc240c70629f9166b6605559525f0"><span class="id" title="variable">Σ</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6deb3f7c9fc50678d0e7f0957225deb8"><span class="id" title="notation">⊨</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e:4"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6deb3f7c9fc50678d0e7f0957225deb8"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e':7"><span class="id" title="variable">e'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Unicode.Utf8_core.html#b02645851bc60f28087c4c8d90376442"><span class="id" title="notation">¬(</span></a><a class="idref" href="oadt.lang_oadt.metatheories.html#stuck"><span class="id" title="definition">stuck</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#48bbc240c70629f9166b6605559525f0"><span class="id" title="variable">Σ</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e':7"><span class="id" title="variable">e'</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Unicode.Utf8_core.html#b02645851bc60f28087c4c8d90376442"><span class="id" title="notation">)</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> [<span class="id" title="var">Hd</span> <span class="id" title="var">Ht</span>]. <span class="id" title="tactic">apply</span> <a class="idref" href="oadt.lang_oadt.metatheories.html#gdefs_typing_wf"><span class="id" title="lemma">gdefs_typing_wf</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">Hd</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">qauto</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.progress.html#progress"><span class="id" title="lemma">progress</span></a>, <a class="idref" href="oadt.lang_oadt.preservation.html#preservation"><span class="id" title="lemma">preservation</span></a> <span class="id" title="tactic">unfold</span>: <span class="id" title="var">stuck</span>, <span class="id" title="var">nf</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab86"></a><h1 class="section">Obliviousness</h1>
+
+<div class="paragraph"> </div>
+
+ Essentially a noninterference theorem. Indistinguishable well-typed
+expressions can always take the same steps and new expressions remain
+indistinguishable. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Theorem</span> <a id="obliviousness" class="idref" href="#obliviousness"><span class="id" title="lemma">obliviousness</span></a> <a id="cb3edd5393c7bbdf625595792a237037" class="idref" href="#cb3edd5393c7bbdf625595792a237037"><span class="id" title="binder">Σ</span></a> <a id="e1:9" class="idref" href="#e1:9"><span class="id" title="binder">e1</span></a> <a id="e1':10" class="idref" href="#e1':10"><span class="id" title="binder">e1'</span></a> <a id="e2:11" class="idref" href="#e2:11"><span class="id" title="binder">e2</span></a> <a id="7e4be4415363190d87652b6811005fa5" class="idref" href="#7e4be4415363190d87652b6811005fa5"><span class="id" title="binder">τ</span></a> <a id="ffb462058b598280bf9b14cffbb12db8" class="idref" href="#ffb462058b598280bf9b14cffbb12db8"><span class="id" title="binder">τ'</span></a> <a id="n:14" class="idref" href="#n:14"><span class="id" title="binder">n</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.metatheories.html#cb3edd5393c7bbdf625595792a237037"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#c97dc0443fca8b4321211d7aa55e8d72"><span class="id" title="notation">;</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e1:9"><span class="id" title="variable">e1</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#c97dc0443fca8b4321211d7aa55e8d72"><span class="id" title="notation">▷</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#7e4be4415363190d87652b6811005fa5"><span class="id" title="variable">τ</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.metatheories.html#cb3edd5393c7bbdf625595792a237037"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#c97dc0443fca8b4321211d7aa55e8d72"><span class="id" title="notation">;</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e1':10"><span class="id" title="variable">e1'</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#c97dc0443fca8b4321211d7aa55e8d72"><span class="id" title="notation">▷</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#ffb462058b598280bf9b14cffbb12db8"><span class="id" title="variable">τ'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.metatheories.html#cb3edd5393c7bbdf625595792a237037"><span class="id" title="variable">Σ</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">⊨</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e1:9"><span class="id" title="variable">e1</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">--&gt;{</span></a><a class="idref" href="oadt.lang_oadt.metatheories.html#n:14"><span class="id" title="variable">n</span></a><a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">}</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e2:11"><span class="id" title="variable">e2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.metatheories.html#e1:9"><span class="id" title="variable">e1</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e1':10"><span class="id" title="variable">e1'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <a id="e2':15" class="idref" href="#e2':15"><span class="id" title="binder">e2'</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#cb3edd5393c7bbdf625595792a237037"><span class="id" title="variable">Σ</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">⊨</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e1':10"><span class="id" title="variable">e1'</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">--&gt;{</span></a><a class="idref" href="oadt.lang_oadt.metatheories.html#n:14"><span class="id" title="variable">n</span></a><a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">}</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e2':15"><span class="id" title="variable">e2'</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="e2':16" class="idref" href="#e2':16"><span class="id" title="binder">e2'</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#cb3edd5393c7bbdf625595792a237037"><span class="id" title="variable">Σ</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">⊨</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e1':10"><span class="id" title="variable">e1'</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">--&gt;{</span></a><a class="idref" href="oadt.lang_oadt.metatheories.html#n:14"><span class="id" title="variable">n</span></a><a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">}</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e2':16"><span class="id" title="variable">e2'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e2:11"><span class="id" title="variable">e2</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> <a class="idref" href="oadt.lang_oadt.metatheories.html#e2':16"><span class="id" title="variable">e2'</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> [<span class="id" title="var">Hd</span> <span class="id" title="var">Ht1</span>] [<span class="id" title="var">_</span> <span class="id" title="var">Ht1'</span>]. <span class="id" title="tactic">apply</span> <a class="idref" href="oadt.lang_oadt.metatheories.html#gdefs_typing_wf"><span class="id" title="lemma">gdefs_typing_wf</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">Hd</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> <span class="id" title="tactic">dependent</span> <span class="id" title="var">e1'</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">hauto</span> <span class="id" title="var">ctrs</span>: <span class="id" title="var">trans_ext</span> <span class="id" title="var">inv</span>: <span class="id" title="var">trans_ext</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">edestruct</span> <a class="idref" href="oadt.lang_oadt.obliviousness.html#obliviousness_step"><span class="id" title="lemma">obliviousness_step</span></a> <span class="id" title="keyword">as</span> [[??] ?]; <span class="id" title="tactic">eauto</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">intros</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">hauto</span> <span class="id" title="var">ctrs</span>: <span class="id" title="var">trans_ext</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.preservation.html#preservation"><span class="id" title="lemma">preservation</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="var">select</span> (<span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">⊨</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">--&gt;{</span></a><span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.semantics.html#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">}</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">qauto</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.preservation.html#preservation"><span class="id" title="lemma">preservation</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
