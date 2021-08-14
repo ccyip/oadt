@@ -12,6 +12,7 @@ jobs:
     env:
       TARGET_COQ_VERSION: 8.13
       TARGET_OCAML_VERSION: 4.11-flambda
+      TARGET_DOC_FOLDER: master
     strategy:
       matrix:
         coq_version:
@@ -60,5 +61,5 @@ jobs:
         with:
           branch: gh-pages
           folder: html
-          target-folder: master
+          target-folder: ${{ env.TARGET_DOC_FOLDER }}
           git-config-name: 'Qianchuan Ye'
