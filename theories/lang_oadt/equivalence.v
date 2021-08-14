@@ -819,6 +819,7 @@ Qed.
 
 End equivalence.
 
+#[export]
 Hint Extern 0 (gctx_wf _) => eassumption : typeclass_instances.
 
 (** * Tactics *)
