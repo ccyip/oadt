@@ -3,7 +3,6 @@ var coqdocjs_conf = {
     repl: {
         "forall": "∀",
         "exists": "∃",
-        "~": "¬",
         "/\\": "∧",
         "\\/": "∨",
         "<>": "≠",
