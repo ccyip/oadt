@@ -28,11 +28,13 @@ it in a simple way.
 [κ1 ⊑ κ2] means [κ2] is stricter than or as strict as [κ1]. The relation can be
 visualized as follow.
 
+<<
     M
    / \
   P   O
    \ /
     A
+>>
 *)
 Instance kind_eq : EqDecision kind.
 Proof.
