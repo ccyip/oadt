@@ -28,7 +28,7 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ \:{l}τ => e }> => <{ \:{l}({k<~x}τ) => {S k<~x}e }>
   | <{ let e1 in e2 }> => <{ let {k<~x}e1 in {S k<~x}e2 }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k<~x}e0 of {S k<~x}e1 | {S k<~x}e2 }>
-  (** Congruence rules *)
+  (* Congruence rules *)
   | <{ τ1 * τ2 }> => <{ ({k<~x}τ1) * ({k<~x}τ2) }>
   | <{ τ1 +{l} τ2 }> => <{ ({k<~x}τ1) +{l} ({k<~x}τ2) }>
   | <{ e1 e2 }> => <{ ({k<~x}e1) ({k<~x}e2) }>
