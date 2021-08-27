@@ -16,6 +16,10 @@ Coercion EFVar : atom >-> expr.
 
 (** * Definitions *)
 
+(** ** Body of local closure *)
+Definition body (e : expr) : Prop :=
+  exists L, forall x, x ∉ L -> lc <{ e^x }>.
+
 (** ** Variable closing *)
 Section close.
 
@@ -192,6 +196,16 @@ Lemma open_lc_intro e s :
 Proof.
   unfold open.
   qauto use: open_lc.
+Qed.
+
+Lemma open_comm e s u i j :
+  lc s ->
+  lc u ->
+  i <> j ->
+  <{ {i~>s}({j~>u}e) }> = <{ {j~>u}({i~>s}e) }>.
+Proof.
+  intros ??. revert i j.
+  induction e; qauto use: open_lc.
 Qed.
 
 (* Rather slow because we have to do induction on [e1] and then destruct [e2],
@@ -487,6 +501,43 @@ Proof.
 Qed.
 #[export]
 Hint Resolve typing_type_lc : lc.
+
+(** ** Properties of [body]  *)
+
+Lemma lc_body e :
+  lc e ->
+  body e.
+Proof.
+  intros. unfold body.
+  exists ∅. intros. rewrite open_lc_intro by auto.
+  auto.
+Qed.
+
+Lemma lc_body_open e s :
+  body e ->
+  lc s ->
+  lc <{ e^s }>.
+Proof.
+  unfold body.
+  intros. simp_hyps. simpl_cofin.
+  eauto with lc.
+Qed.
+
+Lemma open_body e : forall s,
+  body e -> forall k, k <> 0 -> <{ {k~>s}e }> = e.
+Proof.
+  intros.
+  pick_fresh as x.
+  erewrite (open_lc_ _ x _ 0); eauto.
+  rewrite open_lc. reflexivity.
+  eauto using lc, lc_body_open.
+Qed.
+
+Lemma body_bvar :
+  body <{ bvar 0 }>.
+Proof.
+  exists ∅. unfold open. simpl. eauto using lc.
+Qed.
 
 (** ** Properties of free variables *)
 
