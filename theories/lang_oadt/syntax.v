@@ -50,6 +50,12 @@ semantics. *)
 | EBoxedInj (b : bool) (τ e : expr)
 .
 
+(** [expr] has decidable equality. *)
+Instance expr_eq : EqDecision expr.
+Proof.
+  solve_decision.
+Defined.
+
 (** ** Expressions with leakage label (T) *)
 Definition lexpr := bool * expr.
 Definition lexpr_label : lexpr -> bool := fst.

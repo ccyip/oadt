@@ -38,8 +38,7 @@ visualized as follow.
 *)
 Instance kind_eq : EqDecision kind.
 Proof.
-  unfold EqDecision, Decision.
-  decide equality.
+  solve_decision.
 Defined.
 
 Instance kind_join : Join kind :=
