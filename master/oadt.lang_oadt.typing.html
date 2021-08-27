@@ -45,11 +45,11 @@
 </div>
 
 <div class="doc">
-<a id="lab39"></a><h1 class="section">Definitions</h1>
+<a id="lab41"></a><h1 class="section">Definitions</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab40"></a><h2 class="section">Kinds (κ)</h2>
+<a id="lab42"></a><h2 class="section">Kinds (κ)</h2>
  Essentially a kind is a security label. We do not need kind abstraction. 
 </div>
 <div class="code">
@@ -92,8 +92,7 @@ visualized as follow.
 <div class="code">
 <span class="id" title="keyword">Instance</span> <a id="kind_eq" class="idref" href="#kind_eq"><span class="id" title="instance">kind_eq</span></a> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#EqDecision"><span class="id" title="abbreviation">EqDecision</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#kind"><span class="id" title="inductive">kind</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">EqDecision</span>, <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#Decision"><span class="id" title="class">Decision</span></a>.<br/>
-&nbsp;&nbsp;<span class="id" title="var">decide</span> <span class="id" title="var">equality</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">solve_decision</span>.<br/>
 <span class="id" title="keyword">Defined</span>.<br/>
 
 <br/>
@@ -118,7 +117,7 @@ visualized as follow.
 </div>
 
 <div class="doc">
-<a id="lab41"></a><h2 class="section">Typing context (Γ)</h2>
+<a id="lab43"></a><h2 class="section">Typing context (Γ)</h2>
 
 </div>
 <div class="code">
@@ -161,7 +160,7 @@ Notations for kinding
 </div>
 
 <div class="doc">
-<a id="lab42"></a><h2 class="section">Parallel reduction</h2>
+<a id="lab44"></a><h2 class="section">Parallel reduction</h2>
 
 </div>
 <div class="code">
@@ -357,7 +356,7 @@ proof&nbsp;convenience.&nbsp;*)</span><br/>
 </div>
 
 <div class="doc">
-<a id="lab43"></a><h2 class="section">Expression equivalence</h2>
+<a id="lab45"></a><h2 class="section">Expression equivalence</h2>
  We directly define equivalence in terms of parallel reduction. 
 <div class="paragraph"> </div>
 
@@ -398,7 +397,7 @@ This is equivalent to <span class="inlinecode"><a class="idref" href="oadt.lang_
 </div>
 
 <div class="doc">
-<a id="lab44"></a><h2 class="section">Typing and kinding</h2>
+<a id="lab46"></a><h2 class="section">Typing and kinding</h2>
  They are mutually defined. 
 </div>
 <div class="code">
@@ -610,7 +609,7 @@ Better induction principle.
 </div>
 
 <div class="doc">
-<a id="lab45"></a><h2 class="section">Global definitions typing</h2>
+<a id="lab47"></a><h2 class="section">Global definitions typing</h2>
 
 </div>
 <div class="code">
@@ -642,7 +641,7 @@ Better induction principle.
 </div>
 
 <div class="doc">
-<a id="lab46"></a><h2 class="section">Program typing</h2>
+<a id="lab48"></a><h2 class="section">Program typing</h2>
  The top level expression should not contain potential leaks. 
 </div>
 <div class="code">
@@ -653,7 +652,7 @@ Better induction principle.
 </div>
 
 <div class="doc">
-<a id="lab47"></a><h2 class="section">Well-formedness of global context</h2>
+<a id="lab49"></a><h2 class="section">Well-formedness of global context</h2>
  Equivalent to <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.typing.html#gctx_typing"><span class="id" title="definition">gctx_typing</span></a></span>. Essentially saying all definitions in <span class="inlinecode"><span class="id" title="var">Σ</span></span> are
 well-typed. 
 </div>
@@ -680,7 +679,7 @@ definitions&nbsp;are&nbsp;locally&nbsp;closed.&nbsp;*)</span><br/>
 </div>
 
 <div class="doc">
-<a id="lab48"></a><h1 class="section">Notations</h1>
+<a id="lab50"></a><h1 class="section">Notations</h1>
 
 </div>
 <div class="code">
