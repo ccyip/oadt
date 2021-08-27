@@ -8,7 +8,7 @@ and tactics for automation. *)
 (** * Atom  *)
 
 (** Having type class constraints inside the structure to avoid polluting the
-proof contexts. *)
+proof contexts. It is also convenient when we want to make the types opaque. *)
 Class Atom A M D := {
   (* Constraints. *)
   atom_finmap_dom :> ∀ C, Dom (M C) D | 0;
@@ -40,6 +40,9 @@ Class Atom A M D := {
   (by applying [elem_of_dec_slow]). But this allows an efficient
   implementation. *)
   atom_finmap_elem_of_dec :> RelDecision (∈@{D}) | 0;
+  (* Again, fresh can be derived from other constraints. *)
+  atom_fresh :> Fresh A D | 0;
+  atom_is_fresh (X : D) : fresh X ∉ X;
 }.
 
 Instance atom_dom_spec `{is_atom : Atom A M D} : FinMapDom A M D | 0.
@@ -58,6 +61,7 @@ Module atom_instance.
   Proof.
     econstructor; try typeclasses eauto.
     apply mapset_dom_spec.
+    apply is_fresh.
   Defined.
 
 End atom_instance.
