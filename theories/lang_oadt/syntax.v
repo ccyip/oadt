@@ -194,6 +194,14 @@ Notation "'inj{' l '}@' b < τ > e" := (EInj l b τ e) (in custom oadt at level 
                                                          τ custom oadt at level 0,
                                                          e custom oadt at level 0,
                                                          format "'inj{' l '}@' b < τ >  e").
+Notation "'inl{' l '}' < τ > e" := (EInj l true τ e) (in custom oadt at level 1,
+                                                         τ custom oadt at level 0,
+                                                         e custom oadt at level 0,
+                                                         format "inl{ l } < τ >  e").
+Notation "'inr{' l '}' < τ > e" := (EInj l false τ e) (in custom oadt at level 1,
+                                                          τ custom oadt at level 0,
+                                                          e custom oadt at level 0,
+                                                          format "inr{ l } < τ >  e").
 Notation "'inj@' b < τ > e" := (EInj low b τ e) (in custom oadt at level 1,
                                                     b constr at level 0,
                                                     τ custom oadt at level 0,
