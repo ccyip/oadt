@@ -177,12 +177,12 @@ Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,
                                                 e custom oadt at level 0,
                                                 e' custom oadt at level 0).
 
-Notation "Σ '⊨' e '-->*' e'" := (clos_refl_trans_1n _ (step Σ) e e')
+Notation "Σ '⊨' e '-->*' e'" := (rtc (step Σ) e e')
                                   (at level 40,
                                    e custom oadt at level 0,
                                    e' custom oadt at level 0).
 
-Notation "Σ '⊨' e '-->{' n '}' e'" := (trans_ext _ (step Σ) e e' n)
+Notation "Σ '⊨' e '-->{' n '}' e'" := (nsteps (step Σ) n e e')
                                         (at level 40,
                                          e custom oadt at level 0,
                                          n constr at level 0,

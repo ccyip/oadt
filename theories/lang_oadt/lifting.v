@@ -49,7 +49,7 @@ Context (Hsrwf : srctx_wf Σ Δ).
 Notation "e '-->!' e'" := (step Σ e e') (at level 40,
                                          e' custom oadt at level 0).
 
-Notation "e '-->*' e'" := (clos_refl_trans_1n _ (step Σ) e e')
+Notation "e '-->*' e'" := (rtc (step Σ) e e')
                             (at level 40,
                              e' custom oadt at level 0).
 

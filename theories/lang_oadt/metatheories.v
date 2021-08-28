@@ -56,10 +56,10 @@ Proof.
   intros [Hd Ht1] [_ Ht1']. apply gdefs_typing_wf in Hd.
   intros H. revert dependent e1'.
   induction H; intros.
-  - hauto ctrs: trans_ext inv: trans_ext.
+  - hauto ctrs: nsteps inv: nsteps.
   - edestruct obliviousness_step as [[??] ?]; eauto.
     split; intros.
-    + hauto ctrs: trans_ext use: preservation.
+    + hauto ctrs: nsteps use: preservation.
     + select (_ ⊨ _ -->{_} _) (fun H => sinvert H).
       qauto use: preservation.
 Qed.

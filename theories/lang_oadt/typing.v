@@ -264,7 +264,7 @@ proof convenience. *)
 where "e1 '==>!' e2" := (pared e1 e2)
 .
 
-Notation "e '==>*' e'" := (clos_refl_trans _ pared e e')
+Notation "e '==>*' e'" := (rtc pared e e')
                             (at level 40,
                              e' custom oadt at level 99).
 
@@ -289,12 +289,8 @@ where "e ≡ e'" := (pared_equiv e e')
 .
 
 (** This is equivalent to [pared_equiv]. *)
-Inductive pared_equiv_join : expr -> expr -> Prop :=
-| QRJoin e1 e2 e :
-    e1 ==>* e ->
-    e2 ==>* e ->
-    pared_equiv_join e1 e2
-.
+Definition pared_equiv_join (e1 e2 : expr) : Prop :=
+  exists e, e1 ==>* e /\ e2 ==>* e.
 
 (** ** Typing and kinding *)
 (** They are mutually defined. *)
@@ -551,7 +547,7 @@ Notation "Σ '⊢' e '==>!' e'" := (pared Σ e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).
-Notation "Σ '⊢' e '==>*' e'" := (clos_refl_trans _ (pared Σ) e e')
+Notation "Σ '⊢' e '==>*' e'" := (rtc (pared Σ) e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).
