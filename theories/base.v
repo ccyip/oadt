@@ -1,26 +1,6 @@
-From Coq Require Export Relations.Relation_Operators Relations.Operators_Properties.
 From stdpp Require Export prelude fin_maps fin_map_dom.
 From smpl Require Export Smpl.
 From Hammer Require Export Tactics.
-
-(** * Definitions *)
-
-(** Normal form *)
-Definition nf {A : Type} (R : relation A) (a : A) : Prop :=
-  ¬ exists a', R a a'.
-
-(** Transitive extensions *)
-Section trans_ext.
-
-  Variable A : Type.
-  Variable R : relation A.
-
-  Inductive trans_ext (x : A) : A -> nat -> Prop :=
-  | TERefl : trans_ext x x 0
-  | TEStep y z n : R x y -> trans_ext y z n -> trans_ext x z (S n)
-  .
-
-End trans_ext.
 
 (** * Lemmas *)
 
