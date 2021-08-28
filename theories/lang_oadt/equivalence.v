@@ -19,6 +19,9 @@ Section equivalence.
 Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
 
+#[local]
+Set Default Proof Using "Type".
+
 Notation "e '==>!' e'" := (Σ ⊢ e ==>! e')
                             (at level 40,
                              e' constr at level 0).
@@ -320,6 +323,9 @@ Section equivalence.
 Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
 
+#[local]
+Set Default Proof Using "Type".
+
 Notation "e '==>!' e'" := (Σ ⊢ e ==>! e')
                             (at level 40,
                              e' constr at level 0).
@@ -329,13 +335,9 @@ Notation "e '==>*' e'" := (Σ ⊢ e ==>* e')
 Notation "e ≡ e'" := (Σ ⊢ e ≡ e').
 
 (** The diamond property. *)
-Lemma pared_diamond e e1 e2 :
-  e ==>! e1 ->
-  e ==>! e2 ->
-  exists e',
-    e1 ==>! e' /\
-    e2 ==>! e'.
-Proof.
+Lemma pared_diamond : diamond (pared Σ).
+Proof using Hwf.
+  intros e e1 e2.
   intros H. revert e2.
   induction H; intros;
     repeat apply_pared_inv;
@@ -459,68 +461,12 @@ Proof.
   all : eauto; rewrite ?close_fv by eauto; fast_set_solver!!.
 Qed.
 
-Lemma pared_confluence_ e e1 e2 :
-  e ==>* e1 ->
-  e ==>! e2 ->
-  exists e',
-    e1 ==>! e' /\
-    e2 ==>* e'.
-Proof.
-  intros H. revert e2.
-  induction H; intros.
-  - match goal with
-      | H : _ ==>! _, H' : _ ==>! _ |- _ =>
-        edestruct pared_diamond as [? [??]];
-          [ apply H | apply H' | .. ]
-      end.
-    hauto use: rt_step.
-  - hauto use: rt_step.
-  - repeat match goal with
-           | H : forall e', ?e ==>! e' -> _, H' : ?e ==>! _ |- _ =>
-               edestruct H as [? [??]]; eauto; clear H
-           end.
-    hauto use: rt_trans.
-Qed.
-
-Lemma pared_confluence e e1 e2 :
-  e ==>* e1 ->
-  e ==>* e2 ->
-  exists e',
-    e1 ==>* e' /\
-    e2 ==>* e'.
-Proof.
-  intros H. revert e2.
-  induction H; intros.
-  - edestruct pared_confluence_ as [? [??]]; eauto.
-    hauto use: rt_step.
-  - hauto use: rt_step.
-  - repeat match goal with
-           | H : forall e', ?e ==>* e' -> _, H' : ?e ==>* _ |- _ =>
-               edestruct H as [? [??]]; eauto; clear H
-           end.
-    hauto use: rt_trans.
+Lemma pared_confluent : confluent (pared Σ).
+Proof using Hwf.
+  eauto using diamond_confluent, pared_diamond.
 Qed.
 
 (** * Lemmas about expression equivalence *)
-
-Lemma pared_equiv_iff_join e1 e2 :
-  e1 ≡ e2 <-> pared_equiv_join Σ e1 e2.
-Proof.
-  split.
-  - induction 1;
-      hauto ctrs: pared_equiv_join, clos_refl_trans, pared inv: pared_equiv_join.
-  - intros [].
-    (* Another equivalent definition of the closure is easier in this case. *)
-    repeat match goal with
-           | H : _ ==>* _ |- _ =>
-             apply clos_rt_rt1n in H
-           end.
-
-    select (clos_refl_trans_1n _ _ _ _) (fun H => induction H);
-        try hauto ctrs: pared_equiv.
-    select (clos_refl_trans_1n _ _ _ _) (fun H => induction H);
-      hauto ctrs: pared_equiv.
-Qed.
 
 (** [pared_equiv] is an equivalence *)
 
@@ -533,23 +479,44 @@ Qed.
 #[global]
 Instance pared_equiv_is_symm : Symmetric (pared_equiv Σ).
 Proof.
-  hnf; intros; srewrite pared_equiv_iff_join;
-    hauto ctrs: pared_equiv_join inv: pared_equiv_join.
+  hnf; induction 1; eauto using pared_equiv.
+Qed.
+
+Lemma pared_equiv_iff_join e1 e2 :
+  e1 ≡ e2 <-> pared_equiv_join Σ e1 e2.
+Proof.
+  unfold pared_equiv_join.
+  split.
+  - induction 1; hauto ctrs: rtc, pared.
+  - intros [? [H1 H2]].
+    induction H1; try hauto ctrs: pared_equiv.
+    induction H2; try hauto ctrs: pared_equiv.
 Qed.
 
 #[global]
 Instance pared_equiv_is_trans : Transitive (pared_equiv Σ).
-Proof.
-  hnf. intros ??? H1 H2.
+Proof using Hwf.
+  hnf. intros e1 e e2 H1 H2.
   srewrite pared_equiv_iff_join.
-  destruct H1 as [e1 e e1'].
-  destruct H2 as [e e2 e2'].
-  edestruct (pared_confluence e e1' e2') as [? [??]]; eauto.
-  econstructor; eapply rt_trans; eauto.
+  destruct H1 as [e1' [??]].
+  destruct H2 as [e2' [??]].
+  edestruct (pared_confluent e e1' e2') as [? [??]]; eauto.
+  repeat esplit; etrans; eauto.
 Qed.
 
-(* Is there a conventional way to achieve this? *)
-Hint Extern 0 (gctx_wf _) => eassumption : typeclass_instances.
+Lemma pared_equiv_rtsc e1 e2 :
+  e1 ≡ e2 <-> rtsc (pared Σ) e1 e2.
+Proof using Hwf.
+  split.
+  - induction 1. reflexivity.
+    all : etrans; eauto using rtsc_lr, rtsc_rl.
+  - induction 1. reflexivity.
+    select (sc _ _ _) (fun H => destruct H);
+      eauto using pared_equiv.
+    etrans; eauto.
+    eauto using pared_equiv.
+Qed.
+
 
 (** ** Weak head normal form *)
 (** I only use weak head normal form as a machinery for proofs right now, so
@@ -819,6 +786,7 @@ Qed.
 
 End equivalence.
 
+(* Is there a conventional way to achieve this? *)
 #[export]
 Hint Extern 0 (gctx_wf _) => eassumption : typeclass_instances.
 
