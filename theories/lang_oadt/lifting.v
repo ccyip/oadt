@@ -164,7 +164,7 @@ counterpart of type [τ'], whose public indices are [τs]. *)
 Definition lift (τ τ' : expr) (τs : list expr) (e : expr) : option expr :=
   lift_ τ τ' τs ∅ e.
 
-(** Well-formedness of lifting input *)
+(** ** Well-formedness of lifting input *)
 
 (** [τ] is not a dependent type (at top level). It may still take a higher-order
 function that is dependent type. *)
@@ -259,7 +259,7 @@ Proof.
   all: rewrite open_body; eauto using gsec_body, body_bvar.
 Qed.
 
-Lemma gsec_type_correct τ : forall τ' e e' Γ κ κ',
+Lemma gsec_well_typed τ : forall τ' e e' Γ κ κ',
   gsec τ τ' e = Some e' ->
   Γ ⊢ τ :: κ ->
   Γ ⊢ τ' :: κ' ->
@@ -362,7 +362,7 @@ Proof.
     rewrite open_body; eauto using gret_body, body_bvar.
 Qed.
 
-Lemma gret_type_correct τ : forall τ' e e' Γ κ κ',
+Lemma gret_well_typed τ : forall τ' e e' Γ κ κ',
   gret τ τ' e' = Some e ->
   Γ ⊢ τ :: κ ->
   Γ ⊢ τ' :: κ' ->
@@ -449,7 +449,7 @@ Proof.
 Qed.
 
 
-(** Well-typedness of lifting *)
+(** ** Well-typedness of lifting *)
 
 #[local]
 Set Default Proof Using "All".
@@ -457,7 +457,7 @@ Set Default Proof Using "All".
 Arguments gret : simpl never.
 Arguments gsec : simpl never.
 
-Lemma lift_core_type_correct τ : forall τ' xs e e' κ' Γ,
+Lemma lift_core_well_typed τ : forall τ' xs e e' κ' Γ,
   lift_core τ τ' xs e = Some e' ->
   nodep τ ->
   nodep τ' ->
@@ -468,7 +468,7 @@ Lemma lift_core_type_correct τ : forall τ' xs e e' κ' Γ,
 Proof.
   induction τ; simpl; intros;
     apply_regularity;
-    eauto using gsec_type_correct.
+    eauto using gsec_well_typed.
 
   case_split; simplify_eq.
   case_decide; simplify_eq.
@@ -491,7 +491,7 @@ Proof.
   - relax_typing_type.
     econstructor.
     + eapply weakening_insert; eauto; try set_shelve.
-    + eapply gret_type_correct;
+    + eapply gret_well_typed;
         try (goal_is (_ ⊢ _ :: _); eapply kinding_weakening_insert);
         eauto; try set_shelve.
       eapply TConv.
@@ -507,7 +507,7 @@ Proof.
            simpl_fv; rewrite ?close_fv by eauto with lc; try fast_set_solver*!!.
 Qed.
 
-Lemma lift_type_correct_ τ τs : forall τ' xs e e' κ' Γ,
+Lemma lift_well_typed_ τ τs : forall τ' xs e e' κ' Γ,
   lift_ τ τ' τs xs e = Some e' ->
   nodep τ ->
   lift_type_wf τs τ' ->
@@ -517,7 +517,7 @@ Lemma lift_type_correct_ τ τs : forall τ' xs e e' κ' Γ,
   Γ ⊢ e' :{⊥} τ'.
 Proof.
   induction τs; simpl; intros.
-  - qauto use: lift_core_type_correct inv: lift_type_wf.
+  - qauto use: lift_core_well_typed inv: lift_type_wf.
   - case_split; simplify_eq.
     simplify_option_eq.
     select (lift_type_wf _ _) (fun H => sinvert H).
@@ -540,7 +540,7 @@ Proof.
            simpl_fv; rewrite ?close_fv by eauto with lc; try fast_set_solver*!!.
 Qed.
 
-Theorem lift_type_correct τ τs τ' e e' κ :
+Theorem lift_well_typed τ τs τ' e e' κ :
   lift τ τ' τs e = Some e' ->
   nodep τ ->
   lift_type_wf τs τ' ->
@@ -550,8 +550,47 @@ Theorem lift_type_correct τ τs τ' e e' κ :
 Proof.
   unfold lift.
   intros.
-  eapply lift_type_correct_; eauto.
+  eapply lift_well_typed_; eauto.
   fast_set_solver!!.
 Qed.
 
 End lifting.
+
+
+(* Definition Δ : srctx := *)
+(*   {[ ("tree", "~tree") := ("s_tree", "r_tree") ]}. *)
+
+(* Notation "'@' x" := (EGVar x) (in custom oadt at level 0, *)
+(*                                   x custom oadt at level 0, *)
+(*                                   format "'@' x"). *)
+(* Compute (lift_core Δ *)
+(*          <{ Π~:𝔹, Π~:@"tree", 𝔹 }> *)
+(*          <{ Π~:~𝔹, Π~:(@"~tree" (fvar "x")), ~𝔹 }> *)
+(*          {[ "x" ]} <{ gvar "f" }>). *)
+(* Compute (lift_core Δ *)
+(*          <{ Π~:𝔹, Π~:@"tree", @"tree" }> *)
+(*          <{ Π~:~𝔹, Π~:(@"~tree" (fvar "x")), @"~tree" (@"succ" (fvar "x")) }> *)
+(*          {[ "x" ]} <{ gvar "f" }>). *)
+(* Compute (lift Δ *)
+(*          <{ Π~:𝔹, Π~:@"tree", 𝔹 }> *)
+(*          [<{ 𝔹 }>] *)
+(*          <{ Π~:~𝔹, Π~:(@"~tree" (bvar 1)), ~𝔹 }> *)
+(*          <{ gvar "f" }>). *)
+(* Compute (lift Δ *)
+(*          <{ Π~:𝔹, Π~:@"tree", @"tree" }> *)
+(*          [<{ 𝔹 }>] *)
+(*          <{ Π~:~𝔹, Π~:(@"~tree" (bvar 1)), @"~tree" (@"succ" (bvar 2)) }> *)
+(*          <{ gvar "f" }>). *)
+
+(* Goal lift_correct *)
+(*          <{ Π~:𝔹, Π~:@"tree", 𝔹 }> *)
+(*          [<{ 𝔹 }>] *)
+(*          <{ Π~:~𝔹, Π~:(@"~tree" (bvar 1)), ~𝔹 }> *)
+(*          <{ gvar "f" }> *)
+(*          <{ gvar "~f" }>. *)
+(* unfold lift_correct, lift_type, lift_requiv. *)
+(* intros. split. admit. *)
+(* unfold open. simpl open_. *)
+(* simpl. *)
+
+(* Abort. *)
