@@ -27,9 +27,9 @@ Definition srctx_wf (Σ : gctx) : srctx -> Prop :=
                 exists τ τk e se re,
                   Σ !! X = Some (DADT τ) /\
                   Σ !! X' = Some (DOADT τk e) /\
-                  Σ !! s = Some (DFun (⊥, <{ Π:τk, Π~:(gvar X), (gvar X') (bvar 1) }>)
+                  Σ !! s = Some (DFun (⊥, <{ Π:τk, Π~:(gvar X), X'@(bvar 1) }>)
                                  se) /\
-                  Σ !! r = Some (DFun (⊤, <{ Π:τk, Π~:((gvar X') (bvar 0)), gvar X }>)
+                  Σ !! r = Some (DFun (⊤, <{ Π:τk, Π~:(X'@(bvar 0)), gvar X }>)
                                  re)).
 
 (* Destructive *)
@@ -83,7 +83,7 @@ Fixpoint gsec (τ τ' : expr) (e : expr) : option expr :=
     e2 <- gsec τ2 τ2' <{ bvar 0 }>;
     Some <{ tape (case e of ~inl<τ1' ~+ τ2'> e1 | ~inr<τ1' ~+ τ2'> e2) }>
   (* Outsource to predefined context *)
-  | <{ gvar X }>, <{ (gvar X') k }> =>
+  | <{ gvar X }>, <{ X'@k }> =>
     '(s, _) <- Δ !! (X, X');
     Some <{ (gvar s) k e }>
   | _, _ => None
@@ -115,7 +115,7 @@ Fixpoint gret (τ τ' : expr) (e : expr) : option expr :=
     e2 <- gret τ2 τ2' <{ bvar 0 }>;
     Some <{ ~case tape e of inl<τ1 + τ2> e1 | inr<τ1 + τ2> e2 }>
   (* Outsource to predefined context *)
-  | <{ gvar X }>, <{ (gvar X') k }> =>
+  | <{ gvar X }>, <{ X'@k }> =>
     '(_, r) <- Δ !! (X, X');
     Some <{ (gvar r) k e }>
   | _, _ => None
