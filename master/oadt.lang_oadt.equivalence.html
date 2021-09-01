@@ -630,6 +630,11 @@ The diamond property.
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span>; <span class="id" title="var">set_shelve</span>.<br/>
 
 <br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;OADT&nbsp;application.&nbsp;*)</span><br/>
+&nbsp;&nbsp;1-2:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">esplit</span>; <span class="id" title="tactic">solve</span> [ <span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.syntax.html#lc"><span class="id" title="inductive">lc</span></a> ].<br/>
+
+<br/>
 &nbsp;&nbsp;<span class="id" title="var">Unshelve</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">all</span> : <span class="id" title="tactic">eauto</span>; <span class="id" title="tactic">rewrite</span> ?<a class="idref" href="oadt.lang_oadt.infrastructure.html#close_fv"><span class="id" title="lemma">close_fv</span></a> <span class="id" title="tactic">by</span> <span class="id" title="tactic">eauto</span>; <span class="id" title="var">fast_set_solver</span>!!.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
