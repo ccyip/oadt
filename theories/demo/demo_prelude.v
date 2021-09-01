@@ -31,17 +31,17 @@ Export typing.notations.
 Notation "'$' n" := (EBVar n) (in custom oadt at level 0,
                                   n constr at level 0,
                                   format "'$' n").
-Notation "'@' x" := (EGVar x) (in custom oadt at level 0,
+Notation "'!' x" := (EGVar x) (in custom oadt at level 0,
                                   x custom oadt at level 0,
-                                  format "'@' x").
+                                  format "'!' x").
 Notation "'#' x" := (EFVar x) (in custom oadt at level 0,
                                   x constr at level 0,
                                   format "'#' x").
 
 (** Alternatives to π1 and π2. *)
-Notation "e '.1'" := <{ π1 e }> (in custom oadt at level 0,
+Notation "e '.1'" := <{ π1 e }> (in custom oadt at level 1,
                                     format "e '.1'").
-Notation "e '.2'" := <{ π2 e }> (in custom oadt at level 0,
+Notation "e '.2'" := <{ π2 e }> (in custom oadt at level 1,
                                     format "e '.2'").
 
 (** Global definitions. *)
@@ -117,7 +117,7 @@ Inductive step_alt : expr -> expr -> Prop :=
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
       <{ ~if [b] then (ite b (e1^v) (e1^,(ovalty_val ω1)))
                  else (ite b (e2^,(ovalty_val ω2)) (e2^v)) }>
-| SAppFun x T e :
+| SFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> -->! <{ e }>
 | SOInj b ω v :
@@ -180,10 +180,11 @@ Inductive step_alt : expr -> expr -> Prop :=
 | SCtxOSum1 τ1 τ1' τ2 : τ1 -->! τ1' -> <{ τ1 ~+ τ2 }> -->! <{ τ1' ~+ τ2 }>
 | SCtxApp1 e1 e1' v2 : wval v2 -> e1 -->! e1' -> <{ e1 v2 }> -->! <{ e1' v2 }>
 | SCtxApp2 e1 e2 e2' : e2 -->! e2' -> <{ e1 e2 }> -->! <{ e1 e2' }>
-| SAppOADT X τ e v :
+| SCtxTApp X e e' : e -->! e' -> <{ X@e }> -->! <{ X@e' }>
+| STApp X τ e v :
     Σ !! X = Some (DOADT τ e) ->
     wval v ->
-    <{ (gvar X) v }> -->! <{ e^v }>
+    <{ X@v }> -->! <{ e^v }>
 | SCtxLet e1 e1' e2 : e1 -->! e1' -> <{ let e1 in e2 }> -->! <{ let e1' in e2 }>
 | SCtxOIte3 v0 v1 e2 e2' : wval v0 -> wval v1 -> e2 -->! e2' -> <{ ~if v0 then v1 else e2 }> -->! <{ ~if v0 then v1 else e2' }>
 | SCtxOIte2 v0 e1 e1' e2 : wval v0 -> e1 -->! e1' -> <{ ~if v0 then e1 else e2 }> -->! <{ ~if v0 then e1' else e2 }>
@@ -680,7 +681,7 @@ Lemma pared_equiv_oadtapp X τ e1 e1' e2 :
   Σ !! X = Some (DOADT τ e1) ->
   lc e2 ->
   <{ e1^e2 }> = e1' ->
-  Σ ⊢ gvar X e2 ≡ e1'.
+  Σ ⊢ X@e2 ≡ e1'.
 Proof.
   intros. subst.
   repeat econstructor; eauto.
@@ -691,7 +692,7 @@ Lemma pared_equiv_oadtapp_pi X l e1 e1' e2 τ τ' :
   lc e2 ->
   lc τ' ->
   <{ e1^e2 }> = e1' ->
-  Σ ⊢ Π:{l}gvar X e2, τ' ≡ Π:{l}e1', τ'.
+  Σ ⊢ Π:{l}X@e2, τ' ≡ Π:{l}e1', τ'.
 Proof.
   intros. subst.
   repeat (econstructor; simpl_cofin?); eauto.
@@ -877,7 +878,7 @@ Ltac kinding_intro :=
   | |- _; _ ⊢ 𝟙 :: _ => eapply KUnit
   | |- _; _ ⊢ 𝔹{_} :: _ => eapply KBool
   | |- _; _ ⊢ Π:{_}_, _ :: _ => eapply KPi
-  | |- _; _ ⊢ (gvar _) _ :: _ => eapply KApp
+  | |- _; _ ⊢ _@_ :: _ => eapply KApp
   | |- _; _ ⊢ _ * _ :: _ => eapply KProd_alt
   | |- _; _ ⊢ _ + _ :: _ => eapply KSum_alt
   | |- _; _ ⊢ _ ~+ _ :: _ => eapply KOSum
