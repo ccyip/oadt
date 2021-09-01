@@ -373,18 +373,6 @@ Ltac apply_regularity :=
         (fun H => dup_hyp H (fun H => eapply regularity in H;
                                   [ simp_hyp H | eauto ])).
 
-(** Oblivious type can not be typed. *)
-Lemma obliv_type_not_typed Σ X τ e Γ l τ' :
-  gctx_wf Σ ->
-  Σ !! X = Some (DOADT τ e) ->
-  Σ; Γ ⊢ gvar X :{l} τ' ->
-  False.
-Proof.
-  intros.
-  apply_type_inv.
-  scongruence.
-Qed.
-
 (** We can substitute with an equivalent type and a more permissive label in the
 typing contexts. *)
 Lemma subst_conv_ Σ x l1 l2 τ1 τ2 :
@@ -507,9 +495,6 @@ Proof.
     simpl_cofin?;
     (* Solve some trivial cases. *)
     try solve [ lazymatch goal with
-                | H : _ !! ?X = Some (DOADT _ _), H' : _; _ ⊢ gvar ?X : _ |- _ =>
-                  (* It is not possible to type oblivious type *)
-                  exfalso; eauto using obliv_type_not_typed
                 | H : _ !! _ = Some (DFun _ _) |- _ =>
                   eauto using weakening_empty
                 end

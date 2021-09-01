@@ -91,15 +91,15 @@ Inductive pared : expr -> expr -> Prop :=
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
     lc τ ->
     <{ (\:{l}τ => e2) e1 }> ==>! <{ e2'^e1' }>
+| RTApp X τ e1 e2 e1' :
+    Σ !! X = Some (DOADT τ e2) ->
+    e1 ==>! e1' ->
+    <{ X@e1 }> ==>! <{ e2^e1' }>
 | RLet e1 e2 e1' e2' L :
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
     <{ let e1 in e2 }> ==>! <{ e2'^e1' }>
-| RAppOADT X τ e1 e2 e1' :
-    Σ !! X = Some (DOADT τ e2) ->
-    e1 ==>! e1' ->
-    <{ (gvar X) e1 }> ==>! <{ e2^e1' }>
-| RAppFun x T e :
+| RFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> ==>! <{ e }>
 | RProj b e1 e2 e1' e2' :
@@ -194,14 +194,6 @@ proof convenience. *)
     otval ω -> oval v ->
     <{ tape [inj@b<ω> v] }> ==>! <{ [inj@b<ω> v] }>
 (* Congruence rules *)
-| RCgrProd τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 * τ2 }> ==>! <{ τ1' * τ2' }>
-| RCgrSum l τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 +{l} τ2 }> ==>! <{ τ1' +{l} τ2' }>
 | RCgrPi l τ1 τ2 τ1' τ2' L :
     τ1 ==>! τ1' ->
     (forall x, x ∉ L -> <{ τ2^x }> ==>! <{ τ2'^x }>) ->
@@ -214,6 +206,9 @@ proof convenience. *)
     e1 ==>! e1' ->
     e2 ==>! e2' ->
     <{ e1 e2 }> ==>! <{ e1' e2' }>
+| RCgrTApp X e e' :
+    e ==>! e' ->
+    <{ X@e }> ==>! <{ X@e' }>
 | RCgrLet e1 e2 e1' e2' L :
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
@@ -221,33 +216,41 @@ proof convenience. *)
 | RCgrSec e e' :
     e ==>! e' ->
     <{ s𝔹 e }> ==>! <{ s𝔹 e' }>
+| RCgrIte l e0 e1 e2 e0' e1' e2' :
+    e0 ==>! e0' ->
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ if{l} e0 then e1 else e2 }> ==>! <{ if{l} e0' then e1' else e2' }>
+| RCgrProd τ1 τ2 τ1' τ2' :
+    τ1 ==>! τ1' ->
+    τ2 ==>! τ2' ->
+    <{ τ1 * τ2 }> ==>! <{ τ1' * τ2' }>
+| RCgrPair e1 e2 e1' e2' :
+    e1 ==>! e1' ->
+    e2 ==>! e2' ->
+    <{ (e1, e2) }> ==>! <{ (e1', e2') }>
 | RCgrProj b e e' :
     e ==>! e' ->
     <{ π@b e }> ==>! <{ π@b e' }>
+| RCgrSum l τ1 τ2 τ1' τ2' :
+    τ1 ==>! τ1' ->
+    τ2 ==>! τ2' ->
+    <{ τ1 +{l} τ2 }> ==>! <{ τ1' +{l} τ2' }>
+| RCgrInj l b τ e τ' e' :
+    e ==>! e' ->
+    τ ==>! τ' ->
+    <{ inj{l}@b<τ> e }> ==>! <{ inj{l}@b<τ'> e' }>
+| RCgrCase l e0 e1 e2 e0' e1' e2' L1 L2 :
+    e0 ==>! e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    <{ case{l} e0 of e1 | e2 }> ==>! <{ case{l} e0' of e1' | e2' }>
 | RCgrFold X e e' :
     e ==>! e' ->
     <{ fold<X> e }> ==>! <{ fold<X> e' }>
 | RCgrUnfold X e e' :
     e ==>! e' ->
     <{ unfold<X> e }> ==>! <{ unfold<X> e' }>
-| RCgrPair e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ (e1, e2) }> ==>! <{ (e1', e2') }>
-| RCgrInj l b τ e τ' e' :
-    e ==>! e' ->
-    τ ==>! τ' ->
-    <{ inj{l}@b<τ> e }> ==>! <{ inj{l}@b<τ'> e' }>
-| RCgrIte l e0 e1 e2 e0' e1' e2' :
-    e0 ==>! e0' ->
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ if{l} e0 then e1 else e2 }> ==>! <{ if{l} e0' then e1' else e2' }>
-| RCgrCase l e0 e1 e2 e0' e1' e2' L1 L2 :
-    e0 ==>! e0' ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ case{l} e0 of e1 | e2 }> ==>! <{ case{l} e0' of e1' | e2' }>
 | RCgrMux e0 e1 e2 e0' e1' e2' :
     e0 ==>! e0' ->
     e1 ==>! e1' ->
@@ -429,7 +432,7 @@ with kinding : tctx -> expr -> kind -> Prop :=
 | KApp Γ e' e τ X :
     Σ !! X = Some (DOADT τ e') ->
     Γ ⊢ e :{⊥} τ ->
-    Γ ⊢ (gvar X) e :: *@O
+    Γ ⊢ X@e :: *@O
 | KProd Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->

@@ -358,6 +358,14 @@ Proof.
       (* Solve other less trivial cases *)
       try qauto rew: off use: indistinguishable_open solve: reflexivity.
 
+  (* Step from oblivious injection to boxed injection *)
+  - match goal with
+    | |- <{ [inj@_< ?ω1 > _] }> ≈ <{ [inj@_< ?ω2 > _] }> =>
+      replace ω2 with ω1
+        by (eauto using indistinguishable, indistinguishable_otval_inv)
+    end.
+    eauto using indistinguishable.
+
   (* Step from oblivious case to mux *)
   - repeat
       match goal with
@@ -366,14 +374,6 @@ Proof.
     econstructor; eauto using indistinguishable;
       case_splitting;
       eauto using indistinguishable_open, indistinguishable_ovalty.
-
-  (* Step from oblivious injection to boxed injection *)
-  - match goal with
-    | |- <{ [inj@_< ?ω1 > _] }> ≈ <{ [inj@_< ?ω2 > _] }> =>
-      replace ω2 with ω1
-        by (eauto using indistinguishable, indistinguishable_otval_inv)
-    end.
-    eauto using indistinguishable.
 
   (* Step from mux *)
   - case_splitting;

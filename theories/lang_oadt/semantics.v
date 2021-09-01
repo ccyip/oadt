@@ -76,6 +76,7 @@ Variant ectx : (expr -> expr) -> Prop :=
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
 | CtxOSum2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
 | CtxApp2 e1 : ectx (fun e2 => <{ e1 e2 }>)
+| CtxTApp X : ectx (fun e => <{ X@e }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
 | CtxOIte1 e1 e2 : ectx (fun e0 => <{ ~if e0 then e1 else e2 }>)
 | CtxOIte2 v0 e2 : wval v0 -> ectx (fun e1 => <{ ~if v0 then e1 else e2 }>)
@@ -106,9 +107,26 @@ Inductive step : expr -> expr -> Prop :=
 | SApp l τ e v :
     wval v ->
     <{ (\:{l}τ => e) v }> -->! <{ e^v }>
+| STApp X τ e v :
+    wval v ->
+    Σ !! X = Some (DOADT τ e) ->
+    <{ X@v }> -->! <{ e^v }>
+| SFun x T e :
+    Σ !! x = Some (DFun T e) ->
+    <{ gvar x }> -->! <{ e }>
 | SLet v e :
     wval v ->
     <{ let v in e }> -->! <{ e^v }>
+| SSec b :
+    <{ s𝔹 b }> -->! <{ [b] }>
+| SIte b e1 e2 :
+    <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>
+| SProj b v1 v2 :
+    wval v1 -> wval v2 ->
+    <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
+| SOInj b ω v :
+    otval ω -> oval v ->
+    <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
 | SCase b τ v e1 e2 :
     wval v ->
     <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
@@ -118,26 +136,9 @@ Inductive step : expr -> expr -> Prop :=
     ovalty v1 ω1 -> ovalty v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
       <{ ~if [b] then (ite b (e1^v) (e1^v1)) else (ite b (e2^v2) (e2^v)) }>
-| SAppOADT X τ e v :
-    wval v ->
-    Σ !! X = Some (DOADT τ e) ->
-    <{ (gvar X) v }> -->! <{ e^v }>
-| SAppFun x T e :
-    Σ !! x = Some (DFun T e) ->
-    <{ gvar x }> -->! <{ e }>
-| SOInj b ω v :
-    otval ω -> oval v ->
-    <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
-| SIte b e1 e2 :
-    <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>
-| SProj b v1 v2 :
-    wval v1 -> wval v2 ->
-    <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
-| SFold X X' v :
+| SUnfold X X' v :
     wval v ->
     <{ unfold<X> (fold <X'> v) }> -->! v
-| SSec b :
-    <{ s𝔹 b }> -->! <{ [b] }>
 | SMux b v1 v2 :
     wval v1 -> wval v2 ->
     <{ mux [b] v1 v2 }> -->! <{ ite b v1 v2 }>

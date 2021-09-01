@@ -33,13 +33,14 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ let e1 in e2 }> => <{ let {k<~x}e1 in {S k<~x}e2 }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k<~x}e0 of {S k<~x}e1 | {S k<~x}e2 }>
   (* Congruence rules *)
-  | <{ τ1 * τ2 }> => <{ ({k<~x}τ1) * ({k<~x}τ2) }>
-  | <{ τ1 +{l} τ2 }> => <{ ({k<~x}τ1) +{l} ({k<~x}τ2) }>
   | <{ e1 e2 }> => <{ ({k<~x}e1) ({k<~x}e2) }>
+  | <{ X@e }> => <{ X@({k<~x}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k<~x}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k<~x}e0 then {k<~x}e1 else {k<~x}e2 }>
+  | <{ τ1 * τ2 }> => <{ ({k<~x}τ1) * ({k<~x}τ2) }>
   | <{ (e1, e2) }> => <{ ({k<~x}e1, {k<~x}e2) }>
   | <{ π@b e }> => <{ π@b ({k<~x}e) }>
+  | <{ τ1 +{l} τ2 }> => <{ ({k<~x}τ1) +{l} ({k<~x}τ2) }>
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k<~x}τ)> ({k<~x}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k<~x}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({k<~x}e) }>
@@ -68,7 +69,7 @@ Fixpoint fv (e : expr) : aset :=
   | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }>
   | <{ mux e0 e1 e2 }> =>
     fv e0 ∪ fv e1 ∪ fv e2
-  | <{ s𝔹 e }> | <{ π@_ e }>
+  | <{ _@e }> | <{ s𝔹 e }> | <{ π@_ e }>
   | <{ fold<_> e }> | <{ unfold<_> e }>
   | <{ tape e }> =>
     fv e

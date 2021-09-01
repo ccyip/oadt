@@ -87,13 +87,12 @@ Proof.
   kind_inv_solver.
 Qed.
 
-Lemma kind_inv_app Γ e1 e2 κ :
-  Σ; Γ ⊢ e1 e2 :: κ ->
+Lemma kind_inv_tapp Γ X e κ :
+  Σ; Γ ⊢ X@e :: κ ->
   <{ *@O }> ⊑ κ /\
-  exists X τ e',
+  exists τ e',
     Σ !! X = Some (DOADT τ e') /\
-    Σ; Γ ⊢ e2 :{⊥} τ /\
-    e1 = <{ gvar X }>.
+    Σ; Γ ⊢ e :{⊥} τ.
 Proof.
   kind_inv_solver.
 Qed.
@@ -127,6 +126,12 @@ Lemma kind_inv_case Γ l e0 τ1 τ2 κ :
     Σ; Γ ⊢ e0 :{⊥} τ1' + τ2' /\
     (forall x, x ∉ L1 -> Σ; (<[x:=(⊥, τ1')]> Γ) ⊢ τ1^x :: *@O) /\
     (forall x, x ∉ L2 -> Σ; (<[x:=(⊥, τ2')]> Γ) ⊢ τ2^x :: *@O).
+Proof.
+  kind_inv_solver.
+Qed.
+
+Lemma kind_inv_app Γ e1 e2 κ :
+  Σ; Γ ⊢ e1 e2 :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
@@ -220,6 +225,12 @@ Qed.
 
 Lemma type_inv_sum Γ l l' τ1 τ2 τ :
   Σ; Γ ⊢ τ1 +{l} τ2 :{l'} τ -> False.
+Proof.
+  type_inv_solver.
+Qed.
+
+Lemma type_inv_tapp Γ l X e τ :
+  Σ; Γ ⊢ X@e :{l} τ -> False.
 Proof.
   type_inv_solver.
 Qed.
@@ -484,12 +495,13 @@ Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   lazymatch type of H with
   | _; _ ⊢ Π:{_}_, _ :: _ => tac kind_inv_pi
   | _; _ ⊢ 𝔹 :: _ => tac kind_inv_bool
-  | _; _ ⊢ _ _ :: _ => tac kind_inv_app
+  | _; _ ⊢ _@_ :: _ => tac kind_inv_tapp
   | _; _ ⊢ let _ in _ :: _ => tac kind_inv_let
   | _; _ ⊢ _ * _ :: _ => tac kind_inv_prod
   | _; _ ⊢ _ + _ :: _ => tac kind_inv_sum
   | _; _ ⊢ _ ~+ _ :: _ => tac kind_inv_osum
   | _; _ ⊢ gvar _ :: _ => tac kind_inv_gvar
+  | _; _ ⊢ _ _ :: _ => apply kind_inv_app in H; elim H
   | _; _ ⊢ ~if _ then _ else _ :: _ => apply kind_inv_oite in H; elim H
   | _; _ ⊢ if{_} _ then _ else _ :: _ => tac kind_inv_ite
   | _; _ ⊢ ~case _ of _ | _ :: _ => apply kind_inv_ocase in H; elim H
@@ -540,6 +552,7 @@ Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ [inj@_<_> _] : _ => tac type_inv_boxedinj
   | _; _ ⊢ _ * _ : _ => apply type_inv_prod in H; elim H
   | _; _ ⊢ _ +{_} _ : _ => apply type_inv_sum in H; elim H
+  | _; _ ⊢ _@_ : _ => apply type_inv_tapp in H; elim H
   end.
 
 Tactic Notation "apply_type_inv" hyp(H) :=
