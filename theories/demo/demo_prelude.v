@@ -235,9 +235,9 @@ Proof.
   eauto using step, ovalty_val_correct.
 Qed.
 
-Lemma mstep_alt_mstep e e' : clos_refl_trans_1n _ step_alt e e' -> Σ ⊨ e -->* e'.
+Lemma mstep_alt_mstep e e' : rtc step_alt e e' -> Σ ⊨ e -->* e'.
 Proof.
-  induction 1; qauto ctrs: clos_refl_trans_1n use: step_alt_step.
+  induction 1; qauto ctrs: rtc use: step_alt_step.
 Qed.
 
 End step.
