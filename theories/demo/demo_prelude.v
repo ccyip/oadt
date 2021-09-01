@@ -31,17 +31,21 @@ Export typing.notations.
 Notation "'$' n" := (EBVar n) (in custom oadt at level 0,
                                   n constr at level 0,
                                   format "'$' n").
-Notation "'!' x" := (EGVar x) (in custom oadt at level 0,
+Notation "'#' x" := (EGVar x) (in custom oadt at level 0,
                                   x custom oadt at level 0,
-                                  format "'!' x").
-Notation "'#' x" := (EFVar x) (in custom oadt at level 0,
-                                  x constr at level 0,
-                                  format "'#' x").
+                                  only parsing).
+Notation "'gvar' x" := (EGVar x) (in custom oadt at level 0,
+                                     x constr at level 0,
+                                     only parsing).
+Notation "'fvar' x" := (EFVar x) (in custom oadt at level 0,
+                                      x constr at level 0).
 
 (** Alternatives to π1 and π2. *)
 Notation "e '.1'" := <{ π1 e }> (in custom oadt at level 1,
+                                    left associativity,
                                     format "e '.1'").
 Notation "e '.2'" := <{ π2 e }> (in custom oadt at level 1,
+                                    left associativity,
                                     format "e '.2'").
 
 (** Global definitions. *)
@@ -644,10 +648,10 @@ Qed.
 
 Lemma TCase_alt Γ l1 l2 l e0 e1 e2 τ1 τ2 τ1' τ2' κ1 κ2 L1 L2 L3 L4 :
   Γ ⊢ e0 :{⊥} τ1' + τ2' ->
-  (forall x, x ∉ L1 -> exists τ', <[x:=(⊥, τ1')]>Γ ⊢ e1^#x :{l1} τ' /\ lc τ' /\ τ1 = close x τ') ->
-  (forall x, x ∉ L2 -> exists τ', <[x:=(⊥, τ2')]>Γ ⊢ e2^#x :{l2} τ' /\ lc τ' /\ τ2 = close x τ') ->
-  (forall x, x ∉ L3 -> <[x:=(⊥, τ1')]>Γ ⊢ τ1^#x :: *@O) ->
-  (forall x, x ∉ L4 -> <[x:=(⊥, τ2')]>Γ ⊢ τ2^#x :: *@O) ->
+  (forall x, x ∉ L1 -> exists τ', <[x:=(⊥, τ1')]>Γ ⊢ e1^x :{l1} τ' /\ lc τ' /\ τ1 = close x τ') ->
+  (forall x, x ∉ L2 -> exists τ', <[x:=(⊥, τ2')]>Γ ⊢ e2^x :{l2} τ' /\ lc τ' /\ τ2 = close x τ') ->
+  (forall x, x ∉ L3 -> <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O) ->
+  (forall x, x ∉ L4 -> <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O) ->
   Γ ⊢ τ1' :: κ1 ->
   Γ ⊢ τ2' :: κ2 ->
   l = l1 ⊔ l2 ->
@@ -719,31 +723,28 @@ Import notations.
 Notation "'int{' l '}'" := (EInt l) (in custom oadt, l constr).
 Notation "'int'" := (EInt low) (in custom oadt).
 Notation "'~int'" := (EInt high) (in custom oadt).
-Notation "a '<={' l '}' b" := (EIntLe l a b) (in custom oadt at level 1,
+Notation "a '<={' l '}' b" := (EIntLe l a b) (in custom oadt at level 3,
                                                  l constr,
+                                                 a custom oadt,
+                                                 b custom oadt,
+                                                 no associativity).
+Notation "a '<=' b" := (EIntLe low a b) (in custom oadt at level 3,
                                            a custom oadt,
                                            b custom oadt,
                                            no associativity).
-Notation "a '<=' b" := (EIntLe low a b) (in custom oadt at level 1,
+Notation "a '~<=' b" := (EIntLe high a b) (in custom oadt at level 3,
                                            a custom oadt,
                                            b custom oadt,
                                            no associativity).
-Notation "a '~<=' b" := (EIntLe high a b) (in custom oadt at level 1,
-                                           a custom oadt,
-                                           b custom oadt,
-                                           no associativity).
-Notation "'s_int' e" := (EIntSec e) (in custom oadt at level 1,
-                                             e custom oadt at level 0).
-Notation "'r_int' e" := (EIntRet e) (in custom oadt at level 1,
-                                             e custom oadt at level 0).
+Notation "'s_int' e" := (EIntSec e) (in custom oadt at level 2).
+Notation "'r_int' e" := (EIntRet e) (in custom oadt at level 2).
 Notation "'i(' a ')'" := (EIntLit a) (in custom oadt at level 0,
                                            a constr at level 0,
                                            format "'i(' a ')'").
 Notation "'i[' a ']'" := (EBoxedIntLit a) (in custom oadt at level 0,
                                            a constr at level 0,
                                            format "'i[' a ]").
-Notation "'r𝔹' e" := <{ ~if e then true else false }> (in custom oadt at level 1,
-                                                          e custom oadt at level 0).
+Notation "'r𝔹' e" := <{ ~if e then true else false }> (in custom oadt at level 2).
 
 End int_notations.
 
@@ -962,13 +963,13 @@ Ltac mstep_tac :=
 Ltac typing_tac :=
   simpl_open;
   match goal with
-  | |- _; _ ⊢ if _ then _ else _ : Π:{_}_ _, ?τ' =>
+  | |- _; _ ⊢ if _ then _ else _ : Π:{_}_@_, ?τ' =>
     eapply TConv; [ eapply TIte_alt_pi with (τ := τ') | .. ]
-  | |- _; _ ⊢ if _ then _ else _ : _ _ =>
+  | |- _; _ ⊢ if _ then _ else _ : _@_ =>
     eapply TConv; [ eapply TIte_alt | .. ]
-  | |- _; _ ⊢ case _ of _ | _ : Π:{_}_ _, ?τ' =>
+  | |- _; _ ⊢ case _ of _ | _ : Π:{_}_@_, ?τ' =>
     eapply TConv; [ eapply TCase_alt_pi with (τ := τ') | .. ]
-  | |- _; _ ⊢ case _ of _ | _ : _ _ =>
+  | |- _; _ ⊢ case _ of _ | _ : _@_ =>
     eapply TConv; [ eapply TCase_alt | .. ]
   | |- _; _ ⊢ _ : _ => typing_intro
   | |- _; _ ⊢ _ :: _ => kinding_intro
@@ -977,10 +978,10 @@ Ltac typing_tac :=
   | |- _ ⊑ _ => reflexivity
   | |- _ = _ => reflexivity
   | |- _ ⊢ _ ≡ _ => reflexivity
-  | |- _ ⊢ _ ≡ Π:{_}_ _, _ => symmetry
-  | |- _ ⊢ Π:{_}_ _, _ ≡ _ => eapply pared_equiv_oadtapp_pi
-  | |- _ ⊢ _ ≡ _ _ => symmetry
-  | |- _ ⊢ _ _ ≡ _ => eapply pared_equiv_oadtapp
+  | |- _ ⊢ _ ≡ Π:{_}_@_, _ => symmetry
+  | |- _ ⊢ Π:{_}_@_, _ ≡ _ => eapply pared_equiv_oadtapp_pi
+  | |- _ ⊢ _ ≡ _@_ => symmetry
+  | |- _ ⊢ _@_ ≡ _ => eapply pared_equiv_oadtapp
   | |- forall _, _ ∉ _ -> _ => simpl_cofin || simpl_cofin (∅ : aset)
   | |- lc _ => solve [ repeat econstructor; eauto using lc_int | eauto 10 with lc ]
   | |- exists _, _ => repeat esplit

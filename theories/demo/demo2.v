@@ -33,29 +33,25 @@ Definition ostree : atom := "~stree".
 Definition s_ostree : atom := "s_ostree".
 Definition r_ostree : atom := "r_ostree".
 
-Notation "'zero'" := <{ fold<nat> (inl<𝟙 + @nat> ()) }>
+Notation "'zero'" := <{ fold<nat> (inl<𝟙 + #nat> ()) }>
                      (in custom oadt).
-Notation "'succ' e" := <{ fold<nat> (inr<𝟙 + @nat> e) }>
-                       (in custom oadt at level 1,
-                           e custom oadt at level 0).
+Notation "'succ' e" := <{ fold<nat> (inr<𝟙 + #nat> e) }>
+                       (in custom oadt at level 2).
 
-Notation "'nil'" := <{ fold<list> (inl<𝟙 + 𝔹 * @list> ()) }>
+Notation "'nil'" := <{ fold<list> (inl<𝟙 + 𝔹 * #list> ()) }>
                      (in custom oadt).
-Notation "'cons' e" := <{ fold<list> (inr<𝟙 + 𝔹 * @list> e) }>
-                       (in custom oadt at level 0,
-                           e custom oadt at level 0).
+Notation "'cons' e" := <{ fold<list> (inr<𝟙 + 𝔹 * #list> e) }>
+                       (in custom oadt at level 2).
 
-Notation "'leaf'" := <{ fold<tree> (inl<𝟙 + 𝔹 * @tree * @tree> ()) }>
+Notation "'leaf'" := <{ fold<tree> (inl<𝟙 + 𝔹 * #tree * #tree> ()) }>
                      (in custom oadt).
-Notation "'node' e" := <{ fold<tree> (inr<𝟙 + 𝔹 * @tree * @tree> e) }>
-                       (in custom oadt at level 0,
-                           e custom oadt at level 0).
+Notation "'node' e" := <{ fold<tree> (inr<𝟙 + 𝔹 * #tree * #tree> e) }>
+                       (in custom oadt at level 2).
 
-Notation "'sleaf'" := <{ fold<spine> (inl<𝟙 + @spine * @spine> ()) }>
+Notation "'sleaf'" := <{ fold<spine> (inl<𝟙 + #spine * #spine> ()) }>
                       (in custom oadt).
-Notation "'snode' e" := <{ fold<spine> (inr<𝟙 + @spine * @spine> e) }>
-                        (in custom oadt at level 0,
-                            e custom oadt at level 0).
+Notation "'snode' e" := <{ fold<spine> (inr<𝟙 + #spine * #spine> e) }>
+                        (in custom oadt at level 2).
 
 (** Global definitions. *)
 Definition defs := [{
@@ -70,19 +66,19 @@ Definition defs := [{
   obliv olist (:nat) :=
     case unfold<nat> $0 of
       𝟙
-    | 𝟙 ~+ ~𝔹 * (olist $0);
-  def s_list :{⊥} Π~:list, Π:nat, olist $0 :=
+    | 𝟙 ~+ ~𝔹 * (olist@$0);
+  def s_list :{⊥} Π~:list, Π:nat, olist@$0 :=
     \~:list => \:nat =>
       case unfold<nat> $0 of
         ()
       | tape (case unfold<list> $2 of
-                ~inl<𝟙 ~+ ~𝔹 * (olist $1)> ()
-              | ~inr<𝟙 ~+ ~𝔹 * (olist $1)> (tape (s𝔹 ($0).1, s_list ($0).2 $1)));
-  def r_list :{⊤} Π:nat, Π:olist $0, list :=
+                ~inl<𝟙 ~+ ~𝔹 * (olist@$1)> ()
+              | ~inr<𝟙 ~+ ~𝔹 * (olist@$1)> (tape (s𝔹 ($0).1, s_list ($0).2 $1)));
+  def r_list :{⊤} Π:nat, Π:olist@$0, list :=
     \:nat =>
       case unfold<nat> $0 of
         \:𝟙 => nil
-      | \:𝟙 ~+ ~𝔹 * (olist $0) =>
+      | \:𝟙 ~+ ~𝔹 * (olist@$0) =>
           ~case $0 of
             nil
           | cons (r𝔹 ($0).1, r_list $2 ($0).2);
@@ -91,22 +87,22 @@ Definition defs := [{
   obliv ostree (:spine) :=
     case unfold<spine> $0 of
       𝟙
-    | 𝟙 ~+ ~𝔹 * (ostree ($0).1) * (ostree ($0).2);
-  def s_ostree :{⊥} Π~:tree, Π:spine, ostree $0 :=
+    | 𝟙 ~+ ~𝔹 * (ostree@($0).1) * (ostree@($0).2);
+  def s_ostree :{⊥} Π~:tree, Π:spine, ostree@$0 :=
     \~:tree => \:spine =>
       case unfold<spine> $0 of
         ()
       | tape (case unfold<tree> $2 of
-                   ~inl<𝟙 ~+ ~𝔹 * (ostree ($1).1) * (ostree ($1).2)> ()
-                 | ~inr<𝟙 ~+ ~𝔹 * (ostree ($1).1) * (ostree ($1).2)>
+                   ~inl<𝟙 ~+ ~𝔹 * (ostree@($1).1) * (ostree@($1).2)> ()
+                 | ~inr<𝟙 ~+ ~𝔹 * (ostree@($1).1) * (ostree@($1).2)>
                      tape (s𝔹 ($0).1.1,
                            s_ostree ($0).1.2 ($1).1,
                            s_ostree ($0).2 ($1).2));
-  def r_ostree :{⊤} Π:spine, Π:ostree $0, tree :=
+  def r_ostree :{⊤} Π:spine, Π:ostree@$0, tree :=
     \:spine =>
       case unfold<spine> $0 of
         \:𝟙 => leaf
-      | \:𝟙 ~+ ~𝔹 * (ostree ($0).1) * (ostree ($0).2) =>
+      | \:𝟙 ~+ ~𝔹 * (ostree@($0).1) * (ostree@($0).2) =>
           ~case $0 of
             leaf
           | node (r𝔹 ($0).1.1,

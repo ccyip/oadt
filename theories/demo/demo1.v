@@ -21,11 +21,10 @@ Definition tree : atom := "tree".
 
 (** Define introduction/elimination as notations for convenience. Alternatively,
 we can also define them directly inside lambda oadt. *)
-Notation "'zero'" := <{ fold<nat> (inl<𝟙 + @nat> ()) }>
+Notation "'zero'" := <{ fold<nat> (inl<𝟙 + #nat> ()) }>
                      (in custom oadt).
-Notation "'succ' e" := <{ fold<nat> (inr<𝟙 + @nat> e) }>
-                       (in custom oadt at level 1,
-                           e custom oadt at level 0).
+Notation "'succ' e" := <{ fold<nat> (inr<𝟙 + #nat> e) }>
+                       (in custom oadt at level 2).
 
 
 Definition is_zero : atom := "is_zero".
@@ -51,16 +50,14 @@ Notation "'~lookup'" := (olookup) (in custom oadt).
 Definition olookup' : atom := "~lookup'".
 Notation "'~lookup''" := (olookup') (in custom oadt).
 
-Notation "'leaf'" := <{ fold<tree> (inl<𝟙 + int * @tree * @tree> ()) }>
+Notation "'leaf'" := <{ fold<tree> (inl<𝟙 + int * #tree * #tree> ()) }>
                      (in custom oadt).
-Notation "'node' e" := <{ fold<tree> (inr<𝟙 + int * @tree * @tree> e) }>
-                       (in custom oadt at level 0,
-                           e custom oadt at level 0).
-Notation "'sleaf'" := <{ fold<spine> (inl<𝟙 + @spine * @spine> ()) }>
+Notation "'node' e" := <{ fold<tree> (inr<𝟙 + int * #tree * #tree> e) }>
+                       (in custom oadt at level 2).
+Notation "'sleaf'" := <{ fold<spine> (inl<𝟙 + #spine * #spine> ()) }>
                       (in custom oadt).
-Notation "'snode' e" := <{ fold<spine> (inr<𝟙 + @spine * @spine> e) }>
-                        (in custom oadt at level 0,
-                            e custom oadt at level 0).
+Notation "'snode' e" := <{ fold<spine> (inr<𝟙 + #spine * #spine> e) }>
+                        (in custom oadt at level 2).
 
 
 (** Global definitions. *)
@@ -70,11 +67,11 @@ Definition defs := [{
   obliv ~tree (:nat) :=
     if is_zero $0
     then 𝟙
-    else 𝟙 ~+ ~int * (~tree (pred $0)) * (~tree (pred $0));
+    else 𝟙 ~+ ~int * (~tree@(pred $0)) * (~tree@(pred $0));
 
-  (* def zero :{⊥} @nat := fold<nat> (inl<𝟙 + nat> ()); *)
+  (* def zero :{⊥} #nat := fold<nat> (inl<𝟙 + nat> ()); *)
   (* def succ :{⊥} Π:nat, nat := \:nat => fold<nat> (inr<𝟙 + nat> $0); *)
-  (* def leaf :{⊥} @tree := fold<tree> (inl<𝟙 + int * tree * tree> ()); *)
+  (* def leaf :{⊥} #tree := fold<tree> (inl<𝟙 + int * tree * tree> ()); *)
   (* def node :{⊤} Π~:int * tree * tree, tree := *)
   (*   \~:int * tree * tree => fold<tree> (inr<𝟙 + int * tree * tree> $0); *)
 
@@ -84,22 +81,22 @@ Definition defs := [{
   def pred :{⊥} Π:nat, nat :=
     \:nat => case unfold<nat> $0 of zero | $0;
 
-  def s_tree :{⊥} Π~:tree, Π:nat, ~tree $0 :=
+  def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
     \~:tree => \:nat =>
       if is_zero $0
       then ()
       else tape (case unfold<tree> $1 of
-                   ~inl<𝟙 ~+ ~int * (~tree (pred $1)) * (~tree (pred $1))> ()
-                 | ~inr<𝟙 ~+ ~int * (~tree (pred $1)) * (~tree (pred $1))>
+                   ~inl<𝟙 ~+ ~int * (~tree@(pred $1)) * (~tree@(pred $1))> ()
+                 | ~inr<𝟙 ~+ ~int * (~tree@(pred $1)) * (~tree@(pred $1))>
                      tape (s_int ($0).1.1,
                            s_tree ($0).1.2 (pred $1),
                            s_tree ($0).2 (pred $1)));
 
-  def r_tree :{⊤} Π:nat, Π:~tree $0, tree :=
+  def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
     \:nat =>
       if is_zero $0
       then \:𝟙 => leaf
-      else \:𝟙 ~+ ~int * (~tree (pred $0)) * (~tree (pred $0)) =>
+      else \:𝟙 ~+ ~int * (~tree@(pred $0)) * (~tree@(pred $0)) =>
              ~case $0 of
                leaf
              | node (r_int ($0).1.1,
@@ -114,8 +111,8 @@ Definition defs := [{
       then node (($0).1.1, insert $2 ($0).1.2, ($0).2)
       else node (($0).1.1, ($0).1.2, insert $2 ($0).2);
 
-  def ~insert :{⊥} Π:~int, Π:nat, Π:~tree $0, ~tree (succ $1) :=
-    \:~int => \:nat => \:~tree $0 =>
+  def ~insert :{⊥} Π:~int, Π:nat, Π:~tree@$0, ~tree@(succ $1) :=
+    \:~int => \:nat => \:~tree@$0 =>
       s_tree (insert (r_int $2) (r_tree $1 $0)) (succ $1);
 
   def lookup :{⊤} Π~:int, Π~:tree, 𝔹 :=
@@ -128,8 +125,8 @@ Definition defs := [{
            else lookup $2 ($0).1.2
       else lookup $2 ($0).2;
 
-  def ~lookup :{⊥} Π:~int, Π:nat, Π:~tree $0, ~𝔹 :=
-    \:~int => \:nat => \:~tree $0 =>
+  def ~lookup :{⊥} Π:~int, Π:nat, Π:~tree@$0, ~𝔹 :=
+    \:~int => \:nat => \:~tree@$0 =>
       tape (s𝔹 (lookup (r_int $2) (r_tree $1 $0)));
 
   (* Use the upper bound of spine as public view. *)
@@ -137,22 +134,22 @@ Definition defs := [{
   obliv ~tree' (:spine) :=
     case unfold<spine> $0 of
       𝟙
-    | 𝟙 ~+ ~int * (~tree' ($0).1) * (~tree' ($0).2);
-  def s_tree' :{⊥} Π~:tree, Π:spine, ~tree' $0 :=
+    | 𝟙 ~+ ~int * (~tree'@($0).1) * (~tree'@($0).2);
+  def s_tree' :{⊥} Π~:tree, Π:spine, ~tree'@$0 :=
     \~:tree => \:spine =>
       case unfold<spine> $0 of
         ()
       | tape (case unfold<tree> $2 of
-                   ~inl<𝟙 ~+ ~int * (~tree' ($1).1) * (~tree' ($1).2)> ()
-                 | ~inr<𝟙 ~+ ~int * (~tree' ($1).1) * (~tree' ($1).2)>
+                   ~inl<𝟙 ~+ ~int * (~tree'@($1).1) * (~tree'@($1).2)> ()
+                 | ~inr<𝟙 ~+ ~int * (~tree'@($1).1) * (~tree'@($1).2)>
                      tape (s_int ($0).1.1,
                            s_tree' ($0).1.2 ($1).1,
                            s_tree' ($0).2 ($1).2));
-  def r_tree' :{⊤} Π:spine, Π:~tree' $0, tree :=
+  def r_tree' :{⊤} Π:spine, Π:~tree'@$0, tree :=
     \:spine =>
       case unfold<spine> $0 of
         \:𝟙 => leaf
-      | \:𝟙 ~+ ~int * (~tree' ($0).1) * (~tree' ($0).2) =>
+      | \:𝟙 ~+ ~int * (~tree'@($0).1) * (~tree'@($0).2) =>
           ~case $0 of
             leaf
           | node (r_int ($0).1.1,
@@ -162,8 +159,8 @@ Definition defs := [{
   (* An oblivious lookup function that uses [~tree'] instead. Note that the
   implementation is basically the same as [~lookup] above with different
   oblivious tree and its section/retraction functions. *)
-  def ~lookup' :{⊥} Π:~int, Π:spine, Π:~tree' $0, ~𝔹 :=
-    \:~int => \:spine => \:~tree' $0 =>
+  def ~lookup' :{⊥} Π:~int, Π:spine, Π:~tree'@$0, ~𝔹 :=
+    \:~int => \:spine => \:~tree'@$0 =>
       tape (s𝔹 (lookup (r_int $2) (r_tree' $1 $0)))
 }].
 
@@ -187,7 +184,7 @@ Qed.
 
 (** An example oblivious tree type, with index 2. *)
 Example ex_tree_type :=
-  <{ ~tree (succ (succ zero)) }>.
+  <{ ~tree@(succ (succ zero)) }>.
 Print ex_tree_type.
 
 (** It can be evalute to type value. *)
@@ -303,7 +300,7 @@ Notation "'ex_spine'" := <{ snode ((snode (sleaf, sleaf)), sleaf) }>
                          (in custom oadt, only parsing).
 
 Example ex_spine_tree_type :=
-  <{ ~tree' ex_spine }>.
+  <{ ~tree'@ex_spine }>.
 Print ex_spine_tree_type.
 
 Definition ex_spine_tree_type_pack :

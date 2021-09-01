@@ -36,20 +36,17 @@ Definition fromlist : atom := "fromlist".
 Notation "'V'" := <{ (𝟙 + 𝔹) }> (in custom oadt).
 Notation "'~V'" := <{ (𝟙 ~+ ~𝔹) }> (in custom oadt).
 Notation "'Vleaf'" := <{ inl<V> () }> (in custom oadt).
-Notation "'Vnode' e" := <{ inr<V> e }> (in custom oadt at level 0,
-                                       e custom oadt at level 0).
+Notation "'Vnode' e" := <{ inr<V> e }> (in custom oadt at level 2).
 
-Notation "'nil'" := <{ fold<list> (inl<𝟙 + V * @list> ()) }>
+Notation "'nil'" := <{ fold<list> (inl<𝟙 + V * #list> ()) }>
                      (in custom oadt).
-Notation "'cons' e" := <{ fold<list> (inr<𝟙 + V * @list> e) }>
-                       (in custom oadt at level 0,
-                           e custom oadt at level 0).
+Notation "'cons' e" := <{ fold<list> (inr<𝟙 + V * #list> e) }>
+                       (in custom oadt at level 2).
 
-Notation "'leaf'" := <{ fold<tree> (inl<𝟙 + 𝔹 * @tree * @tree> ()) }>
+Notation "'leaf'" := <{ fold<tree> (inl<𝟙 + 𝔹 * #tree * #tree> ()) }>
                      (in custom oadt).
-Notation "'node' e" := <{ fold<tree> (inr<𝟙 + 𝔹 * @tree * @tree> e) }>
-                       (in custom oadt at level 0,
-                           e custom oadt at level 0).
+Notation "'node' e" := <{ fold<tree> (inr<𝟙 + 𝔹 * #tree * #tree> e) }>
+                       (in custom oadt at level 2).
 
 Notation "'~tree'" := (olist) (in custom oadt).
 
@@ -95,19 +92,19 @@ Definition defs := [{
   obliv ~list (:nat) :=
     case unfold<nat> $0 of
       𝟙
-    | 𝟙 ~+ ~V * (~list $0);
-  def s_list :{⊥} Π~:list, Π:nat, ~list $0 :=
+    | 𝟙 ~+ ~V * (~list@$0);
+  def s_list :{⊥} Π~:list, Π:nat, ~list@$0 :=
     \~:list => \:nat =>
       case unfold<nat> $0 of
         ()
       | tape (case unfold<list> $2 of
-                ~inl<𝟙 ~+ ~V * (~list $1)> ()
-              | ~inr<𝟙 ~+ ~V * (~list $1)> (tape (s_V ($0).1, s_list ($0).2 $1)));
-  def r_list :{⊤} Π:nat, Π:~list $0, list :=
+                ~inl<𝟙 ~+ ~V * (~list@$1)> ()
+              | ~inr<𝟙 ~+ ~V * (~list@$1)> (tape (s_V ($0).1, s_list ($0).2 $1)));
+  def r_list :{⊤} Π:nat, Π:~list@$0, list :=
     \:nat =>
       case unfold<nat> $0 of
         \:𝟙 => nil
-      | \:𝟙 ~+ ~V * (~list $0) =>
+      | \:𝟙 ~+ ~V * (~list@$0) =>
           ~case $0 of
             nil
           | cons (r_V ($0).1, r_list $2 ($0).2);
@@ -115,10 +112,10 @@ Definition defs := [{
   (* Index is the upper bound of the number of its vertices. The oblivious
   representation is the flatten tree. *)
   (* ~tree is an alias of ~list. *)
-  def s_tree :{⊥} Π~:tree, Π:nat, ~tree $0 :=
+  def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
     \~:tree => \:nat => s_list (tolist $1) $0;
-  def r_tree :{⊤} Π:nat, Π:~tree $0, tree :=
-    \:nat => \:~tree $0 => fromlist (r_list $1 $0);
+  def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
+    \:nat => \:~tree@$0 => fromlist (r_list $1 $0);
 
   def tolist :{⊤} Π~:tree, list :=
     \~:tree =>
