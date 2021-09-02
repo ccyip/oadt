@@ -101,7 +101,7 @@ Definition ex_otree :=
   <{ s_tree ex_tree (succ (succ zero)) }>.
 
 Definition ex_otree_pack :
-  sigT (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
+  sig (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -117,7 +117,7 @@ Print ex_otree_v.
 
 (** Map a negation function. *)
 Definition ex_omap :
-  sigT (fun v => Σ ⊨ <{ ~map (\~:𝔹 => if $0 then false else true) (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~map (\~:𝔹 => if $0 then false else true) (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
