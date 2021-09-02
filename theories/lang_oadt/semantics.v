@@ -55,46 +55,47 @@ Inductive ovalty : expr -> expr -> Prop :=
 style later. This one can be quite annoying for proof automation. *)
 (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
 the hole in [ℇ] with [e]. [ectx ℇ] asserts that [ℇ] is a well-formed
-context.
-
-NOTE: we reduce applications from right to left for some subtle reason. *)
-
-(** The evaluation context enclosing possibly leaking expressions. *)
-Variant lectx : (expr -> expr) -> Prop :=
-| CtxApp1 v2 : wval v2 -> lectx (fun e1 => <{ e1 v2 }>)
-| CtxSec : lectx (fun e => <{ s𝔹 e }>)
-| CtxIte e1 e2 : lectx (fun e0 => <{ if e0 then e1 else e2 }>)
-| CtxProj b : lectx (fun e => <{ π@b e }>)
-| CtxCase e1 e2: lectx (fun e0 => <{ case e0 of e1 | e2 }>)
-| CtxUnfold X : lectx (fun e => <{ unfold<X> e }>)
-.
-
-(** The top-level evaluation context. *)
+context. *)
 Variant ectx : (expr -> expr) -> Prop :=
 | CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 * τ2 }>)
 | CtxProd2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
 | CtxOSum2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
-| CtxApp2 e1 : ectx (fun e2 => <{ e1 e2 }>)
+| CtxApp1 e2 : ectx (fun e1 => <{ e1 e2 }>)
+| CtxApp2 v1 : wval v1 -> ectx (fun e2 => <{ v1 e2 }>)
 | CtxTApp X : ectx (fun e => <{ X@e }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
+| CtxSec : ectx (fun e => <{ s𝔹 e }>)
+| CtxIte e1 e2 : ectx (fun e0 => <{ if e0 then e1 else e2 }>)
 | CtxOIte1 e1 e2 : ectx (fun e0 => <{ ~if e0 then e1 else e2 }>)
 | CtxOIte2 v0 e2 : wval v0 -> ectx (fun e1 => <{ ~if v0 then e1 else e2 }>)
 | CtxOIte3 v0 v1 : wval v0 -> wval v1 -> ectx (fun e2 => <{ ~if v0 then v1 else e2 }>)
-| CtxOCase e1 e2: ectx (fun e0 => <{ ~case e0 of e1 | e2 }>)
 | CtxPair1 e2 : ectx (fun e1 => <{ (e1, e2) }>)
 | CtxPair2 v1 : wval v1 -> ectx (fun e2 => <{ (v1, e2) }>)
+| CtxProj b : ectx (fun e => <{ π@b e }>)
 | CtxInj b τ : ectx (fun e => <{ inj@b<τ> e }>)
 | CtxOInj1 b e : ectx (fun τ => <{ ~inj@b<τ> e }>)
 | CtxOInj2 b ω : otval ω -> ectx (fun e => <{ ~inj@b<ω> e }>)
+| CtxCase e1 e2: ectx (fun e0 => <{ case e0 of e1 | e2 }>)
+| CtxOCase e1 e2: ectx (fun e0 => <{ ~case e0 of e1 | e2 }>)
 | CtxFold X : ectx (fun e => <{ fold<X> e }>)
+| CtxUnfold X : ectx (fun e => <{ unfold<X> e }>)
 | CtxTape : ectx (fun e => <{ tape e }>)
 | CtxMux1 e1 e2 : ectx (fun e0 => <{ mux e0 e1 e2 }>)
 | CtxMux2 v0 e2 : wval v0 -> ectx (fun e1 => <{ mux v0 e1 e2 }>)
 | CtxMux3 v0 v1 : wval v0 -> wval v1 -> ectx (fun e2 => <{ mux v0 v1 e2 }>)
-(* A [lectx] is also a [ectx]. *)
-| CtxLeak ℇ : lectx ℇ -> ectx ℇ
 .
+
+(** The evaluation context enclosing possibly leaking expressions. *)
+Variant lectx : (expr -> expr) -> Prop :=
+| LCtxApp v2 : wval v2 -> lectx (fun e1 => <{ e1 v2 }>)
+| LCtxSec : lectx (fun e => <{ s𝔹 e }>)
+| LCtxIte e1 e2 : lectx (fun e0 => <{ if e0 then e1 else e2 }>)
+| LCtxProj b : lectx (fun e => <{ π@b e }>)
+| LCtxCase e1 e2: lectx (fun e0 => <{ case e0 of e1 | e2 }>)
+| LCtxUnfold X : lectx (fun e => <{ unfold<X> e }>)
+.
+
 
 (** ** Small-step relation *)
 Section step.
