@@ -55,11 +55,11 @@
 </div>
 
 <div class="doc">
-<a id="lab95"></a><h1 class="section">Definitions</h1>
+<a id="lab97"></a><h1 class="section">Definitions</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab96"></a><h2 class="section">Section and retraction context (Δ)</h2>
+<a id="lab98"></a><h2 class="section">Section and retraction context (Δ)</h2>
  Map ADT and OADT pair to section and retraction functions. 
 </div>
 <div class="code">
@@ -120,7 +120,7 @@
 </div>
 
 <div class="doc">
-<a id="lab97"></a><h2 class="section">Generalized section</h2>
+<a id="lab99"></a><h2 class="section">Generalized section</h2>
  Compute the section of <span class="inlinecode"><span class="id" title="var">e</span></span> from public type <span class="inlinecode">τ</span> to oblivious type <span class="inlinecode">τ'</span>. <span class="inlinecode"><span class="id" title="var">e</span></span>
 is assumed a <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.infrastructure.html#body"><span class="id" title="definition">body</span></a></span>. Alternatively, we may assume <span class="inlinecode"><span class="id" title="var">e</span></span> is locally closed, and
 open/close the expressions accordingly. That way we also need to record the used
@@ -150,7 +150,7 @@ atoms in an extra arguments, similar to the lifting functions below.
 </div>
 
 <div class="doc">
-<a id="lab98"></a><h2 class="section">Generalized retraction</h2>
+<a id="lab100"></a><h2 class="section">Generalized retraction</h2>
  Compute the retraction of <span class="inlinecode"><span class="id" title="var">e</span></span> from oblivious type <span class="inlinecode">τ'</span> to public type <span class="inlinecode">τ</span>. 
 </div>
 <div class="code">
@@ -188,7 +188,7 @@ atoms in an extra arguments, similar to the lifting functions below.
 </div>
 
 <div class="doc">
-<a id="lab99"></a><h2 class="section">Lifting</h2>
+<a id="lab101"></a><h2 class="section">Lifting</h2>
 
 <div class="paragraph"> </div>
 
@@ -201,8 +201,9 @@ track of used free variables.
 <span class="id" title="keyword">Fixpoint</span> <a id="lift_core" class="idref" href="#lift_core"><span class="id" title="definition">lift_core</span></a> (<a id="823b398bcc4762008347ab77df0d7cc7" class="idref" href="#823b398bcc4762008347ab77df0d7cc7"><span class="id" title="binder">τ</span></a> <a id="a64511c3b08f1713e9ea652c59e33bc2" class="idref" href="#a64511c3b08f1713e9ea652c59e33bc2"><span class="id" title="binder">τ'</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#expr"><span class="id" title="inductive">expr</span></a>) (<a id="xs:45" class="idref" href="#xs:45"><span class="id" title="binder">xs</span></a> : <a class="idref" href="oadt.ln.html#atom_instance.aset"><span class="id" title="definition">aset</span></a>) (<a id="e:46" class="idref" href="#e:46"><span class="id" title="binder">e</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#expr"><span class="id" title="inductive">expr</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#expr"><span class="id" title="inductive">expr</span></a> :=<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="oadt.lang_oadt.lifting.html#823b398bcc4762008347ab77df0d7cc7"><span class="id" title="variable">τ</span></a>, <a class="idref" href="oadt.lang_oadt.lifting.html#a64511c3b08f1713e9ea652c59e33bc2"><span class="id" title="variable">τ'</span></a> <span class="id" title="keyword">with</span><br/>
 &nbsp;&nbsp;| <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">Π</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">:{</span></a><span class="id" title="var">l</span><a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">}</span></a>τ1<a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">,</span></a> τ2 <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a>, <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">Π</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">:{</span></a><span class="id" title="var">l'</span><a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">}</span></a>τ1'<a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">,</span></a> τ2' <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;The&nbsp;function&nbsp;argument&nbsp;of&nbsp;<span class="inlinecode"><span class="id" title="var">e</span></span>&nbsp;should&nbsp;accept&nbsp;retraction.&nbsp;*)</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#decide"><span class="id" title="definition">decide</span></a> (<span class="id" title="var">l</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#6c0a583aa94fbbce6fcf0f655cf1cbb7"><span class="id" title="notation">⊤</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;The&nbsp;function&nbsp;argument&nbsp;of&nbsp;<span class="inlinecode"><span class="id" title="var">e</span></span>&nbsp;should&nbsp;have&nbsp;a&nbsp;leakage&nbsp;label&nbsp;of&nbsp;<span class="inlinecode">⊤</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="inlinecode"><span class="id" title="var">LLeak</span></span>),&nbsp;because&nbsp;it&nbsp;is&nbsp;applied&nbsp;to&nbsp;retraction.&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">l</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">then</span> <span class="id" title="keyword">let</span> <a id="x:50" class="idref" href="#x:50"><span class="id" title="binder">x</span></a> := <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#fresh"><span class="id" title="definition">fresh</span></a> <a class="idref" href="oadt.lang_oadt.lifting.html#xs:45"><span class="id" title="variable">xs</span></a> <span class="id" title="tactic">in</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a id="r:51" class="idref" href="#r:51"><span class="id" title="binder">r</span></a> <a class="idref" href="oadt.base.html#3293efd01a1e4be82f8f8e5cc0205dbb"><span class="id" title="notation">&lt;-</span></a> <a class="idref" href="oadt.lang_oadt.lifting.html#gret"><span class="id" title="definition">gret</span></a> τ1 τ1' <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#expr_notations.:oadt::'fvar'_x"><span class="id" title="notation">fvar</span></a> <a class="idref" href="oadt.lang_oadt.lifting.html#x:50"><span class="id" title="variable">x</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a><a class="idref" href="oadt.base.html#3293efd01a1e4be82f8f8e5cc0205dbb"><span class="id" title="notation">;</span></a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;<span class="inlinecode">τ</span>&nbsp;and&nbsp;<span class="inlinecode">τ'</span>&nbsp;are&nbsp;assumed&nbsp;non-dependent&nbsp;types,&nbsp;so&nbsp;<span class="inlinecode">τ2</span>&nbsp;and&nbsp;<span class="inlinecode">τ2'</span><br/>
@@ -251,7 +252,7 @@ counterpart of type <span class="inlinecode">τ'</span>, whose public indices ar
 </div>
 
 <div class="doc">
-<a id="lab100"></a><h2 class="section">Well-formedness of lifting input</h2>
+<a id="lab102"></a><h2 class="section">Well-formedness of lifting input</h2>
 
 <div class="paragraph"> </div>
 
@@ -294,11 +295,11 @@ type with indices instantiated is non-dependent, i.e. <span class="inlinecode">�
 </div>
 
 <div class="doc">
-<a id="lab101"></a><h1 class="section">Theorems</h1>
+<a id="lab103"></a><h1 class="section">Theorems</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab102"></a><h2 class="section">Well-typedness of section and retraction</h2>
+<a id="lab104"></a><h2 class="section">Well-typedness of section and retraction</h2>
 
 </div>
 <div class="code">
@@ -541,7 +542,7 @@ type with indices instantiated is non-dependent, i.e. <span class="inlinecode">�
 </div>
 
 <div class="doc">
-<a id="lab103"></a><h2 class="section">Properties of input well-formedness</h2>
+<a id="lab105"></a><h2 class="section">Properties of input well-formedness</h2>
 
 </div>
 <div class="code">
@@ -589,7 +590,7 @@ type with indices instantiated is non-dependent, i.e. <span class="inlinecode">�
 </div>
 
 <div class="doc">
-<a id="lab104"></a><h2 class="section">Well-typedness of lifting</h2>
+<a id="lab106"></a><h2 class="section">Well-typedness of lifting</h2>
 
 </div>
 <div class="code">
@@ -617,8 +618,7 @@ type with indices instantiated is non-dependent, i.e. <span class="inlinecode">�
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.lifting.html#gsec_well_typed"><span class="id" title="lemma">gsec_well_typed</span></a>.<br/>
 
 <br/>
-&nbsp;&nbsp;<span class="id" title="var">case_split</span>; <span class="id" title="var">simplify_eq</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="var">case_decide</span>; <span class="id" title="var">simplify_eq</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">case_split</span>; <span class="id" title="var">simplify_eq</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">simplify_option_eq</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">simp_hyps</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">apply_kind_inv</span>*. <span class="id" title="tactic">subst</span>.<br/>
