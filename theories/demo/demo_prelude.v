@@ -928,7 +928,7 @@ Ltac lookup_solver :=
         | repeat select (_ ∉ {[_]}) (fun H => rewrite not_elem_of_singleton in H);
           simplify_map_eq; reflexivity ].
 
-Ltac extract e := let e := eval unfold projT1, e in (projT1 e) in exact e.
+Ltac extract e := let e := eval unfold proj1_sig, e in (proj1_sig e) in exact e.
 
 Hint Rewrite open_int open_intle open_intsec open_intret open_lit open_boxedlit
   : open.
@@ -957,7 +957,7 @@ Ltac step_tac :=
 
 Ltac mstep_tac :=
   simpl_ovalty; simpl_open;
-  eapply Relation_Operators.rt1n_trans;
+  eapply rtc_l;
   [ do 40 step_tac | .. ].
 
 Ltac typing_tac :=

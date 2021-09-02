@@ -189,7 +189,7 @@ Print ex_tree_type.
 
 (** It can be evalute to type value. *)
 Definition ex_tree_type_pack :
-  sigT (fun ω => Σ ⊨ ex_tree_type -->* ω /\ otval ω).
+  sig (fun ω => Σ ⊨ ex_tree_type -->* ω /\ otval ω).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -214,7 +214,7 @@ Definition ex_otree :=
 
 (** We can evaluate it to an oblivious value. *)
 Definition ex_otree_pack :
-  sigT (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
+  sig (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -230,7 +230,7 @@ Print ex_otree_v.
 
 (** Examples of lookup. *)
 Definition ex_lookup1 :
-  sigT (fun v => Σ ⊨ <{ lookup i(3) ex_tree }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ lookup i(3) ex_tree }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -246,7 +246,7 @@ Definition ex_lookup1_result := ltac:(extract ex_lookup1).
 Print ex_lookup1_result.
 
 Definition ex_lookup2 :
-  sigT (fun v => Σ ⊨ <{ lookup i(1) ex_tree }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ lookup i(1) ex_tree }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -263,7 +263,7 @@ Print ex_lookup2_result.
 
 (** Examples of oblivious lookup. *)
 Definition ex_olookup1 :
-  sigT (fun v => Σ ⊨ <{ ~lookup i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~lookup i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -279,7 +279,7 @@ Definition ex_olookup1_result := ltac:(extract ex_olookup1).
 Print ex_olookup1_result.
 
 Definition ex_olookup2 :
-  sigT (fun v => Σ ⊨ <{ ~lookup i[1] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~lookup i[1] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -304,7 +304,7 @@ Example ex_spine_tree_type :=
 Print ex_spine_tree_type.
 
 Definition ex_spine_tree_type_pack :
-  sigT (fun ω => Σ ⊨ ex_spine_tree_type -->* ω /\ otval ω).
+  sig (fun ω => Σ ⊨ ex_spine_tree_type -->* ω /\ otval ω).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -330,7 +330,7 @@ Definition ex_spine_otree :=
 
 (** We can evaluate it to an oblivious value. *)
 Definition ex_spine_otree_pack :
-  sigT (fun v => Σ ⊨ ex_spine_otree -->* v /\ oval v).
+  sig (fun v => Σ ⊨ ex_spine_otree -->* v /\ oval v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -347,7 +347,7 @@ Print ex_spine_otree_v.
 
 (** Examples of oblivious lookup. *)
 Definition ex_spine_olookup1 :
-  sigT (fun v => Σ ⊨ <{ ~lookup' i[1] ex_spine ex_spine_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~lookup' i[1] ex_spine ex_spine_otree_v }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -365,7 +365,7 @@ Print ex_spine_olookup1_result.
 
 (** An example of insert. *)
 Definition ex_insert :
-  sigT (fun v => Σ ⊨ <{ insert i(3) ex_tree }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ insert i(3) ex_tree }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
@@ -381,7 +381,7 @@ Print ex_insert_result.
 
 (** An example of oblivious insert. *)
 Definition ex_oinsert :
-  sigT (fun v => Σ ⊨ <{ ~insert i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~insert i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
   repeat esplit.
   eapply mstep_alt_mstep.
