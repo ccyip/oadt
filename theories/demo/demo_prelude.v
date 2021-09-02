@@ -721,29 +721,29 @@ Module int_notations.
 Import notations.
 
 Notation "'int{' l '}'" := (EInt l) (in custom oadt, l constr).
-Notation "'int'" := (EInt low) (in custom oadt).
-Notation "'~int'" := (EInt high) (in custom oadt).
+Notation "'int'" := (EInt LPub) (in custom oadt).
+Notation "'~int'" := (EInt LObliv) (in custom oadt).
 Notation "a '<={' l '}' b" := (EIntLe l a b) (in custom oadt at level 3,
                                                  l constr,
                                                  a custom oadt,
                                                  b custom oadt,
                                                  no associativity).
-Notation "a '<=' b" := (EIntLe low a b) (in custom oadt at level 3,
-                                           a custom oadt,
-                                           b custom oadt,
-                                           no associativity).
-Notation "a '~<=' b" := (EIntLe high a b) (in custom oadt at level 3,
-                                           a custom oadt,
-                                           b custom oadt,
-                                           no associativity).
+Notation "a '<=' b" := (EIntLe LPub a b) (in custom oadt at level 3,
+                                             a custom oadt,
+                                             b custom oadt,
+                                             no associativity).
+Notation "a '~<=' b" := (EIntLe LObliv a b) (in custom oadt at level 3,
+                                                a custom oadt,
+                                                b custom oadt,
+                                                no associativity).
 Notation "'s_int' e" := (EIntSec e) (in custom oadt at level 2).
 Notation "'r_int' e" := (EIntRet e) (in custom oadt at level 2).
 Notation "'i(' a ')'" := (EIntLit a) (in custom oadt at level 0,
-                                           a constr at level 0,
-                                           format "'i(' a ')'").
+                                         a constr at level 0,
+                                         format "'i(' a ')'").
 Notation "'i[' a ']'" := (EBoxedIntLit a) (in custom oadt at level 0,
-                                           a constr at level 0,
-                                           format "'i[' a ]").
+                                              a constr at level 0,
+                                              format "'i[' a ]").
 Notation "'r𝔹' e" := <{ ~if e then true else false }> (in custom oadt at level 2).
 
 End int_notations.

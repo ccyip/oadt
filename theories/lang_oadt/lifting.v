@@ -130,8 +130,9 @@ track of used free variables. *)
 Fixpoint lift_core (τ τ' : expr) (xs : aset) (e : expr) : option expr :=
   match τ, τ' with
   | <{ Π:{l}τ1, τ2 }>, <{ Π:{l'}τ1', τ2' }> =>
-    (* The function argument of [e] should accept retraction. *)
-    if decide (l = ⊤)
+    (* The function argument of [e] should have a leakage label of [⊤]
+    ([LLeak]), because it is applied to retraction. *)
+    if l
     then let x := fresh xs in
          r <- gret τ1 τ1' <{ fvar x }>;
          (* [τ] and [τ'] are assumed non-dependent types, so [τ2] and [τ2']
@@ -470,8 +471,7 @@ Proof.
     apply_regularity;
     eauto using gsec_well_typed.
 
-  case_split; simplify_eq.
-  case_decide; simplify_eq.
+  repeat case_split; simplify_eq.
   simplify_option_eq.
   simp_hyps.
   apply_kind_inv*. subst.
