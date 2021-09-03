@@ -57,7 +57,7 @@ Lemma ovalty_intro_alt v ω l Σ Γ :
 Proof.
   intros Hwf H. revert ω l.
   induction H; inversion 1; intros; subst;
-    apply_type_inv;
+    type_inv;
     simpl_whnf_equiv;
     try hauto lq: on rew: off
               ctrs: ovalty, typing
@@ -108,9 +108,7 @@ Lemma wval_val Σ Γ τ v :
 Proof.
   remember ⊥.
   induction 1; subst; intros;
-    try match goal with
-        | H : wval ?v |- _ => head_constructor v; sinvert H
-        end; simplify_eq; eauto using val, (bot_inv (A:=bool)).
+    try wval_inv; eauto using val, (bot_inv (A:=bool)).
   select (⊥ = _ ⊔ _) (fun H => symmetry in H; apply join_bot_iff in H).
   hauto ctrs: val.
 Qed.
@@ -130,9 +128,7 @@ Lemma woval_otval Σ Γ v l τ :
 Proof.
   intros Hwf.
   induction 1; intros Hv;
-    try lazymatch type of Hv with
-        | woval ?e => head_constructor e; sinvert Hv
-        end; simp_hyps;
+    try woval_inv; simp_hyps;
       try solve [ repeat esplit; eauto;
                   try lazymatch goal with
                       | |- _; _ ⊢ _ : _ =>

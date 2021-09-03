@@ -35,7 +35,7 @@ Lemma pared_obliv_preservation_inv Γ τ τ' κ :
   Σ; Γ ⊢ τ :: *@O.
 Proof.
   induction 1; intros; try case_label;
-    apply_kind_inv;
+    kind_inv;
     simpl_cofin?;
     simplify_eq;
     try solve [ kinding_intro; eauto; set_shelve ];
@@ -64,11 +64,8 @@ Lemma wval_woval Γ v l τ :
   wval v ->
   woval v.
 Proof.
-  induction 1; intros;
-    try lazymatch goal with
-        | H : wval ?v |- _ => head_constructor v; sinvert H
-        end;
-    apply_kind_inv; simplify_eq;
+  induction 1; intros; try wval_inv;
+    kind_inv; simplify_eq;
       try hauto lq: on ctrs: woval, kinding;
       try easy.
 
@@ -82,8 +79,8 @@ Qed.
 (** * Canonical forms *)
 Ltac canonical_form_solver :=
   inversion 1; intros; subst; eauto;
-  apply_type_inv;
-  apply_kind_inv;
+  type_inv;
+  kind_inv;
   try simpl_whnf_equiv;
   simplify_eq;
   eauto 10.

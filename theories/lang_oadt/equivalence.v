@@ -268,7 +268,7 @@ Qed.
 (** ** Inversion lemmas *)
 
 Ltac inv_solver :=
-  inversion 1; subst; try apply_lc_inv; repeat esplit; eauto using pared.
+  inversion 1; subst; try lc_inv; repeat esplit; eauto using pared.
 
 Lemma pared_inv_abs l τ e t :
   <{ \:{l}τ => e }> ==>! t ->
@@ -329,7 +329,7 @@ Ltac pared_intro :=
   | |- _ ⊢ ?e ==>! _ => pared_intro_ e
   end.
 
-Ltac apply_pared_inv_ e H :=
+Ltac pared_inv_ e H :=
   match e with
   | <{ \:{_}_ => _ }> => apply pared_inv_abs in H; try simp_hyp H
   | <{ (_, _) }> => apply pared_inv_pair in H; try simp_hyp H
@@ -338,9 +338,9 @@ Ltac apply_pared_inv_ e H :=
   | _ => head_constructor e; sinvert H
   end.
 
-Ltac apply_pared_inv :=
+Ltac pared_inv :=
   match goal with
-  | H : _ ⊢ ?e ==>! _ |- _ => apply_pared_inv_ e H
+  | H : _ ⊢ ?e ==>! _ |- _ => pared_inv_ e H
   end; subst; eauto.
 
 Tactic Notation "lcrefl" "by" tactic3(tac) := eapply RRefl; tac.
@@ -377,7 +377,7 @@ Proof using Hwf.
   intros H. revert e2.
   induction H; intros;
     (* Invert another parallel reduction. *)
-    repeat apply_pared_inv; simplify_eq;
+    repeat pared_inv; simplify_eq;
       try apply_gctx_wf; simplify_map_eq;
         (* Massage hypotheses related to oblivious values. *)
         try select! (oval _)
@@ -409,7 +409,7 @@ Proof using Hwf.
                             end; go ]);
           (* Generate local closure assumptions to avoid reproving the same
           stuff. *)
-          repeat apply_lc_inv;
+          repeat lc_inv;
           simpl_cofin?;
           (* Generate more local closure assumptions. *)
           try select! (_ ==>! _)
@@ -454,7 +454,7 @@ Proof using Hwf.
               in go H1; go H2
             end;
     (* May invert some generated induction hypotheses. *)
-    repeat apply_pared_inv;
+    repeat pared_inv;
     (* Solve the trickier cases. *)
     let go :=
         eauto;
@@ -493,7 +493,7 @@ Proof using Hwf.
         pared_intro; eauto; set_shelve
        |]
   end.
-  repeat apply_pared_inv.
+  repeat pared_inv.
   simpl_cofin.
   repeat esplit; [ pared_intro | eapply pared_open ];
     eauto; set_shelve.
@@ -667,8 +667,8 @@ Lemma pared_step e e' :
   lc e ->
   e ==>! e'.
 Proof.
-  induction 1; intros; repeat apply_ectx_inv;
-    repeat apply_lc_inv;
+  induction 1; intros; repeat ectx_inv;
+    repeat lc_inv;
     repeat econstructor; eauto.
 Qed.
 

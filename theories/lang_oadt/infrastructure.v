@@ -137,16 +137,41 @@ Ltac case_label :=
   | |- context [<{ _ +{?l} _ }>] => destruct l
   end.
 
-Ltac apply_lc_inv :=
+Ltac safe_inv e H := head_constructor e; sinvert H; simplify_eq.
+Ltac safe_inv1 R :=
   match goal with
-  | H : lc ?e |- _ => head_constructor e; sinvert H
+  | H : R ?e |- _ => safe_inv e H
+  end.
+Ltac safe_inv2 R :=
+  match goal with
+  | H : R ?e1 ?e2 |- _ => first [ safe_inv e1 H | safe_inv e2 H ]
   end.
 
-Ltac apply_ectx_inv :=
+Ltac lc_inv := safe_inv1 lc.
+
+Ltac val_inv := safe_inv1 val.
+
+Ltac otval_inv := safe_inv1 otval.
+
+Ltac wval_inv := safe_inv1 wval.
+
+Ltac woval_inv := safe_inv1 woval.
+
+Ltac ovalty_inv := safe_inv2 ovalty.
+
+Ltac indistinguishable_inv := safe_inv2 indistinguishable.
+
+Ltac ectx_inv :=
   lazymatch goal with
   | H : ectx _ |- _ => sinvert H
   | H : lectx _ |- _ => sinvert H
   end; simplify_eq.
+
+Ltac step_inv :=
+  match goal with
+  | H : _ ⊨ ?e -->! _ |- _ =>
+    head_constructor e; sinvert H; repeat ectx_inv; simplify_eq
+  end.
 
 Ltac destruct_lexpr :=
   select! (lexpr) (fun H => let l := fresh "l" in
@@ -498,7 +523,7 @@ Proof.
   intros Hwf.
   induction 1; try apply_gctx_wf;
     try case_split; eauto using lc, kinding_lc;
-    try apply_lc_inv; simpl_cofin?; eauto with lc.
+    try lc_inv; simpl_cofin?; eauto with lc.
 Qed.
 #[export]
 Hint Resolve typing_type_lc : lc.
@@ -944,7 +969,7 @@ Lemma pared_lc1 Σ e e' :
 Proof.
   intros ?.
   induction 1; eauto using lc;
-    repeat apply_lc_inv;
+    repeat lc_inv;
     repeat econstructor; eauto;
       qauto l: on use: ovalty_elim db: lc.
 Qed.

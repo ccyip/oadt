@@ -491,7 +491,7 @@ End inversion.
 
 (** * Tactics *)
 
-Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
+Tactic Notation "kind_inv" hyp(H) "by" tactic3(tac) :=
   lazymatch type of H with
   | _; _ ⊢ Π:{_}_, _ :: _ => tac kind_inv_pi
   | _; _ ⊢ 𝔹 :: _ => tac kind_inv_bool
@@ -517,16 +517,16 @@ Tactic Notation "apply_kind_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ tape _ :: _ => apply kind_inv_tape in H; elim H
   end.
 
-Tactic Notation "apply_kind_inv" hyp(H) :=
-  apply_kind_inv H by (fun lem => apply lem in H; try simp_hyp H).
+Tactic Notation "kind_inv" hyp(H) :=
+  kind_inv H by (fun lem => apply lem in H; try simp_hyp H).
 
-Tactic Notation "apply_kind_inv" :=
-  do_hyps (fun H => try apply_kind_inv H).
+Tactic Notation "kind_inv" :=
+  do_hyps (fun H => try kind_inv H).
 
-Tactic Notation "apply_kind_inv" "*" :=
-  do_hyps (fun H => try dup_hyp H (fun H => apply_kind_inv H)).
+Tactic Notation "kind_inv" "*" :=
+  do_hyps (fun H => try dup_hyp H (fun H => kind_inv H)).
 
-Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
+Tactic Notation "type_inv" hyp(H) "by" tactic3(tac) :=
   lazymatch type of H with
   | _; _ ⊢ () : _ => tac type_inv_unit
   | _; _ ⊢ lit _ : _ => tac type_inv_lit
@@ -555,14 +555,14 @@ Tactic Notation "apply_type_inv" hyp(H) "by" tactic3(tac) :=
   | _; _ ⊢ _@_ : _ => apply type_inv_tapp in H; elim H
   end.
 
-Tactic Notation "apply_type_inv" hyp(H) :=
-  apply_type_inv H by (fun lem => apply lem in H; try simp_hyp H);
+Tactic Notation "type_inv" hyp(H) :=
+  type_inv H by (fun lem => apply lem in H; try simp_hyp H);
   try lazymatch goal with
       | |- gctx_wf _ => assumption
       end.
 
-Tactic Notation "apply_type_inv" :=
-  do_hyps (fun H => try apply_type_inv H).
+Tactic Notation "type_inv" :=
+  do_hyps (fun H => try type_inv H).
 
-Tactic Notation "apply_type_inv" "*" :=
-  do_hyps (fun H => try dup_hyp H (fun H => apply_type_inv H)).
+Tactic Notation "type_inv" "*" :=
+  do_hyps (fun H => try dup_hyp H (fun H => type_inv H)).

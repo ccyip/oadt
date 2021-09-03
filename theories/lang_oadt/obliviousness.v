@@ -106,12 +106,7 @@ Lemma indistinguishable_wval_is_nf Σ v v' :
 Proof.
   intros H. revert v'.
   induction H; intros ?? [];
-    repeat match goal with
-           | H : ?e ≈ _ |- _ => head_constructor e; sinvert H
-           | H : _ ⊨ ?e -->! _ |- _ =>
-             head_constructor e; sinvert H;
-               repeat apply_ectx_inv; simplify_eq
-           end;
+    repeat (indistinguishable_inv || step_inv);
     eauto; sfirstorder.
 Qed.
 
@@ -124,7 +119,7 @@ Proof.
   induction H; intros ?? [];
     select (_ ≈ _) (fun H => sinvert H);
     select (_ ⊨ _ -->! _) (fun H => sinvert H);
-    repeat apply_ectx_inv;
+    repeat ectx_inv;
     simplify_eq; eauto; sfirstorder.
 Qed.
 
@@ -208,25 +203,22 @@ Lemma indistinguishable_obliv_val Σ Γ v v' l l' τ :
 Proof.
   intros Hwf H. revert v' l'.
   induction H; intros;
-    repeat
-      match goal with
-      | H : val ?e |- _ => head_constructor e; sinvert H
-      end; simplify_eq;
-      try apply_regularity;
-      try apply_canonical_form;
-      apply_type_inv;
-      apply_kind_inv;
-      try simpl_whnf_equiv;
-      simplify_eq;
-      try solve [ easy
-                | econstructor; auto_eapply; eauto;
-                  econstructor; eauto; equiv_naive_solver ].
+    repeat val_inv;
+    try apply_regularity;
+    try apply_canonical_form;
+    type_inv;
+    kind_inv;
+    try simpl_whnf_equiv;
+    simplify_eq;
+    try solve [ easy
+              | econstructor; auto_eapply; eauto;
+                econstructor; eauto; equiv_naive_solver ].
 
   (* Boxed injection *)
   - select (ovalty _ _) (fun H => sinvert H).
     apply_canonical_form.
-    apply_type_inv.
-    apply_kind_inv.
+    type_inv.
+    kind_inv.
     select (_ ⊢ _ ≡ _) (fun H => eapply otval_uniq in H;
                                eauto using otval; rewrite H).
     econstructor.
@@ -248,18 +240,13 @@ Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' l l' τ τ' :
 Proof.
   intros Hwf H. revert v' l' τ'.
   induction H; intros;
-    try match goal with
-        | H : ?e ≈ _ |- _ => head_constructor e; sinvert H
-        end; simplify_eq;
-    repeat
-      match goal with
-      | H : val ?e |- _ => head_constructor e; sinvert H
-      end; simplify_eq;
-      try apply_regularity;
-      apply_type_inv;
-      apply_kind_inv;
-      simplify_eq;
-      try easy.
+    try indistinguishable_inv;
+    repeat val_inv;
+    try apply_regularity;
+    type_inv;
+    kind_inv;
+    simplify_eq;
+    try easy.
 
   (* Product *)
   - select (_ ⊢ _ ≡ _ * _) (fun H => rewrite H).
@@ -333,19 +320,12 @@ Lemma indistinguishable_deterministic Σ e1 e1' e2 e2' :
 Proof.
   intros Hwf H. revert e1' e2'.
   induction H; intros;
-    repeat apply_ectx_inv; simplify_eq;
+    repeat ectx_inv; simplify_eq;
       repeat
-        (match goal with
-         | H : ?e ≈ _ |- _ => head_constructor e; sinvert H
-         | H : _ ≈ ?e |- _ => head_constructor e; sinvert H
-         end;
+        (indistinguishable_inv;
          try (select (_ \/ _) (fun H => destruct H as [ [?[?[?[?[??]]]]] | [?[?[??]]] ]));
-         apply_type_inv; apply_kind_inv; simplify_eq;
-         try match goal with
-             | H : _ ⊨ ?e -->! _ |- _ =>
-               head_constructor e; sinvert H
-             end;
-         repeat apply_ectx_inv; simplify_eq;
+         type_inv; kind_inv; simplify_eq;
+         try step_inv;
          try select (oval _) (fun H => apply oval_val in H; apply val_wval in H);
          try select! (woval _) (fun H => apply woval_wval in H);
          try solve
@@ -367,10 +347,7 @@ Proof.
     eauto using indistinguishable.
 
   (* Step from oblivious case to mux *)
-  - repeat
-      match goal with
-      | H : ovalty ?v _ |- _ => head_constructor v; sinvert H
-      end.
+  - repeat ovalty_inv;
     econstructor; eauto using indistinguishable;
       case_splitting;
       eauto using indistinguishable_open, indistinguishable_ovalty.
