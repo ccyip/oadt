@@ -159,3 +159,19 @@ Lemma oval_woval v :
 Proof.
   induction 1; eauto using woval.
 Qed.
+
+Lemma wval_otval v :
+  wval v ->
+  otval v ->
+  False.
+Proof.
+  inversion 1; inversion 1.
+Qed.
+
+Lemma val_otval v :
+  val v ->
+  otval v ->
+  False.
+Proof.
+  eauto using wval_otval, val_wval.
+Qed.
