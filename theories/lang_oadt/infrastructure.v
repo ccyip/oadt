@@ -130,8 +130,8 @@ Ltac case_ite_expr :=
 
 Ltac case_label :=
   lazymatch goal with
-  | |- context [<{ inj{?l}@_<_> _ }>] => destruct l
   | |- context [<{ if{?l} _ then _ else _ }>] => destruct l
+  | |- context [<{ inj{?l}@_<_> _ }>] => destruct l
   | |- context [<{ case{?l} _ of _ | _ }>] => destruct l
   | |- context [<{ 𝔹{?l} }>] => destruct l
   | |- context [<{ _ +{?l} _ }>] => destruct l
