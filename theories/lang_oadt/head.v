@@ -94,3 +94,9 @@ Lemma expr_hd_inv t h :
 Proof.
   destruct t; intros; subst; simpl; eauto.
 Qed.
+
+Tactic Notation "expr_hd_inv" "in" hyp(H) :=
+  simpl in H; apply expr_hd_inv in H; try simp_hyp H; subst.
+
+Ltac expr_hd_inv :=
+  select (expr_hd _ = _) (fun H => expr_hd_inv H).
