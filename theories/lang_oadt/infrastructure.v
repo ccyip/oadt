@@ -129,12 +129,13 @@ Ltac case_ite_expr :=
   end.
 
 Ltac case_label :=
-  lazymatch goal with
-  | |- context [<{ if{?l} _ then _ else _ }>] => destruct l
-  | |- context [<{ inj{?l}@_<_> _ }>] => destruct l
-  | |- context [<{ case{?l} _ of _ | _ }>] => destruct l
-  | |- context [<{ 𝔹{?l} }>] => destruct l
-  | |- context [<{ _ +{?l} _ }>] => destruct l
+  let go l := (is_var l; destruct l) in
+  match goal with
+  | |- context [<{ if{?l} _ then _ else _ }>] => go l
+  | |- context [<{ inj{?l}@_<_> _ }>] => go l
+  | |- context [<{ case{?l} _ of _ | _ }>] => go l
+  | |- context [<{ 𝔹{?l} }>] => go l
+  | |- context [<{ _ +{?l} _ }>] => go l
   end.
 
 Ltac safe_inv e H := head_constructor e; sinvert H; simplify_eq.
