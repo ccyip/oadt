@@ -217,7 +217,7 @@ Proof.
   unfold body, open.
   induction τ; simpl_sr;
       try solve [ eexists; simpl_cofin; eauto with lc ];
-      repeat apply_lc_inv;
+      repeat lc_inv;
       (* Apply induction hypotheses. *)
       repeat match goal with
              | IH : context [gsec ?τ _ _ = _ -> _], H : gsec ?τ _ _ = _ |- _ =>
@@ -248,7 +248,7 @@ Lemma gsec_open τ s : forall τ' e e',
 Proof.
   unfold open.
   induction τ; simpl_sr; eauto;
-    repeat apply_lc_inv;
+    repeat lc_inv;
     repeat f_equal; try solve [ by rewrite !open_lc by eauto ].
 
   repeat match goal with
@@ -269,7 +269,7 @@ Lemma gsec_well_typed τ : forall τ' e e' Γ κ κ',
 Proof using Hsrwf.
   induction τ; simpl_sr;
     eauto using typing, kinding;
-    apply_kind_inv.
+    kind_inv.
   (* OADT application *)
   - apply_srctx_wf. simplify_eq.
     relax_typing_type.
@@ -318,7 +318,7 @@ Proof.
   unfold body, open.
   induction τ; simpl_sr;
       try solve [ eexists; simpl_cofin; eauto with lc ];
-      repeat apply_lc_inv;
+      repeat lc_inv;
       (* Apply induction hypotheses. *)
       repeat match goal with
              | IH : context [gret ?τ _ _ = _ -> _], H : gret ?τ _ _ = _ |- _ =>
@@ -349,7 +349,7 @@ Lemma gret_open τ s : forall τ' e e',
 Proof.
   unfold open.
   induction τ; simpl_sr; eauto;
-    repeat apply_lc_inv;
+    repeat lc_inv;
     repeat f_equal; try solve [ by rewrite !open_lc by eauto ].
 
   repeat match goal with
@@ -372,7 +372,7 @@ Lemma gret_well_typed τ : forall τ' e e' Γ κ κ',
 Proof using Hsrwf.
   induction τ; simpl_sr;
     eauto using typing, kinding;
-    apply_kind_inv.
+    kind_inv.
 
   (* OADT application *)
   apply_srctx_wf. simplify_eq.
@@ -474,7 +474,7 @@ Proof.
   repeat case_split; simplify_eq.
   simplify_option_eq.
   simp_hyps.
-  apply_kind_inv*. subst.
+  kind_inv*. subst.
   pose proof (atom_is_fresh xs).
 
   match goal with
@@ -521,7 +521,7 @@ Proof.
   - case_split; simplify_eq.
     simplify_option_eq.
     select (lift_type_wf _ _) (fun H => sinvert H).
-    apply_kind_inv*. subst.
+    kind_inv*. subst.
     pose proof (atom_is_fresh xs).
     simpl_cofin.
     match goal with
