@@ -81,7 +81,7 @@
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.progress.html#2c0d5a24bd6c7b00e0fb4b238aaa3552"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <a class="idref" href="oadt.lang_oadt.progress.html#55485d85e29df2faa6748490a2d4cd13"><span class="id" title="variable">Γ</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.progress.html#65faccb9927426674f231a4ba73a17f8"><span class="id" title="variable">τ</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#c4b461eebc38bc2cca41920e9d6c2504"><span class="id" title="notation">*@</span></a><a class="idref" href="oadt.lang_oadt.typing.html#c4b461eebc38bc2cca41920e9d6c2504"><span class="id" title="notation">O</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">case_label</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_kind_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">kind_inv</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simpl_cofin</span>?;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simplify_eq</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [ <span class="id" title="var">kinding_intro</span>; <span class="id" title="tactic">eauto</span>; <span class="id" title="var">set_shelve</span> ];<br/>
@@ -114,11 +114,8 @@
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.semantics.html#wval"><span class="id" title="inductive">wval</span></a> <a class="idref" href="oadt.lang_oadt.progress.html#v:12"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.semantics.html#woval"><span class="id" title="inductive">woval</span></a> <a class="idref" href="oadt.lang_oadt.progress.html#v:12"><span class="id" title="variable">v</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <a class="idref" href="oadt.lang_oadt.semantics.html#wval"><span class="id" title="inductive">wval</span></a> ?<span class="id" title="var">v</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">v</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_kind_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">wval_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">kind_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">hauto</span> <span class="id" title="var">lq</span>: <span class="id" title="var">on</span> <span class="id" title="var">ctrs</span>: <span class="id" title="var">woval</span>, <span class="id" title="var">kinding</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">easy</span>.<br/>
 
@@ -140,8 +137,8 @@
 <div class="code">
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">canonical_form_solver</span> :=<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">inversion</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">eauto</span>;<br/>
-&nbsp;&nbsp;<span class="id" title="var">apply_type_inv</span>;<br/>
-&nbsp;&nbsp;<span class="id" title="var">apply_kind_inv</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="var">type_inv</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="var">kind_inv</span>;<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">simpl_whnf_equiv</span>;<br/>
 &nbsp;&nbsp;<span class="id" title="var">simplify_eq</span>;<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">eauto</span> 10.<br/>

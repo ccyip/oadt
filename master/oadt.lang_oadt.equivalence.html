@@ -370,7 +370,7 @@ From now on, well-formedness of <span class="inlinecode"><span class="id" title=
 
 <br/>
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">inv_solver</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">inversion</span> 1; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">apply_lc_inv</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">esplit</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.typing.html#pared"><span class="id" title="inductive">pared</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">inversion</span> 1; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">lc_inv</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">esplit</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.typing.html#pared"><span class="id" title="inductive">pared</span></a>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="pared_inv_abs" class="idref" href="#pared_inv_abs"><span class="id" title="lemma">pared_inv_abs</span></a> <a id="l:101" class="idref" href="#l:101"><span class="id" title="binder">l</span></a> <a id="a87b7334006708e27882d280d17397eb" class="idref" href="#a87b7334006708e27882d280d17397eb"><span class="id" title="binder">τ</span></a> <a id="e:103" class="idref" href="#e:103"><span class="id" title="binder">e</span></a> <a id="t:104" class="idref" href="#t:104"><span class="id" title="binder">t</span></a> :<br/>
@@ -439,7 +439,7 @@ From now on, well-formedness of <span class="inlinecode"><span class="id" title=
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">apply_pared_inv_</span> <span class="id" title="var">e</span> <span class="id" title="var">H</span> :=<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">pared_inv_</span> <span class="id" title="var">e</span> <span class="id" title="var">H</span> :=<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">e</span> <span class="id" title="keyword">with</span><br/>
 &nbsp;&nbsp;| <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#ef1bff38ddd80a471008ea73c922e829"><span class="id" title="notation">\:{</span></a><span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#ef1bff38ddd80a471008ea73c922e829"><span class="id" title="notation">}</span></a><span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.syntax.html#ef1bff38ddd80a471008ea73c922e829"><span class="id" title="notation">=&gt;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a> =&gt; <span class="id" title="tactic">apply</span> <a class="idref" href="oadt.lang_oadt.equivalence.html#pared_inv_abs"><span class="id" title="lemma">pared_inv_abs</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">simp_hyp</span> <span class="id" title="var">H</span><br/>
 &nbsp;&nbsp;| <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#bea3436b9683a050bee3bc8e4b13435f"><span class="id" title="notation">(</span></a><span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#bea3436b9683a050bee3bc8e4b13435f"><span class="id" title="notation">,</span></a> <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#bea3436b9683a050bee3bc8e4b13435f"><span class="id" title="notation">)</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a> =&gt; <span class="id" title="tactic">apply</span> <a class="idref" href="oadt.lang_oadt.equivalence.html#pared_inv_pair"><span class="id" title="lemma">pared_inv_pair</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">simp_hyp</span> <span class="id" title="var">H</span><br/>
@@ -449,9 +449,9 @@ From now on, well-formedness of <span class="inlinecode"><span class="id" title=
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">apply_pared_inv</span> :=<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">pared_inv</span> :=<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#692fc53f8a4d5e2e933115819cc3d04a"><span class="id" title="notation">⊢</span></a> ?<span class="id" title="var">e</span> <a class="idref" href="oadt.lang_oadt.typing.html#692fc53f8a4d5e2e933115819cc3d04a"><span class="id" title="notation">==&gt;!</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">apply_pared_inv_</span> <span class="id" title="var">e</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#692fc53f8a4d5e2e933115819cc3d04a"><span class="id" title="notation">⊢</span></a> ?<span class="id" title="var">e</span> <a class="idref" href="oadt.lang_oadt.typing.html#692fc53f8a4d5e2e933115819cc3d04a"><span class="id" title="notation">==&gt;!</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">pared_inv_</span> <span class="id" title="var">e</span> <span class="id" title="var">H</span><br/>
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">eauto</span>.<br/>
 
 <br/>
@@ -507,7 +507,7 @@ The diamond property.
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> <span class="id" title="var">e2</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;Invert&nbsp;another&nbsp;parallel&nbsp;reduction.&nbsp;*)</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_pared_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">pared_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_gctx_wf</span>; <span class="id" title="var">simplify_map_eq</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;Massage&nbsp;hypotheses&nbsp;related&nbsp;to&nbsp;oblivious&nbsp;values.&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">select</span>! (<a class="idref" href="oadt.lang_oadt.syntax.html#oval"><span class="id" title="inductive">oval</span></a> <span class="id" title="var">_</span>)<br/>
@@ -539,7 +539,7 @@ The diamond property.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>; <span class="id" title="var">go</span> ]);<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;Generate&nbsp;local&nbsp;closure&nbsp;assumptions&nbsp;to&nbsp;avoid&nbsp;reproving&nbsp;the&nbsp;same<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stuff.&nbsp;*)</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_lc_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">lc_inv</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simpl_cofin</span>?;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;Generate&nbsp;more&nbsp;local&nbsp;closure&nbsp;assumptions.&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">select</span>! (<span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.equivalence.html#e7b812f7bdf0a3f295267a0c75b548d4"><span class="id" title="notation">==&gt;!</span></a> <span class="id" title="var">_</span>)<br/>
@@ -584,7 +584,7 @@ The diamond property.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span> <span class="id" title="var">go</span> <span class="id" title="var">H1</span>; <span class="id" title="var">go</span> <span class="id" title="var">H2</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;May&nbsp;invert&nbsp;some&nbsp;generated&nbsp;induction&nbsp;hypotheses.&nbsp;*)</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_pared_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">pared_inv</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;Solve&nbsp;the&nbsp;trickier&nbsp;cases.&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">go</span> :=<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span>;<br/>
@@ -624,7 +624,7 @@ The diamond property.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">pared_intro</span>; <span class="id" title="tactic">eauto</span>; <span class="id" title="var">set_shelve</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|]<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_pared_inv</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">pared_inv</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">simpl_cofin</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">esplit</span>; [ <span class="id" title="var">pared_intro</span> | <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.equivalence.html#pared_open"><span class="id" title="lemma">pared_open</span></a> ];<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span>; <span class="id" title="var">set_shelve</span>.<br/>
@@ -843,8 +843,8 @@ always assumes that the two arguments are already in <span class="inlinecode"><a
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.syntax.html#lc"><span class="id" title="inductive">lc</span></a> <a class="idref" href="oadt.lang_oadt.equivalence.html#e:172"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.equivalence.html#e:172"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.equivalence.html#e7b812f7bdf0a3f295267a0c75b548d4"><span class="id" title="notation">==&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.equivalence.html#e':173"><span class="id" title="variable">e'</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_ectx_inv</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_lc_inv</span>;<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">ectx_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">lc_inv</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">eauto</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
 
