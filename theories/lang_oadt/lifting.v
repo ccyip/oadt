@@ -168,7 +168,7 @@ Definition lift (τ τ' : expr) (τs : list expr) (e : expr) : option expr :=
 (** ** Well-formedness of lifting input *)
 
 (** [τ] is not a dependent type (at top level). It may still take a higher-order
-function that is dependent type. *)
+function that is dependently typed. *)
 Fixpoint nodep (τ : expr) : Prop :=
   match τ with
   | <{ Π:{_}_, τ2 }> =>
