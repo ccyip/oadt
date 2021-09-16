@@ -75,6 +75,12 @@ Fixpoint erase_wval (e : expr) : expr :=
     let e0' := ⟦e0⟧ in
     let e1' := ⟦e1⟧ in
     let e2' := ⟦e2⟧ in
+    (* It is also possible to erase it regardless of [e1'] and [e2'] being weak
+    values or not if the reveal semantics does not evaluate all branches of
+    [~if] (which is the case right now). However, this is perhaps the "minimal"
+    erasure needed to connect small-step and reveal semantics. Moreover, the
+    crucial lemma [reval_erase] would be significantly harder that way: each
+    case requires a nested induction. *)
     if decide (wval e1' /\ wval e2')
     then if decide (e0' = <{ [true] }>)
          then e1'
@@ -111,189 +117,96 @@ Section reveal.
 
 Context (Σ : gctx).
 
-(** ** Unsafe semantics *)
-(** Unsafe semantics is the big-step semantics corresponding to the small-step
-semantics defined by [step]. It ignores the secure constructs and evaluates the
-expressions to values. While this semantics is not safe, it is a much easier
-machineary to reason about program logic. This semantics is meant to be
-equivalent to the small-step semantics (in terms of program behavior), so it
-will evaluate the "dead" branches in the oblivious constructs. *)
+(** ** Reveal semantics *)
+(** Reveal semantics is a big-step semantics in the reveal phase of an oblivious
+computation. It does not match the small-step semantics completely, e.g., it
+does not evaluate the "dead" branches unnecessarily. As a result, the reveal
+semantics exhibits more behaviors than the small-step semantics, i.e. it may
+terminate even if the small-step semantics does not. Nonetheless it is still
+useful for reasoning about program behaviors when we assume they terminate,
+because we can avoid reasoning about weak values and the nonconventional
+small-step semantics. *)
 Reserved Notation "e '↓' v" (at level 40).
 
-Inductive ueval : expr -> expr -> Prop :=
-| UEProd τ1 τ2 ω1 ω2 :
+Inductive reval : expr -> expr -> Prop :=
+| REProd τ1 τ2 ω1 ω2 :
     τ1 ↓ ω1 ->
     τ2 ↓ ω2 ->
     <{ τ1 * τ2 }> ↓ <{ ω1 * ω2 }>
-| UEOSum τ1 τ2 ω1 ω2 :
+| REOSum τ1 τ2 ω1 ω2 :
     τ1 ↓ ω1 ->
     τ2 ↓ ω2 ->
     <{ τ1 ~+ τ2 }> ↓ <{ ω1 ~+ ω2 }>
-| UETApp X e e2 τ v v2 :
+| RETApp X e e2 τ v v2 :
     Σ !! X = Some (DOADT τ e) ->
     e2 ↓ v2 ->
     <{ e^v2 }> ↓ v ->
     <{ X@e2 }> ↓ v
-| UEApp e1 e2 v2 l τ e v :
+| REApp e1 e2 v2 l τ e v :
     e1 ↓ <{ \:{l}τ => e }> ->
     e2 ↓ v2 ->
     <{ e^v2 }> ↓ v ->
     <{ e1 e2 }> ↓ v
-| UEFun x T e v :
+| REFun x T e v :
     Σ !! x = Some (DFun T e) ->
     e ↓ v ->
     <{ gvar x }> ↓ v
-| UELet e1 e2 v1 v :
+| RELet e1 e2 v1 v :
     e1 ↓ v1 ->
     <{ e2^v1 }> ↓ v ->
     <{ let e1 in e2 }> ↓ v
-| UEIte e0 e1 e2 b v :
+| REIte e0 e1 e2 b v :
     e0 ↓ <{ b }> ->
     <{ ite b e1 e2 }> ↓ v ->
     <{ if e0 then e1 else e2 }> ↓ v
-| UEOIte e0 e1 e2 b v1 v2 :
+| REOIte e0 e1 e2 b v :
     e0 ↓ <{ [b] }> ->
-    e1 ↓ v1 ->
-    e2 ↓ v2 ->
-    <{ ~if e0 then e1 else e2 }> ↓ <{ ite b v1 v2 }>
-| UEMux e0 e1 e2 b v1 v2 :
+    <{ ite b e1 e2 }> ↓ v ->
+    <{ ~if e0 then e1 else e2 }> ↓ v
+| REMux e0 e1 e2 b v :
     e0 ↓ <{ [b] }> ->
-    e1 ↓ v1 ->
-    e2 ↓ v2 ->
-    <{ mux e0 e1 e2 }> ↓ <{ ite b v1 v2 }>
-| UEInj b τ e v :
+    <{ ite b e1 e2 }> ↓ v ->
+    <{ mux e0 e1 e2 }> ↓ v
+| RECase e0 e1 e2 b τ v0 v :
+    e0 ↓ <{ inj@b<τ> v0 }> ->
+    <{ ite b (e1^v0) (e2^v0) }> ↓ v ->
+    <{ case e0 of e1 | e2 }> ↓ v
+| REOCase e0 e1 e2 b τ v0 v :
+    e0 ↓ <{ [inj@b<τ> v0] }> ->
+    <{ ite b (e1^v0) (e2^v0) }> ↓ v ->
+    <{ ~case e0 of e1 | e2 }> ↓ v
+| REInj b τ e v :
     e ↓ v ->
     <{ inj@b<τ> e }> ↓ <{ inj@b<⟦τ⟧> v }>
-| UEOInj b τ e ω v :
+| REOInj b τ e ω v :
     τ ↓ ω ->
     e ↓ v ->
     otval ω ->
     oval v ->
     <{ ~inj@b<τ> e }> ↓ <{ [inj@b<ω> v] }>
-| UECase e0 e1 e2 b τ v0 v :
-    e0 ↓ <{ inj@b<τ> v0 }> ->
-    <{ ite b (e1^v0) (e2^v0) }> ↓ v ->
-    <{ case e0 of e1 | e2 }> ↓ v
-| UEOCase e0 e1 e2 b ω1 ω2 v v1 v1' v2 v2' :
-    e0 ↓ <{ [inj@b<ω1 ~+ ω2> v] }> ->
-    ovalty v1 ω1 -> ovalty v2 ω2 ->
-    <{ ite b (e1^v) (e1^v1) }> ↓ v1' ->
-    <{ ite b (e2^v2) (e2^v) }> ↓ v2' ->
-    <{ ~case e0 of e1 | e2 }> ↓ <{ ite b v1' v2' }>
-| UEPair e1 e2 v1 v2 :
+| REPair e1 e2 v1 v2 :
     e1 ↓ v1 ->
     e2 ↓ v2 ->
     <{ (e1, e2) }> ↓ <{ (v1, v2) }>
-| UEProj b e v1 v2 :
+| REProj b e v1 v2 :
     e ↓ <{ (v1, v2) }> ->
     <{ π@b e }> ↓ <{ ite b v1 v2 }>
-| UEFold X e v :
+| REFold X e v :
     e ↓ v ->
     <{ fold<X> e }> ↓ <{ fold<X> v }>
-| UEUnfold X X' e v :
+| REUnfold X X' e v :
     e ↓ <{ fold <X'> v }> ->
     <{ unfold<X> e }> ↓ v
-| UESec e b :
+| RESec e b :
     e ↓ <{ b }> ->
     <{ s𝔹 e }> ↓ <{ [b] }>
-| UETape e v :
-    e ↓ v ->
-    (* oval v -> *)
-    <{ tape e }> ↓ v
-| UEVal v : val v -> v ↓ ⟦v⟧
-| UEOTVal ω : otval ω -> ω ↓ ω
-
-where "e '↓' v" := (ueval e v).
-
-(** ** Reveal semantics *)
-(** Reveal semantics is a big-step semantics in the reveal phase of an oblivious
-computation. It reveals all the secrets like the unsafe semantics. However, as
-it is meant to be used in the reveal phase, it does not have to match the safe
-semantics completely, e.g., it does not evaluate the "dead" branches
-unnecessarily. As a result, the reveal semantics exhibits more behaviors, i.e.
-it may terminate even if the safe semantics does not. *)
-Reserved Notation "e '⇓' v" (at level 40).
-
-Inductive reval : expr -> expr -> Prop :=
-| REProd τ1 τ2 ω1 ω2 :
-    τ1 ⇓ ω1 ->
-    τ2 ⇓ ω2 ->
-    <{ τ1 * τ2 }> ⇓ <{ ω1 * ω2 }>
-| REOSum τ1 τ2 ω1 ω2 :
-    τ1 ⇓ ω1 ->
-    τ2 ⇓ ω2 ->
-    <{ τ1 ~+ τ2 }> ⇓ <{ ω1 ~+ ω2 }>
-| RETApp X e e2 τ v v2 :
-    Σ !! X = Some (DOADT τ e) ->
-    e2 ⇓ v2 ->
-    <{ e^v2 }> ⇓ v ->
-    <{ X@e2 }> ⇓ v
-| REApp e1 e2 v2 l τ e v :
-    e1 ⇓ <{ \:{l}τ => e }> ->
-    e2 ⇓ v2 ->
-    <{ e^v2 }> ⇓ v ->
-    <{ e1 e2 }> ⇓ v
-| REFun x T e v :
-    Σ !! x = Some (DFun T e) ->
-    e ⇓ v ->
-    <{ gvar x }> ⇓ v
-| RELet e1 e2 v1 v :
-    e1 ⇓ v1 ->
-    <{ e2^v1 }> ⇓ v ->
-    <{ let e1 in e2 }> ⇓ v
-| REIte e0 e1 e2 b v :
-    e0 ⇓ <{ b }> ->
-    <{ ite b e1 e2 }> ⇓ v ->
-    <{ if e0 then e1 else e2 }> ⇓ v
-| REOIte e0 e1 e2 b v :
-    e0 ⇓ <{ [b] }> ->
-    <{ ite b e1 e2 }> ⇓ v ->
-    <{ ~if e0 then e1 else e2 }> ⇓ v
-| REMux e0 e1 e2 b v :
-    e0 ⇓ <{ [b] }> ->
-    <{ ite b e1 e2 }> ⇓ v ->
-    <{ mux e0 e1 e2 }> ⇓ v
-| RECase e0 e1 e2 b τ v0 v :
-    e0 ⇓ <{ inj@b<τ> v0 }> ->
-    <{ ite b (e1^v0) (e2^v0) }> ⇓ v ->
-    <{ case e0 of e1 | e2 }> ⇓ v
-| REOCase e0 e1 e2 b τ v0 v :
-    e0 ⇓ <{ [inj@b<τ> v0] }> ->
-    <{ ite b (e1^v0) (e2^v0) }> ⇓ v ->
-    <{ ~case e0 of e1 | e2 }> ⇓ v
-| REInj b τ e v :
-    e ⇓ v ->
-    <{ inj@b<τ> e }> ⇓ <{ inj@b<⟦τ⟧> v }>
-| REOInj b τ e ω v :
-    τ ⇓ ω ->
-    e ⇓ v ->
-    otval ω ->
-    oval v ->
-    <{ ~inj@b<τ> e }> ⇓ <{ [inj@b<ω> v] }>
-| REPair e1 e2 v1 v2 :
-    e1 ⇓ v1 ->
-    e2 ⇓ v2 ->
-    <{ (e1, e2) }> ⇓ <{ (v1, v2) }>
-| REProj b e v1 v2 :
-    e ⇓ <{ (v1, v2) }> ->
-    <{ π@b e }> ⇓ <{ ite b v1 v2 }>
-| REFold X e v :
-    e ⇓ v ->
-    <{ fold<X> e }> ⇓ <{ fold<X> v }>
-| REUnfold X X' e v :
-    e ⇓ <{ fold <X'> v }> ->
-    <{ unfold<X> e }> ⇓ v
-| RESec e b :
-    e ⇓ <{ b }> ->
-    <{ s𝔹 e }> ⇓ <{ [b] }>
 | RETape e v :
-    e ⇓ v ->
-    (* oval v -> *)
-    <{ tape e }> ⇓ v
-| REVal v : val v -> v ⇓ ⟦v⟧
-| REOTVal ω : otval ω -> ω ⇓ ω
+    e ↓ v ->
+    <{ tape e }> ↓ v
+| REVal v : val v -> v ↓ ⟦v⟧
+| REOTVal ω : otval ω -> ω ↓ ω
 
-where "e '⇓' v" := (reval e v).
+where "e '↓' v" := (reval e v).
 
 
 (** * Theorems *)
@@ -308,22 +221,22 @@ Notation "e '-->*' e'" := (rtc (step Σ) e e')
 #[local]
 Set Default Proof Using "Type".
 
-Ltac ueval_inv :=
+Ltac reval_inv :=
   match goal with
   | H : ?e ↓ _ |- _ => safe_inv e H
   end.
 
-Tactic Notation "ueval_inv" "*" :=
-  repeat (ueval_inv; repeat val_inv; repeat otval_inv).
+Tactic Notation "reval_inv" "*" :=
+  repeat (reval_inv; repeat val_inv; repeat otval_inv).
 
-Ltac relax_ueval :=
+Ltac relax_reval :=
   match goal with
   | |- ?e ↓ _ =>
     refine (eq_ind _ (fun v => e ↓ v) _ _ _)
   end.
 
-Ltac ueval_intro :=
-  relax_ueval; [ econstructor | ].
+Ltac reval_intro :=
+  relax_reval; [ econstructor | ].
 
 
 (** ** Properties of [erase_wval] *)
@@ -428,9 +341,9 @@ Proof.
 Qed.
 
 
-(** ** Properties of [ueval] *)
+(** ** Properties of [reval] *)
 
-Lemma ueval_val_inv v v' :
+Lemma reval_val_inv v v' :
   v ↓ v' ->
   val v ->
   ⟦v⟧ = v'.
@@ -438,7 +351,7 @@ Proof.
   induction 1; intros; try val_inv; try qauto use: val_otval.
 Qed.
 
-Lemma ueval_otval_inv ω ω' :
+Lemma reval_otval_inv ω ω' :
   ω ↓ ω' ->
   otval ω ->
   ω = ω'.
@@ -446,103 +359,102 @@ Proof.
   induction 1; intros; try otval_inv; qauto use: val_otval.
 Qed.
 
-Theorem ueval_deterministic e v1 v2 :
+Theorem reval_deterministic e v1 v2 :
   e ↓ v1 ->
   e ↓ v2 ->
   v1 = v2.
 Proof.
   intros H. revert v2.
-  induction H; intros; ueval_inv*;
-    eauto using ueval_val_inv, ueval_otval_inv;
-    hauto lq: on ctrs: ueval.
+  induction H; intros; reval_inv*;
+    eauto using reval_val_inv, reval_otval_inv;
+    hauto lq: on ctrs: reval.
 Qed.
 
-Lemma ueval_idemp e v :
+Lemma reval_idemp e v :
   e ↓ v ->
   v ↓ v.
 Proof.
-  induction 1; try hauto ctrs: ueval, val;
-    ueval_inv*;
+  induction 1; try hauto ctrs: reval, val;
+    reval_inv*;
     try case_split; eauto;
-      ueval_intro; eauto; try congruence.
+      reval_intro; eauto; try congruence.
   - rewrite erase_idemp. reflexivity.
   - eauto using erase_val_val.
   - eauto using erase_idemp.
 Qed.
 
-Lemma ueval_wval w :
+Lemma reval_wval w :
   wval w ->
   w ↓ ⟦w⟧.
 Proof.
   induction 1;
     first [ goal_contains <{ ~if _ then _ else _ }>
-          | hauto l: on ctrs: ueval, val ].
+          | hauto l: on ctrs: reval, val ].
 
   simpl.
   repeat case_decide; simp_hyps.
 
-  1-2: repeat (ueval_intro; eauto using val); reflexivity.
+  1-2: repeat (eauto using val; reval_intro); reflexivity.
 
   destruct (_ : bool); contradiction.
 
   exfalso. eauto using erase_wval_wval.
 Qed.
 
-Lemma ueval_oval v :
+Lemma reval_oval v :
   oval v ->
   v ↓ v.
 Proof.
-  qauto use: ueval_wval, oval_val, val_wval, erase_oval.
+  qauto use: reval_wval, oval_val, val_wval, erase_oval.
 Qed.
 
-Lemma ueval_erase_val e :
+Lemma reval_erase_val e :
   val (⟦e⟧) ->
   e ↓ ⟦e⟧.
 Proof.
-  induction e; simpl; intros Hv; sinvert Hv;
-    try solve [ ueval_intro; eauto using val ];
-    case_label; simplify_eq;
-      repeat case_decide; simplify_eq; simp_hyps;
-        ueval_intro;
-          (* Apply induction hypotheses. *)
-          try (goal_is (_ ↓ _); first [ auto_apply | relax_ueval; auto_apply ]);
-          eauto;
-          try (match goal with
-               | H : ?e = _ |- val ?e => rewrite H
-               end; econstructor);
-          rewrite <- erase_idemp; eauto using erase_wval_val.
+  induction e; simpl; intros; repeat val_inv;
+    try solve [ reval_intro; eauto using val ].
+
+  case_label; repeat case_decide;
+    simplify_eq; simp_hyps; repeat val_inv;
+      reval_intro;
+      (* Apply induction hypotheses. *)
+      try (goal_is (_ ↓ _); first [ auto_apply | relax_reval; auto_apply ]);
+      eauto;
+      try (match goal with
+           | H : ?e = _ |- val ?e => rewrite H
+           end; econstructor).
 Qed.
 
-Lemma ueval_erase_otval e :
-  otval (⟦e⟧) ->
-  e ↓ ⟦e⟧.
-Proof.
-  induction e; simpl; intros Hv; sinvert Hv;
-    eauto using ueval, otval;
-    case_label; simplify_eq;
-      repeat case_decide; simplify_eq; simp_hyps;
-        match goal with
-        | H : _ = ?e, H' : wval ?e |- _ =>
-          rewrite <- H in H'; sinvert H'
-        end.
-Qed.
-
-Lemma ueval_erase_boxedlit e b :
+Lemma reval_erase_boxedlit e b :
   ⟦e⟧ = <{ [b] }> ->
   e ↓ <{ [b] }>.
 Proof.
   intros H.
-  relax_ueval.
-  apply ueval_erase_val.
+  relax_reval.
+  apply reval_erase_val.
   rewrite H. constructor.
   auto.
 Qed.
 
-Lemma ueval_erase_wval e :
+Lemma reval_erase_otval e :
+  otval (⟦e⟧) ->
+  e ↓ ⟦e⟧.
+Proof.
+  induction e; simpl; intros; repeat otval_inv;
+    eauto using reval, otval.
+
+  case_label; repeat case_decide;
+    simplify_eq; simp_hyps; repeat otval_inv;
+      econstructor;
+      eauto using reval_erase_boxedlit.
+Qed.
+
+Lemma reval_erase_wval e :
   wval (⟦e⟧) ->
   e ↓ ⟦e⟧.
 Proof.
-  eauto using erase_wval_erase_val, ueval_erase_val.
+  eauto using erase_wval_erase_val, reval_erase_val.
 Qed.
 
 Lemma erase_inv e e' :
@@ -560,11 +472,11 @@ Proof.
   case_label; try solve [ left; reflexivity ].
 
   repeat case_decide; simp_hyps; eauto;
-    right; repeat esplit; eauto using ueval_erase_wval, ueval_erase_boxedlit.
+    right; repeat esplit; eauto using reval_erase_wval, reval_erase_boxedlit.
 Qed.
 
 (** This lemma is crucial. *)
-Lemma ueval_erase e1 e2 v :
+Lemma reval_erase e1 e2 v :
   e1 ↓ v ->
   ⟦e1⟧ = ⟦e2⟧ ->
   e2 ↓ v.
@@ -593,22 +505,22 @@ Proof.
                 end; congruence
               (* Weak value cases. *)
               | simp_hyps; subst;
-                ueval_intro; eauto; try congruence;
+                try case_split; reval_intro; eauto; try congruence;
                 match goal with
                 | H : _ = ?e |- ?e = _ => rewrite <- H
                 end; f_equal;
                 (* Also possible to discharge this without
-                [ueval_deterministic]. In that case, induction hypothesis will
-                be used with [erase_idemp] and [ueval_val_inv] *)
+                [reval_deterministic]. In that case, induction hypothesis will
+                be used with [erase_idemp] and [reval_val_inv] *)
                 eauto using erase_wval_erase_val,
-                ueval_erase_val,
-                ueval_deterministic ].
+                reval_erase_val,
+                reval_deterministic ].
 
-  (* [UEVal] *)
-  - qauto l: on use: ueval_erase_val, erase_val_val.
+  (* [Reval] *)
+  - qauto l: on use: reval_erase_val, erase_val_val.
 
   (* [UEOTVal] *)
-  - hauto l: on use: erase_otval, ueval_erase_otval.
+  - hauto l: on use: erase_otval, reval_erase_otval.
 
   Unshelve.
 
@@ -629,7 +541,7 @@ Proof.
       | H : ?e = <{ [?b'] }> |- ?e = <{ [?b] }> /\ _ =>
         let L := fresh in
         assert (<{ [b] }> = <{ [b'] }>) as L
-            by eauto using ueval_deterministic, ueval_erase_boxedlit;
+            by eauto using reval_deterministic, reval_erase_boxedlit;
           sinvert L; subst; eauto
       end.
   }
@@ -643,11 +555,12 @@ Proof.
   end; simplify_eq; case_label; simplify_eq.
   simpl in *.
   repeat case_decide; simplify_eq; simp_hyps;
-    ueval_intro; eauto;
-      eauto using ueval_erase_boxedlit, ueval_erase_wval.
+    reval_intro;
+    eauto using reval_erase_boxedlit, reval_erase_wval;
+    case_split; eauto.
 Qed.
 
-Lemma ueval_step e e' v :
+Lemma step_reval e e' v :
   e -->! e' ->
   e' ↓ v ->
   e ↓ v.
@@ -658,53 +571,70 @@ Proof.
     try match goal with
         | H : lectx _ |- _ => shelve
         end;
-    try ectx_inv; ueval_inv*; eauto using ueval, val;
+    try ectx_inv; reval_inv*; eauto using reval, val;
       repeat
         match goal with
+        | |- context [<{ ite ?b _ _ }>] => destruct b
         | |- ?e ↓ _ =>
-          head_constructor e; ueval_intro; simpl
+          head_constructor e; reval_intro; simpl
         | |- _ ↓ _ =>
-          eauto using ueval_wval, ueval_erase, erase_open1, erase_open
+          reval_inv*; eauto using reval_wval, reval_erase, erase_open1, erase_open
         | |- val _ => eauto using val
-        | |- <{ ite _ ⟦_⟧ ⟦_⟧ }> = _ =>
-          try case_split; eauto using ueval_deterministic, ueval_wval
+        | |- ⟦_⟧ = _ => eauto using reval_deterministic, reval_wval
         | |- _ => eauto
         end.
-  - eauto using ueval.
-  - eauto using ueval_oval.
-  - case_split; eauto using ueval_erase, erase_open1.
+  - eauto using reval.
+  - eauto using reval_oval.
   - select! (ovalty _ _) (fun H => apply ovalty_elim in H; try simp_hyp H);
       eauto using val, otval.
 
   Unshelve.
 
-  ectx_inv; ueval_inv*;
-    case_split; econstructor;
+  ectx_inv; reval_inv*;
+    case_split; reval_inv*; econstructor;
       try match goal with
-          | |- ?e ↓ _ => head_constructor e; ueval_intro
+          | |- ?e ↓ _ => head_constructor e; reval_intro
           end;
       (* Need to discharge this first so the existential variables are not
       instantiated with wrong values. *)
       try match goal with
           | |- <{ _^_ }> ↓ _ => eauto
           end;
-      eauto using ueval_erase_boxedlit.
+      eauto using reval_erase_boxedlit.
 Qed.
 
-Lemma ueval_multistep e e' v :
+Lemma multistep_reval e e' v :
   e -->* e' ->
   e' ↓ v ->
   e ↓ v.
 Proof.
-  induction 1; intros; eauto using ueval_step.
+  induction 1; intros; eauto using step_reval.
 Qed.
 
-Theorem ueval_multistep_nf e w :
+Theorem multistep_wval_reval e w :
   e -->* w ->
   wval w ->
   e ↓ ⟦w⟧.
 Proof.
-  eauto using ueval_multistep, ueval_wval.
+  eauto using multistep_reval, reval_wval.
+Qed.
+
+Theorem multistep_otval_reval e ω :
+  e -->* ω ->
+  otval ω ->
+  e ↓ ω.
+Proof.
+  eauto using multistep_reval, reval.
+Qed.
+
+Theorem multistep_weak_confluent e w1 w2 :
+  e -->* w1 ->
+  wval w1 ->
+  e -->* w2 ->
+  wval w2 ->
+  ⟦w1⟧ = ⟦w2⟧.
+Proof.
+  eauto using reval_deterministic, multistep_wval_reval.
 Qed.
 
 End reveal.
