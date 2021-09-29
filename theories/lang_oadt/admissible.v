@@ -17,18 +17,6 @@ Coercion EFVar : atom >-> expr.
 
 (** * Admissible step introduction rules *)
 
-(** These lemma is equivalent to the corresponding constructor, but more
-friendly for automation. *)
-Lemma SCtx_intro Σ ℇ e e' E E' :
-    Σ ⊨ e -->! e' ->
-    ℇ e = E ->
-    ℇ e' = E' ->
-    ectx ℇ ->
-    Σ ⊨ E -->! E'.
-Proof.
-  hauto ctrs: step.
-Qed.
-
 (** * Renaming lemmas *)
 
 Lemma typing_kinding_rename_ Σ x y T :

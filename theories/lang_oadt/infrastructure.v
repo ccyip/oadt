@@ -138,6 +138,7 @@ Ltac case_label :=
   | |- context [<{ _ +{?l} _ }>] => go l
   end.
 
+(** Inversion tactics *)
 Ltac safe_inv e H := head_constructor e; sinvert H; simplify_eq.
 Ltac safe_inv1 R :=
   match goal with
@@ -191,6 +192,46 @@ Ltac relax_typing_type :=
   | |- ?Σ; ?Γ ⊢ ?e :{?l} _ =>
     refine (eq_ind _ (fun τ => Σ; Γ ⊢ e :{l} τ) _ _ _)
   end.
+
+(** This lemma is equivalent to the corresponding constructor, but more
+friendly for automation. *)
+Lemma SCtx_intro Σ ℇ e e' E E' :
+    Σ ⊨ e -->! e' ->
+    ℇ e = E ->
+    ℇ e' = E' ->
+    ectx ℇ ->
+    Σ ⊨ E -->! E'.
+Proof.
+  hauto ctrs: step.
+Qed.
+
+(** Dealing with evaluation context. *)
+Ltac solve_ectx :=
+  let go H :=
+    eapply SCtx_intro;
+    [ solve [apply H; eauto]
+    | higher_order_reflexivity
+    | higher_order_reflexivity
+    | solve [constructor; eauto; constructor; eauto] ]
+  in match goal with
+     | H : _ ⊨ _ -->! _ |- _ ⊨ _ -->! _ => go H
+     | H : context [ _ -> _ ⊨ _ -->! _ ] |- _ ⊨ _ -->! _ => go H
+     end.
+
+Ltac apply_SOIte :=
+  match goal with
+  | |- _ ⊨ ?e -->! _ =>
+    match e with
+    | context E [<{ ~if ?b then ?v1 else ?v2 }>] =>
+      let ℇ' := constr:(fun t : expr =>
+                 ltac:(let t := context E [t] in exact t)) in
+      apply SOIte with (ℇ := ℇ')
+    end
+  end.
+
+Ltac solve_lctx := apply_SOIte; eauto using lectx.
+Ltac solve_ctx := solve [ solve_lctx | solve_ectx ].
+
 
 Create HintDb lc discriminated.
 #[export]

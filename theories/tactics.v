@@ -53,6 +53,13 @@ Tactic Notation "fold_hyps_cont" constr(acc) tactic3(tac) tactic3(ktac) :=
 
 (** * General purpose tactics  *)
 
+(** Like [case_split], but only do it when discriminee is a variable. *)
+Ltac case_split_var :=
+  match goal with
+  |  |- context [ match ?x with _ => _ end ]  => is_var x; sdestruct x
+  |  H : context [ match ?x with _ => _ end ] |- _  => is_var x; sdestruct x
+  end.
+
 (** Check [a] contains [pat]. *)
 Tactic Notation "contains" constr(a) open_constr(pat) :=
   lazymatch a with

@@ -222,37 +222,11 @@ Qed.
 
 (** * Progress *)
 
-(** Dealing with evaluation context. *)
-Ltac ectx_solver :=
-  match goal with
-  | H : _ ⊨ _ -->! _ |- exists _, _ ⊨ _ -->! _ =>
-    eexists;
-    eapply SCtx_intro;
-    [ solve [apply H]
-    | higher_order_reflexivity
-    | higher_order_reflexivity
-    | solve [constructor; eauto; constructor; eauto] ]
-  end.
-
-Ltac apply_SOIte :=
-  match goal with
-  | |- _ ⊨ ?e -->! _ =>
-    match e with
-    | context E [<{ ~if ?b then ?v1 else ?v2 }>] =>
-      let ℇ := constr:(fun t : expr =>
-                ltac:(let t := context E [t] in exact t)) in
-      change e with (ℇ <{ ~if b then v1 else v2 }>)
-    end
-  end;
-  eapply SOIte.
-
-Ltac oite_solver :=
+Ltac ctx_solver :=
   match goal with
   | |- exists _, _ ⊨ _ -->! _ =>
-    eexists; apply_SOIte; eauto using lectx
+    eexists; solve_ctx
   end.
-
-Ltac ctx_solver := solve [ ectx_solver | oite_solver ].
 
 (** The combined progress theorems for expressions and types. *)
 Theorem progress_ :
