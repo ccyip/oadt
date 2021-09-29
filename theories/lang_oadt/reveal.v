@@ -95,7 +95,7 @@ Fixpoint erase_wval (e : expr) : expr :=
   | <{ X@e }> => <{ X@⟦e⟧ }>
   | <{ let e1 in e2 }> => <{ let ⟦e1⟧ in ⟦e2⟧ }>
   | <{ s𝔹 e }> => <{ s𝔹 ⟦e⟧ }>
-  | <{ if{l} e0 then e1 else e2 }> => <{ if{l} ⟦e0⟧ then ⟦e1⟧ else ⟦e2⟧ }>
+  | <{ if e0 then e1 else e2 }> => <{ if ⟦e0⟧ then ⟦e1⟧ else ⟦e2⟧ }>
   | <{ τ1 * τ2 }> => <{ ⟦τ1⟧ * ⟦τ2⟧ }>
   | <{ (e1, e2) }> => <{ (⟦e1⟧, ⟦e2⟧) }>
   | <{ π@b e }> => <{ π@b ⟦e⟧ }>
@@ -211,12 +211,9 @@ where "e '↓' v" := (reval e v).
 
 (** * Theorems *)
 
-Notation "e '-->!' e'" := (step Σ e e') (at level 40,
-                                         e' custom oadt at level 0).
+Notation "e '-->!' e'" := (step Σ e e') (at level 40).
 
-Notation "e '-->*' e'" := (rtc (step Σ) e e')
-                            (at level 40,
-                             e' custom oadt at level 0).
+Notation "e '-->*' e'" := (rtc (step Σ) e e') (at level 40).
 
 #[local]
 Set Default Proof Using "Type".
