@@ -19,6 +19,7 @@ theories/lang_oadt/progress.v
 theories/lang_oadt/obliviousness.v
 theories/lang_oadt/metatheories.v
 theories/lang_oadt/head.v
+theories/lang_oadt/dec.v
 theories/lang_oadt/reveal.v
 theories/lang_oadt/lifting.v
 theories/lang.v

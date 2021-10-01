@@ -4,6 +4,7 @@ From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.values.
 From oadt Require Import lang_oadt.head.
+From oadt Require Import lang_oadt.dec.
 
 Import syntax.notations.
 
@@ -13,54 +14,6 @@ Implicit Types (b : bool).
 Coercion EFVar : atom >-> expr.
 
 (** * Definitions *)
-
-(** ** Decision procedures *)
-
-Section dec.
-
-Ltac t :=
-  solve [ repeat
-            (try match reverse goal with
-                 | H : sumbool _ _ |- _ => destruct H
-                 end;
-             try solve [ left; econstructor; assumption
-                       | right; inversion 1; subst; contradiction ]) ].
-
-#[global]
-Instance otval_dec ω : Decision (otval ω).
-Proof.
-  hnf. induction ω; try t; try case_label; try t.
-Defined.
-
-#[global]
-Instance oval_dec v : Decision (oval v).
-Proof.
-  hnf. induction v; try t; try case_label; try t.
-
-  match goal with
-  | H : context [ oval ?ω] |- context [<{ [inj@_<(?ω)> _] }>] =>
-    clear H; destruct (decide (otval ω)); try t
-  end.
-Defined.
-
-#[global]
-Instance wval_dec v : Decision (wval v).
-Proof.
-  hnf. induction v; try t; try case_label; try t.
-  - match goal with
-    | H : context [ wval ?v] |- context [<{ ~if ?v then _ else _ }>] =>
-      clear H; destruct v; try t
-    end.
-  - match goal with
-    | H : context [ wval ?ω], H' : context [ wval ?v ] |-
-      context [<{ [inj@_<(?ω)> ?v] }>] =>
-      clear H; clear H';
-        destruct (decide (otval ω)); try t;
-        destruct (decide (oval v)); try t
-    end.
-Defined.
-
-End dec.
 
 (** ** Weak value erasure *)
 (** This function erases all weak values in the expression [e], even if they are
