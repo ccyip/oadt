@@ -1,8 +1,7 @@
+(** This demo encodes an oblivious list, using its maximum length as the public
+view. *)
 From oadt Require Import demo.demo_prelude.
 Import notations.
-
-(** This demo contains some extra oblivious ADT definitions: oblivious list,
-oblivious tree with spine as its bound, etc. *)
 
 (** Names. *)
 Definition nat : atom := "nat".
@@ -49,14 +48,13 @@ Definition defs := [{
 
   (* Use 𝔹 as payload for simplicity. *)
   data list := 𝟙 + 𝔹 * list;
-  data tree := 𝟙 + 𝔹 * tree * tree;
-  data spine := 𝟙 + spine * spine;
 
-  (* Index is the upper bound of its length *)
+  (* The public view is its maximum length *)
   obliv olist (:nat) :=
     case unfold<nat> $0 of
       𝟙
     | 𝟙 ~+ ~𝔹 * (olist@$0);
+
   def s_list :{⊥} Π~:list, Π:nat, olist@$0 :=
     \~:list => \:nat =>
       case unfold<nat> $0 of
@@ -64,6 +62,7 @@ Definition defs := [{
       | tape (case unfold<list> $2 of
                 ~inl<𝟙 ~+ ~𝔹 * (olist@$1)> ()
               | ~inr<𝟙 ~+ ~𝔹 * (olist@$1)> (tape (s𝔹 ($0).1, s_list ($0).2 $1)));
+
   def r_list :{⊤} Π:nat, Π:olist@$0, list :=
     \:nat =>
       case unfold<nat> $0 of
@@ -71,33 +70,7 @@ Definition defs := [{
       | \:𝟙 ~+ ~𝔹 * (olist@$0) =>
           ~case $0 of
             nil
-          | cons (r𝔹 ($0).1, r_list $2 ($0).2);
-
-  (* Index is the upper bound of its spine *)
-  obliv ostree (:spine) :=
-    case unfold<spine> $0 of
-      𝟙
-    | 𝟙 ~+ ~𝔹 * (ostree@($0).1) * (ostree@($0).2);
-  def s_ostree :{⊥} Π~:tree, Π:spine, ostree@$0 :=
-    \~:tree => \:spine =>
-      case unfold<spine> $0 of
-        ()
-      | tape (case unfold<tree> $2 of
-                   ~inl<𝟙 ~+ ~𝔹 * (ostree@($1).1) * (ostree@($1).2)> ()
-                 | ~inr<𝟙 ~+ ~𝔹 * (ostree@($1).1) * (ostree@($1).2)>
-                     tape (s𝔹 ($0).1.1,
-                           s_ostree ($0).1.2 ($1).1,
-                           s_ostree ($0).2 ($1).2));
-  def r_ostree :{⊤} Π:spine, Π:ostree@$0, tree :=
-    \:spine =>
-      case unfold<spine> $0 of
-        \:𝟙 => leaf
-      | \:𝟙 ~+ ~𝔹 * (ostree@($0).1) * (ostree@($0).2) =>
-          ~case $0 of
-            leaf
-          | node (r𝔹 ($0).1.1,
-                  r_ostree ($2).1 ($0).1.2,
-                  r_ostree ($2).2 ($0).2)
+          | cons (r𝔹 ($0).1, r_list $2 ($0).2)
 }].
 
 Definition Σ : gctx := list_to_map defs.

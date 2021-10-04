@@ -1,4 +1,4 @@
-(** This demo shows that higher-order function naturally works in this sytem. We
+(** This demo shows that higher-order functions naturally work in this sytem. We
  use map function as an example. *)
 From oadt Require Import demo.demo_prelude.
 Import notations.
@@ -31,11 +31,12 @@ Definition defs := [{
   (* Use 𝔹 as payload for simplicity. *)
   data tree := 𝟙 + 𝔹 * tree * tree;
 
-  (* Index is the upper bound of its depth *)
+  (* The public view is the maximum depth. *)
   obliv ~tree (:nat) :=
     case unfold<nat> $0 of
       𝟙
     | 𝟙 ~+ ~𝔹 * (~tree@$0) * (~tree@$0);
+
   def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
     \~:tree => \:nat =>
       case unfold<nat> $0 of
@@ -46,6 +47,7 @@ Definition defs := [{
                      tape (s𝔹 ($0).1.1,
                            s_tree ($0).1.2 $1,
                            s_tree ($0).2 $1));
+
   def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
     \:nat =>
       case unfold<nat> $0 of
@@ -63,6 +65,8 @@ Definition defs := [{
         leaf
       | node ($2 ($0).1.1, map $2 ($0).1.2, map $2 ($0).2);
 
+  (* The oblivious counterpart of the map function. Note that this idea of
+  lifting a public function to its oblivious version works naturally here. *)
   def ~map :{⊥} Π~:(Π~:𝔹, 𝔹), Π:nat, Π:~tree@$0, ~tree@$1 :=
     \~:(Π~:𝔹, 𝔹) => \:nat => \:~tree@$0 =>
       s_tree (map $2 (r_tree $1 $0)) $1
@@ -81,34 +85,25 @@ Definition ex_tree :=
   <{ node (true, node (true, leaf, leaf), node (false, leaf, leaf)) }>.
 Print ex_tree.
 
-(** An example oblivious tree *)
+(** Its corresponding oblivious tree. *)
 Definition ex_otree :=
   <{ s_tree ex_tree (succ (succ zero)) }>.
 
 Definition ex_otree_pack :
   sig (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
 Proof.
-  repeat esplit.
-
-  eapply mstep_sound with (n:=200).
-  vm_compute; reflexivity.
-  compute_done.
+  mstep_solver.
 Defined.
-
 Definition ex_otree_v := ltac:(extract ex_otree_pack).
 Print ex_otree_v.
 
-(** Map a negation function. *)
+(** Map a negation function on this oblivious tree. *)
 Definition ex_omap :
-  sig (fun v => Σ ⊨ <{ ~map (\~:𝔹 => if $0 then false else true) (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~map (\~:𝔹 => if $0 then false else true)
+                          (succ (succ zero))
+                          ex_otree_v }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-
-  eapply mstep_sound with (n:=400).
-  vm_compute; reflexivity.
-
-  repeat econstructor.
+  mstep_solver.
 Defined.
-
 Definition ex_omap_result := ltac:(extract ex_omap).
 Print ex_omap_result.
