@@ -157,20 +157,20 @@ Proof.
           | goal_contains val;
             qauto q: on
                   ctrs: val, step
-                  solve: step_ectx_solver
                   use: canonical_form_abs,
                        canonical_form_bool,
                        canonical_form_obool,
                        canonical_form_prod,
                        canonical_form_sum,
                        canonical_form_fold
+                  solve: step_ectx_solver
           (* For oblivious type progress. *)
           | goal_contains otval;
             qauto q: on
                   ctrs: otval, step
-                  solve: step_ectx_solver
                   use: canonical_form_bool,
                        canonical_form_sum
+                  solve: step_ectx_solver
           | idtac ].
 
   (* Injection *)
@@ -187,7 +187,7 @@ Proof.
       select! (otval _) (fun H => use (ovalty_inhabited _ H)).
       hauto ctrs: step.
     (* Discriminee can take a step. *)
-    + hauto solve: step_ectx_solver ctrs: step.
+    + hauto ctrs: step solve: step_ectx_solver.
 
   (* [[inj@_<_> _]] *)
   - sfirstorder use: ovalty_elim_alt.

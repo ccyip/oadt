@@ -67,8 +67,8 @@ Lemma kind_inv_sum Γ τ1 τ2 κ :
     Σ; Γ ⊢ τ1 :: κ' /\
     Σ; Γ ⊢ τ2 :: κ'.
 Proof.
-  kind_inv_solver by qauto l: on solve: lattice_naive_solver
-                           use: join_ub_r.
+  kind_inv_solver by qauto l: on use: join_ub_r
+                           solve: lattice_naive_solver.
 Qed.
 
 Lemma kind_inv_osum Γ τ1 τ2 κ :
@@ -301,8 +301,8 @@ Lemma type_inv_boxedinj Γ b v ω τ :
     ovalty <{ [inj@b<ω> v] }> ω /\
     Σ ⊢ τ ≡ ω1 ~+ ω2.
 Proof.
-  type_inv_solver by hauto lq: on solve: equiv_naive_solver
-                           ctrs: ovalty inv: ovalty.
+  type_inv_solver by hauto lq: on ctrs: ovalty inv: ovalty
+                           solve: equiv_naive_solver.
 Qed.
 
 Lemma type_inv_case Γ e0 e1 e2 τ :
