@@ -256,13 +256,13 @@ Proof.
           (* Take care of the more complex cases involving evaluation context. *)
           | qauto q: on
                   ctrs: wval, otval, step
-                  solve: ctx_solver
                   use: canonical_form_weak_abs,
                        canonical_form_weak_bool,
                        canonical_form_weak_obool,
                        canonical_form_weak_prod,
                        canonical_form_weak_sum,
                        canonical_form_weak_fold
+                  solve: ctx_solver
           | idtac ].
 
   (* Injection *)
@@ -280,12 +280,12 @@ Proof.
       select! (otval _) (fun H => use (ovalty_inhabited _ H)).
       hauto ctrs: step.
     (* Discriminee can take a step. *)
-    + hauto solve: ctx_solver ctrs: step.
+    + hauto ctrs: step solve: ctx_solver.
 
   (* [tape _] *)
   - right. simp_hyps.
     select (wval _ \/ _) (fun H => destruct H);
-      [ | hauto solve: ctx_solver ctrs: step ].
+      [ | hauto ctrs: step solve: ctx_solver ].
     select (wval _) (fun H => eapply wval_woval in H; eauto; sinvert H);
       eauto using step.
 

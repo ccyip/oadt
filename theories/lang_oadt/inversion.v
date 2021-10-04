@@ -334,8 +334,8 @@ Lemma type_inv_boxedinj Γ l b v ω τ :
     ovalty <{ [inj@b<ω> v] }> ω /\
     Σ ⊢ τ ≡ ω1 ~+ ω2.
 Proof.
-  type_inv_solver by hauto lq: on solve: equiv_naive_solver
-                           ctrs: ovalty inv: ovalty.
+  type_inv_solver by hauto lq: on ctrs: ovalty inv: ovalty
+                           solve: equiv_naive_solver.
 Qed.
 
 Lemma type_inv_case Γ l e0 e1 e2 τ :
