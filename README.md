@@ -33,4 +33,4 @@ opam install coq-oadt --deps-only
 
 ## Building
 
-Run `make` in the top-level directory.
+Run `make` in the top-level directory. Run `make DEMO=1` to also build the demos.
