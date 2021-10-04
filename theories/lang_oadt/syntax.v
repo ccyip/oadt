@@ -297,6 +297,9 @@ Notation "'ite' e0 e1 e2" := (if e0 then e1 else e2)
                                    e1 custom oadt at level 0,
                                    e2 custom oadt at level 0).
 
+(** Boolean retraction. *)
+Notation "'r𝔹' e" := <{ ~if e then true else false }> (in custom oadt at level 2).
+
 End expr_notations.
 
 
