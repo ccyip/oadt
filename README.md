@@ -17,9 +17,9 @@ types.
 ## Requirements
 
 - [coq](https://coq.inria.fr) (8.12-8.13)
-- [coq-stdpp](https://gitlab.mpi-sws.org/iris/stdpp) (>= 1.5.0)
-- [coq-smpl](https://github.com/uds-psl/smpl) (>= 8.12.0.1)
-- [coq-hammer-tactics](https://coqhammer.github.io) (>= 1.3.1+8.12)
+- [coq-stdpp](https://gitlab.mpi-sws.org/iris/stdpp) (1.5.0)
+- [coq-smpl](https://github.com/uds-psl/smpl) (8.12.0.1 or 8.13)
+- [coq-hammer-tactics](https://coqhammer.github.io) (1.3.2+8.12 or 1.3.2+8.13)
 
 See [`coq-oadt.opam`](./coq-oadt.opam) for more details.
 
