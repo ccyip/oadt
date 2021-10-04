@@ -55,11 +55,11 @@
 </div>
 
 <div class="doc">
-<a id="lab105"></a><h1 class="section">Definitions</h1>
+<a id="lab107"></a><h1 class="section">Definitions</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab106"></a><h2 class="section">Section and retraction context (Δ)</h2>
+<a id="lab108"></a><h2 class="section">Section and retraction context (Δ)</h2>
  Map ADT and OADT pair to section and retraction functions. 
 </div>
 <div class="code">
@@ -120,7 +120,7 @@
 </div>
 
 <div class="doc">
-<a id="lab107"></a><h2 class="section">Generalized section</h2>
+<a id="lab109"></a><h2 class="section">Generalized section</h2>
  Compute the section of <span class="inlinecode"><span class="id" title="var">e</span></span> from public type <span class="inlinecode">τ</span> to oblivious type <span class="inlinecode">τ'</span>. <span class="inlinecode"><span class="id" title="var">e</span></span>
 is assumed a <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.infrastructure.html#body"><span class="id" title="definition">body</span></a></span>. Alternatively, we may assume <span class="inlinecode"><span class="id" title="var">e</span></span> is locally closed, and
 open/close the expressions accordingly. That way we also need to record the used
@@ -150,7 +150,7 @@ atoms in an extra arguments, similar to the lifting functions below.
 </div>
 
 <div class="doc">
-<a id="lab108"></a><h2 class="section">Generalized retraction</h2>
+<a id="lab110"></a><h2 class="section">Generalized retraction</h2>
  Compute the retraction of <span class="inlinecode"><span class="id" title="var">e</span></span> from oblivious type <span class="inlinecode">τ'</span> to public type <span class="inlinecode">τ</span>. 
 </div>
 <div class="code">
@@ -188,7 +188,7 @@ atoms in an extra arguments, similar to the lifting functions below.
 </div>
 
 <div class="doc">
-<a id="lab109"></a><h2 class="section">Lifting</h2>
+<a id="lab111"></a><h2 class="section">Lifting</h2>
 
 <div class="paragraph"> </div>
 
@@ -252,12 +252,12 @@ counterpart of type <span class="inlinecode">τ'</span>, whose public indices ar
 </div>
 
 <div class="doc">
-<a id="lab110"></a><h2 class="section">Well-formedness of lifting input</h2>
+<a id="lab112"></a><h2 class="section">Well-formedness of lifting input</h2>
 
 <div class="paragraph"> </div>
 
  <span class="inlinecode">τ</span> is not a dependent type (at top level). It may still take a higher-order
-function that is dependent type. 
+function that is dependently typed. 
 </div>
 <div class="code">
 <span class="id" title="keyword">Fixpoint</span> <a id="nodep" class="idref" href="#nodep"><span class="id" title="definition">nodep</span></a> (<a id="14efd6c8ea6e1ce9063e9a40955f2d84" class="idref" href="#14efd6c8ea6e1ce9063e9a40955f2d84"><span class="id" title="binder">τ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#expr"><span class="id" title="inductive">expr</span></a>) : <span class="id" title="keyword">Prop</span> :=<br/>
@@ -295,11 +295,11 @@ type with indices instantiated is non-dependent, i.e. <span class="inlinecode">�
 </div>
 
 <div class="doc">
-<a id="lab111"></a><h1 class="section">Theorems</h1>
+<a id="lab113"></a><h1 class="section">Theorems</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab112"></a><h2 class="section">Well-typedness of section and retraction</h2>
+<a id="lab114"></a><h2 class="section">Well-typedness of section and retraction</h2>
 
 </div>
 <div class="code">
@@ -542,7 +542,7 @@ type with indices instantiated is non-dependent, i.e. <span class="inlinecode">�
 </div>
 
 <div class="doc">
-<a id="lab113"></a><h2 class="section">Properties of input well-formedness</h2>
+<a id="lab115"></a><h2 class="section">Properties of input well-formedness</h2>
 
 </div>
 <div class="code">
@@ -590,7 +590,7 @@ type with indices instantiated is non-dependent, i.e. <span class="inlinecode">�
 </div>
 
 <div class="doc">
-<a id="lab114"></a><h2 class="section">Well-typedness of lifting</h2>
+<a id="lab116"></a><h2 class="section">Well-typedness of lifting</h2>
 
 </div>
 <div class="code">
