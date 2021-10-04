@@ -492,6 +492,26 @@ Qed.
 #[export]
 Hint Resolve typing_lc kinding_lc : lc.
 
+Lemma typing_body Σ Γ e l τ T L :
+  (forall x, x ∉ L -> Σ; (<[x:=T]>Γ) ⊢ e^x :{l} τ) ->
+  body e.
+Proof.
+  intros. eexists. simpl_cofin.
+  eauto using typing_lc.
+Qed.
+#[export]
+Hint Resolve typing_body : lc.
+
+Lemma kinding_body Σ Γ τ κ T L :
+  (forall x, x ∉ L -> Σ; (<[x:=T]>Γ) ⊢ τ^x :: κ) ->
+  body τ.
+Proof.
+  intros. eexists. simpl_cofin.
+  eauto using kinding_lc.
+Qed.
+#[export]
+Hint Resolve kinding_body : lc.
+
 Lemma subst_lc x e s :
   lc s ->
   lc e ->
@@ -581,24 +601,14 @@ Proof.
   auto.
 Qed.
 
-Lemma lc_body_open e s :
-  body e ->
-  lc s ->
-  lc <{ e^s }>.
-Proof.
-  unfold body.
-  intros. simp_hyps. simpl_cofin.
-  eauto with lc.
-Qed.
-
 Lemma open_body e : forall s,
   body e -> forall k, k <> 0 -> <{ {k~>s}e }> = e.
 Proof.
-  intros.
-  pick_fresh as x.
+  unfold body.
+  intros. simp_hyps.
+  simpl_cofin.
   erewrite (open_lc_ _ x _ 0); eauto.
-  rewrite open_lc. reflexivity.
-  eauto using lc, lc_body_open.
+  by rewrite open_lc by assumption.
 Qed.
 
 Lemma body_bvar :
