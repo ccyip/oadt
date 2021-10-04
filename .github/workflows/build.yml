@@ -39,7 +39,7 @@ jobs:
             endGroup
           script: |
             startGroup "Build project"
-              opam exec -- make -j 2
+              opam exec -- make -j 2 DEMO=1
             endGroup
             startGroup "Build documentation"
               opam exec -- make html
