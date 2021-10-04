@@ -42,7 +42,7 @@ jobs:
               opam exec -- make -j 2 DEMO=1
             endGroup
             startGroup "Build documentation"
-              opam exec -- make html
+              opam exec -- make DEMO=1 html
             endGroup
           uninstall: ''
       - name: Revert permissions
