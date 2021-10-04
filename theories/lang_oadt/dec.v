@@ -72,6 +72,19 @@ Proof.
     end.
 Defined.
 
+#[global]
+Instance val_dec v : Decision (val v).
+Proof.
+  hnf. induction v; try t; try case_label; try t.
+  match goal with
+  | H : context [ val ?ω], H' : context [ val ?v ] |-
+      context [<{ [inj@_<(?ω)> ?v] }>] =>
+      clear H; clear H';
+      destruct (decide (otval ω)); try t;
+      destruct (decide (oval v)); try t
+  end.
+Defined.
+
 End dec.
 
 
