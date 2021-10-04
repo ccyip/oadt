@@ -1,22 +1,17 @@
-(** This file contains (possibly dirty and hacky) auxiliary definitions, lemmas
-and tactics to ease the encoding of examples. *)
+(** This file is basically the same as [demo_prelude] but for the extension of
+primitive integers. *)
+From Coq Require Export Int63.Int63.
 From stdpp Require Export pretty.
 From oadt Require Import prelude.
 From oadt Require Export lang_oadt.base.
-From oadt Require Export lang_oadt.syntax.
-From oadt Require Export lang_oadt.semantics.
-From oadt Require Export lang_oadt.typing.
-From oadt Require Export lang_oadt.dec.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.equivalence.
-From oadt Require Import lang_oadt.preservation.
+From oadt Require Export demo.int.
 
 #[local]
 Set Default Proof Using "Type".
 
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
+Import syntax_notations.
+Import semantics_notations.
+Import typing_notations.
 
 (** * Alternative typing and kinding rules *)
 
@@ -109,6 +104,7 @@ Proof.
     [ eapply TIte | .. ];
     eauto; simpl; rewrite ?open_lc by assumption;
       econstructor; eauto using kinding, typing.
+
   all : symmetry; eauto using pared_equiv_ite1, pared_equiv_ite2.
 Qed.
 
@@ -137,10 +133,10 @@ Proof.
           econstructor; simpl; simpl_cofin?;
             rewrite ?open_lc by assumption;
             eauto using kinding_weakening_insert
-        | |- _ ⊢ _ ≡ _ =>
-          symmetry; repeat (econstructor; simpl_cofin?);
-          simpl; rewrite ?open_lc; eauto
         end.
+
+  all : symmetry; repeat (econstructor; simpl_cofin?);
+    simpl; rewrite ?open_lc; eauto.
 Qed.
 
 Lemma pared_equiv_case1 τ1 τ2 τ e :
@@ -320,7 +316,6 @@ Qed.
 
 End typing_kinding_alt.
 
-
 (** * Alternative global context typing *)
 
 (** Global context typing through definition list. *)
@@ -413,9 +408,9 @@ Ltac mstep_solver := mstep_solver with (Nat.of_num_uint 10000%uint).
 
 Module notations.
 
-Export syntax.notations.
-Export semantics.notations.
-Export typing.notations.
+Export syntax_notations.
+Export semantics_notations.
+Export typing_notations.
 
 (** When we write a name in the demos, it means global variable. *)
 Coercion EGVar : atom >-> expr.

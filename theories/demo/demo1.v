@@ -1,19 +1,7 @@
-From oadt Require Import prelude.
-From stdpp Require Import pretty.
-From Coq Require Import Int63.Int63.
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
-From oadt Require Import demo.demo_prelude.
-
-Import notations int_notations.
-
-(** This demo contains the oblivious tree, search and insert functions appeared
+(** This demo  the oblivious tree, search and insert functions appeared
 in the paper. *)
-
-(** When we write a name, it means global variable. *)
-Coercion EGVar : atom >-> expr.
+From oadt Require Import demo.int_prelude.
+Import notations.
 
 (** Names. *)
 Definition nat : atom := "nat".
@@ -171,16 +159,11 @@ Definition Σ : gctx := list_to_map defs.
 (** We can type this global context. *)
 Example example_gctx_typing : gctx_typing Σ.
 Proof.
-  eapply gctx_gdefs_typing; [ reflexivity | compute_done | ].
-  eapply Forall_fold_right; repeat split.
-  all : repeat typing_tac.
+  gctx_typing_solver.
 Qed.
 
 
 (** Test semantics: *)
-
-(* Warning: very slow. *)
-
 
 (** An example oblivious tree type, with index 2. *)
 Example ex_tree_type :=
@@ -191,13 +174,7 @@ Print ex_tree_type.
 Definition ex_tree_type_pack :
   sig (fun ω => Σ ⊨ ex_tree_type -->* ω /\ otval ω).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_tree_type_v := ltac:(extract ex_tree_type_pack).
@@ -216,13 +193,7 @@ Definition ex_otree :=
 Definition ex_otree_pack :
   sig (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_otree_v := ltac:(extract ex_otree_pack).
@@ -232,14 +203,7 @@ Print ex_otree_v.
 Definition ex_lookup1 :
   sig (fun v => Σ ⊨ <{ lookup i(3) ex_tree }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac; auto using VIntLit.
+  mstep_solver.
 Defined.
 
 Definition ex_lookup1_result := ltac:(extract ex_lookup1).
@@ -248,14 +212,7 @@ Print ex_lookup1_result.
 Definition ex_lookup2 :
   sig (fun v => Σ ⊨ <{ lookup i(1) ex_tree }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac; auto using VIntLit.
+  mstep_solver.
 Defined.
 
 Definition ex_lookup2_result := ltac:(extract ex_lookup2).
@@ -265,14 +222,7 @@ Print ex_lookup2_result.
 Definition ex_olookup1 :
   sig (fun v => Σ ⊨ <{ ~lookup i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_olookup1_result := ltac:(extract ex_olookup1).
@@ -281,14 +231,7 @@ Print ex_olookup1_result.
 Definition ex_olookup2 :
   sig (fun v => Σ ⊨ <{ ~lookup i[1] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_olookup2_result := ltac:(extract ex_olookup2).
@@ -306,14 +249,7 @@ Print ex_spine_tree_type.
 Definition ex_spine_tree_type_pack :
   sig (fun ω => Σ ⊨ ex_spine_tree_type -->* ω /\ otval ω).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_spine_tree_type_v := ltac:(extract ex_spine_tree_type_pack).
@@ -332,14 +268,7 @@ Definition ex_spine_otree :=
 Definition ex_spine_otree_pack :
   sig (fun v => Σ ⊨ ex_spine_otree -->* v /\ oval v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_spine_otree_v := ltac:(extract ex_spine_otree_pack).
@@ -349,31 +278,17 @@ Print ex_spine_otree_v.
 Definition ex_spine_olookup1 :
   sig (fun v => Σ ⊨ <{ ~lookup' i[1] ex_spine ex_spine_otree_v }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_spine_olookup1_result := ltac:(extract ex_spine_olookup1).
 Print ex_spine_olookup1_result.
 
-
 (** An example of insert. *)
 Definition ex_insert :
   sig (fun v => Σ ⊨ <{ insert i(3) ex_tree }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  constructor.
-  repeat step_tac; auto using VIntLit.
+  mstep_solver.
 Defined.
 
 Definition ex_insert_result := ltac:(extract ex_insert).
@@ -383,14 +298,7 @@ Print ex_insert_result.
 Definition ex_oinsert :
   sig (fun v => Σ ⊨ <{ ~insert i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
-  repeat esplit.
-  eapply mstep_alt_mstep.
-
-  repeat mstep_tac.
-
-  cbn.
-  constructor.
-  repeat step_tac.
+  mstep_solver.
 Defined.
 
 Definition ex_oinsert_result := ltac:(extract ex_oinsert).

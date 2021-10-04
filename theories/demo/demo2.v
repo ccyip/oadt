@@ -1,18 +1,8 @@
-From oadt Require Import prelude.
-From stdpp Require Import pretty.
-From Coq Require Import Int63.Int63.
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
 From oadt Require Import demo.demo_prelude.
-
-Import notations int_notations.
+Import notations.
 
 (** This demo contains some extra oblivious ADT definitions: oblivious list,
 oblivious tree with spine as its bound, etc. *)
-
-Coercion EGVar : atom >-> expr.
 
 (** Names. *)
 Definition nat : atom := "nat".
@@ -115,7 +105,5 @@ Definition Σ : gctx := list_to_map defs.
 (** We can type this global context. *)
 Example example_gctx_typing : gctx_typing Σ.
 Proof.
-  eapply gctx_gdefs_typing; [ reflexivity | compute_done | ].
-  eapply Forall_fold_right; repeat split.
-  all : repeat typing_tac.
+  gctx_typing_solver.
 Qed.

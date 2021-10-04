@@ -1,18 +1,7 @@
-From oadt Require Import prelude.
-From stdpp Require Import pretty.
-From Coq Require Import Int63.Int63.
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
+(** This demo shows that higher-order function naturally works in this sytem. We
+ use map function as an example. *)
 From oadt Require Import demo.demo_prelude.
-
-Import notations int_notations.
-
-(** This demo shows that higher-order function also works in this sytem. We use
- map function as an example. *)
-
-Coercion EGVar : atom >-> expr.
+Import notations.
 
 (** Names. *)
 Definition nat : atom := "nat".
@@ -84,9 +73,7 @@ Definition Σ : gctx := list_to_map defs.
 (** We can type this global context. *)
 Example example_gctx_typing : gctx_typing Σ.
 Proof.
-  eapply gctx_gdefs_typing; [ reflexivity | compute_done | ].
-  eapply Forall_fold_right; repeat split.
-  all : repeat typing_tac.
+  gctx_typing_solver.
 Qed.
 
 (** An example tree. *)
@@ -102,12 +89,10 @@ Definition ex_otree_pack :
   sig (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
 Proof.
   repeat esplit.
-  eapply mstep_alt_mstep.
 
-  repeat mstep_tac.
-
-  constructor.
-  repeat step_tac.
+  eapply mstep_sound with (n:=200).
+  vm_compute; reflexivity.
+  compute_done.
 Defined.
 
 Definition ex_otree_v := ltac:(extract ex_otree_pack).
@@ -118,13 +103,11 @@ Definition ex_omap :
   sig (fun v => Σ ⊨ <{ ~map (\~:𝔹 => if $0 then false else true) (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
 Proof.
   repeat esplit.
-  eapply mstep_alt_mstep.
 
-  repeat mstep_tac.
+  eapply mstep_sound with (n:=400).
+  vm_compute; reflexivity.
 
-  cbn.
-  constructor.
-  repeat step_tac.
+  repeat econstructor.
 Defined.
 
 Definition ex_omap_result := ltac:(extract ex_omap).
