@@ -77,13 +77,15 @@ and they can not interfere types. We may use <span class="inlinecode">⊤</span>
 
 <div class="doc">
 <a id="lab19"></a><h2 class="section">Expressions (e, τ)</h2>
-
+ We use locally nameless representation for binders. 
 </div>
 <div class="code">
 <span class="id" title="keyword">Inductive</span> <a id="expr" class="idref" href="#expr"><span class="id" title="inductive">expr</span></a> :=<br/>
-<span class="comment">(*&nbsp;Variables&nbsp;*)</span><br/>
+<span class="comment">(*&nbsp;Locally&nbsp;bound&nbsp;variables,&nbsp;i.e.&nbsp;de&nbsp;Bruijn&nbsp;indices.&nbsp;*)</span><br/>
 | <a id="EBVar" class="idref" href="#EBVar"><span class="id" title="constructor">EBVar</span></a> (<a id="k:3" class="idref" href="#k:3"><span class="id" title="binder">k</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>)<br/>
+<span class="comment">(*&nbsp;Free&nbsp;variables&nbsp;*)</span><br/>
 | <a id="EFVar" class="idref" href="#EFVar"><span class="id" title="constructor">EFVar</span></a> (<a id="x:4" class="idref" href="#x:4"><span class="id" title="binder">x</span></a> : <a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a>)<br/>
+<span class="comment">(*&nbsp;Global&nbsp;variables,&nbsp;referring&nbsp;to&nbsp;global&nbsp;functions,&nbsp;ADTs&nbsp;and&nbsp;OADTs.&nbsp;*)</span><br/>
 | <a id="EGVar" class="idref" href="#EGVar"><span class="id" title="constructor">EGVar</span></a> (<a id="x:5" class="idref" href="#x:5"><span class="id" title="binder">x</span></a> : <a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a>)<br/>
 <span class="comment">(*&nbsp;Functions&nbsp;*)</span><br/>
 | <a id="EPi" class="idref" href="#EPi"><span class="id" title="constructor">EPi</span></a> (<a id="l:6" class="idref" href="#l:6"><span class="id" title="binder">l</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#llabel"><span class="id" title="abbreviation">llabel</span></a>) (<a id="f690a2c7c0411ff9202878a74092c711" class="idref" href="#f690a2c7c0411ff9202878a74092c711"><span class="id" title="binder">τ1</span></a> <a id="c8b8eb1768b662c9fa7ab793baf8cd40" class="idref" href="#c8b8eb1768b662c9fa7ab793baf8cd40"><span class="id" title="binder">τ2</span></a>: <a class="idref" href="oadt.lang_oadt.syntax.html#expr:1"><span class="id" title="inductive">expr</span></a>)<br/>
@@ -580,7 +582,7 @@ anyway.
 </div>
 
 <div class="doc">
-<a id="lab28"></a><h2 class="section">Substitution (for locally free variables)</h2>
+<a id="lab28"></a><h2 class="section">Substitution</h2>
 
 </div>
 <div class="code">
