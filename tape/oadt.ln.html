@@ -42,12 +42,12 @@ This file contains common definitions for locally nameless representation
 and tactics for automation. 
 <div class="paragraph"> </div>
 
-<a id="lab9"></a><h1 class="section">Atom</h1>
+<a id="lab10"></a><h1 class="section">Atom</h1>
 
 <div class="paragraph"> </div>
 
  Having type class constraints inside the structure to avoid polluting the
-proof contexts. 
+proof contexts. It is also convenient when we want to make the types opaque. 
 </div>
 <div class="code">
 <span class="id" title="keyword">Class</span> <a id="Atom" class="idref" href="#Atom"><span class="id" title="record">Atom</span></a> <a id="A:1" class="idref" href="#A:1"><span class="id" title="binder">A</span></a> <a id="M:2" class="idref" href="#M:2"><span class="id" title="binder">M</span></a> <a id="D:3" class="idref" href="#D:3"><span class="id" title="binder">D</span></a> := {<br/>
@@ -81,10 +81,13 @@ proof contexts.
 &nbsp;&nbsp;(by&nbsp;applying&nbsp;<span class="inlinecode"><span class="id" title="var">elem_of_dec_slow</span></span>).&nbsp;But&nbsp;this&nbsp;allows&nbsp;an&nbsp;efficient<br/>
 &nbsp;&nbsp;implementation.&nbsp;*)</span><br/>
 &nbsp;&nbsp;<a id="atom_finmap_elem_of_dec" class="idref" href="#atom_finmap_elem_of_dec"><span class="id" title="projection">atom_finmap_elem_of_dec</span></a> :&gt; <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#RelDecision"><span class="id" title="class">RelDecision</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#f387b07854c51a1c19e502ae26964d36"><span class="id" title="notation">(∈@{</span></a><a class="idref" href="oadt.ln.html#D:3"><span class="id" title="variable">D</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#f387b07854c51a1c19e502ae26964d36"><span class="id" title="notation">})</span></a> | 0;<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;Again,&nbsp;fresh&nbsp;can&nbsp;be&nbsp;derived&nbsp;from&nbsp;other&nbsp;constraints.&nbsp;*)</span><br/>
+&nbsp;&nbsp;<a id="atom_fresh" class="idref" href="#atom_fresh"><span class="id" title="projection">atom_fresh</span></a> :&gt; <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#Fresh"><span class="id" title="class">Fresh</span></a> <a class="idref" href="oadt.ln.html#A:1"><span class="id" title="variable">A</span></a> <a class="idref" href="oadt.ln.html#D:3"><span class="id" title="variable">D</span></a> | 0;<br/>
+&nbsp;&nbsp;<a id="atom_is_fresh" class="idref" href="#atom_is_fresh"><span class="id" title="projection">atom_is_fresh</span></a> (<a id="X:35" class="idref" href="#X:35"><span class="id" title="binder">X</span></a> : <a class="idref" href="oadt.ln.html#D:3"><span class="id" title="variable">D</span></a>) : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#fresh"><span class="id" title="definition">fresh</span></a> <a class="idref" href="oadt.ln.html#X:35"><span class="id" title="variable">X</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#4291a6e02d5eff431051107aaf15194c"><span class="id" title="notation">∉</span></a> <a class="idref" href="oadt.ln.html#X:35"><span class="id" title="variable">X</span></a>;<br/>
 }.<br/>
 
 <br/>
-<span class="id" title="keyword">Instance</span> <a id="atom_dom_spec" class="idref" href="#atom_dom_spec"><span class="id" title="instance">atom_dom_spec</span></a> `{<a id="is_atom:37" class="idref" href="#is_atom:37"><span class="id" title="binder">is_atom</span></a> : <a class="idref" href="oadt.ln.html#Atom"><span class="id" title="class">Atom</span></a> <a id="A:34" class="idref" href="#A:34"><span class="id" title="binder">A</span></a> <a id="M:35" class="idref" href="#M:35"><span class="id" title="binder">M</span></a> <a id="D:36" class="idref" href="#D:36"><span class="id" title="binder">D</span></a>} : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin_map_dom.html#FinMapDom"><span class="id" title="class">FinMapDom</span></a> <a class="idref" href="oadt.ln.html#A:34"><span class="id" title="variable">A</span></a> <a class="idref" href="oadt.ln.html#M:35"><span class="id" title="variable">M</span></a> <a class="idref" href="oadt.ln.html#D:36"><span class="id" title="variable">D</span></a> | 0.<br/>
+<span class="id" title="keyword">Instance</span> <a id="atom_dom_spec" class="idref" href="#atom_dom_spec"><span class="id" title="instance">atom_dom_spec</span></a> `{<a id="is_atom:40" class="idref" href="#is_atom:40"><span class="id" title="binder">is_atom</span></a> : <a class="idref" href="oadt.ln.html#Atom"><span class="id" title="class">Atom</span></a> <a id="A:37" class="idref" href="#A:37"><span class="id" title="binder">A</span></a> <a id="M:38" class="idref" href="#M:38"><span class="id" title="binder">M</span></a> <a id="D:39" class="idref" href="#D:39"><span class="id" title="binder">D</span></a>} : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin_map_dom.html#FinMapDom"><span class="id" title="class">FinMapDom</span></a> <a class="idref" href="oadt.ln.html#A:37"><span class="id" title="variable">A</span></a> <a class="idref" href="oadt.ln.html#M:38"><span class="id" title="variable">M</span></a> <a class="idref" href="oadt.ln.html#D:39"><span class="id" title="variable">D</span></a> | 0.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">is_atom</span>. <span class="id" title="tactic">split</span>; <span class="id" title="tactic">first</span> [<span class="id" title="var">typeclasses</span> <span class="id" title="tactic">eauto</span> | <span class="id" title="tactic">auto</span>].<br/>
 <span class="id" title="keyword">Defined</span>.<br/>
@@ -108,6 +111,7 @@ Strings as atoms.
 &nbsp;&nbsp;<span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">typeclasses</span> <span class="id" title="tactic">eauto</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.mapset.html#mapset_dom_spec"><span class="id" title="instance">mapset_dom_spec</span></a>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin_sets.html#is_fresh"><span class="id" title="lemma">is_fresh</span></a>.<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">Defined</span>.<br/>
 
 <br/>
@@ -117,7 +121,7 @@ Strings as atoms.
 </div>
 
 <div class="doc">
-<a id="lab10"></a><h1 class="section">Tactics for cofinite quantifiers</h1>
+<a id="lab11"></a><h1 class="section">Tactics for cofinite quantifiers</h1>
 
 <div class="paragraph"> </div>
 
@@ -125,7 +129,7 @@ Strings as atoms.
 should not belong to. 
 </div>
 <div class="code">
-<span class="id" title="keyword">Class</span> <a id="Stale" class="idref" href="#Stale"><span class="id" title="record">Stale</span></a> {<a id="D:38" class="idref" href="#D:38"><span class="id" title="binder">D</span></a>} <a id="A:39" class="idref" href="#A:39"><span class="id" title="binder">A</span></a> := <a id="stale" class="idref" href="#stale"><span class="id" title="projection">stale</span></a> : <a class="idref" href="oadt.ln.html#A:39"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="oadt.ln.html#D:38"><span class="id" title="variable">D</span></a>.<br/>
+<span class="id" title="keyword">Class</span> <a id="Stale" class="idref" href="#Stale"><span class="id" title="record">Stale</span></a> {<a id="D:41" class="idref" href="#D:41"><span class="id" title="binder">D</span></a>} <a id="A:42" class="idref" href="#A:42"><span class="id" title="binder">A</span></a> := <a id="stale" class="idref" href="#stale"><span class="id" title="projection">stale</span></a> : <a class="idref" href="oadt.ln.html#A:42"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="oadt.ln.html#D:41"><span class="id" title="variable">D</span></a>.<br/>
 
 <br/>
 </div>
@@ -279,13 +283,13 @@ hypotheses, so they are not destructive.
 more. 
 </div>
 <div class="code">
-<span class="id" title="keyword">Tactic Notation</span> "pick_fresh" <span class="id" title="keyword">constr</span>(<span class="id" title="var">S</span>) :=<br/>
+<span class="id" title="keyword">Tactic Notation</span> "pick_fresh" <span class="id" title="keyword">constr</span>(<span class="id" title="var">S</span>) "as" <span class="id" title="var">ident</span>(<span class="id" title="var">x</span>) :=<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> "Hfresh" <span class="id" title="tactic">in</span><br/>
 &nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">S</span> := <span class="id" title="var">collect_stales</span> <span class="id" title="var">S</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin_sets.html#exist_fresh"><span class="id" title="lemma">exist_fresh</span></a> <span class="id" title="var">S</span>) <span class="id" title="keyword">as</span> [? <span class="id" title="var">H</span>]; <span class="id" title="var">simpl_fresh</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.fin_sets.html#exist_fresh"><span class="id" title="lemma">exist_fresh</span></a> <span class="id" title="var">S</span>) <span class="id" title="keyword">as</span> [<span class="id" title="var">x</span> <span class="id" title="var">H</span>]; <span class="id" title="var">simpl_fresh</span> <span class="id" title="var">H</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Tactic Notation</span> "pick_fresh" := <span class="id" title="var">pick_fresh</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#tt"><span class="id" title="constructor">tt</span></a>.<br/>
+<span class="id" title="keyword">Tactic Notation</span> "pick_fresh" "as" <span class="id" title="var">ident</span>(<span class="id" title="var">x</span>) := <span class="id" title="var">pick_fresh</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#tt"><span class="id" title="constructor">tt</span></a> <span class="id" title="keyword">as</span> <span class="id" title="var">x</span>.<br/>
 </div>
 </div>
 <div id="footer">

@@ -36,7 +36,7 @@
 </div>
 
 <div class="doc">
-<a id="lab3"></a><h1 class="section">Fold over hypotheses</h1>
+<a id="lab4"></a><h1 class="section">Fold over hypotheses</h1>
 
 </div>
 <div class="code">
@@ -125,11 +125,24 @@ Fold over hypotheses with continuation. <span class="inlinecode"><span class="id
 </div>
 
 <div class="doc">
-<a id="lab4"></a><h1 class="section">General purpose tactics</h1>
+<a id="lab5"></a><h1 class="section">General purpose tactics</h1>
 
 <div class="paragraph"> </div>
 
- Check <span class="inlinecode"><span class="id" title="var">a</span></span> contains <span class="inlinecode"><span class="id" title="var">pat</span></span>. 
+ Like <span class="inlinecode"><span class="id" title="var">case_split</span></span>, but only do it when discriminee is a variable. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">case_split_var</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;|  |- <span class="id" title="keyword">context</span> [ <span class="id" title="keyword">match</span> ?<span class="id" title="var">x</span> <span class="id" title="keyword">with</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">_</span> <span class="id" title="keyword">end</span> ]  =&gt; <span class="id" title="var">is_var</span> <span class="id" title="var">x</span>; <span class="id" title="var">sdestruct</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;|  <span class="id" title="var">H</span> : <span class="id" title="keyword">context</span> [ <span class="id" title="keyword">match</span> ?<span class="id" title="var">x</span> <span class="id" title="keyword">with</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">_</span> <span class="id" title="keyword">end</span> ] |- <span class="id" title="var">_</span>  =&gt; <span class="id" title="var">is_var</span> <span class="id" title="var">x</span>; <span class="id" title="var">sdestruct</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Check <span class="inlinecode"><span class="id" title="var">a</span></span> contains <span class="inlinecode"><span class="id" title="var">pat</span></span>. 
 </div>
 <div class="code">
 <span class="id" title="keyword">Tactic Notation</span> "contains" <span class="id" title="keyword">constr</span>(<span class="id" title="var">a</span>) <span class="id" title="var">open_constr</span>(<span class="id" title="var">pat</span>) :=<br/>
@@ -231,7 +244,7 @@ is <span class="inlinecode"><span class="id" title="keyword">forall</span></span
 </div>
 
 <div class="doc">
-<a id="lab5"></a><h2 class="section">Set solving</h2>
+<a id="lab6"></a><h2 class="section">Set solving</h2>
 
 <div class="paragraph"> </div>
 
@@ -405,7 +418,7 @@ goal, but it also offers better performance in certain cases.
 </div>
 
 <div class="doc">
-<a id="lab6"></a><h2 class="section">Forward reasoning</h2>
+<a id="lab7"></a><h2 class="section">Forward reasoning</h2>
 
 <div class="paragraph"> </div>
 
@@ -519,7 +532,7 @@ the hypothesis context.
 </div>
 
 <div class="doc">
-<a id="lab7"></a><h2 class="section">Hypothesis application</h2>
+<a id="lab8"></a><h2 class="section">Hypothesis application</h2>
 
 </div>
 <div class="code">
@@ -602,7 +615,7 @@ useful for applying induction hypotheses automatically.
 </div>
 
 <div class="doc">
-<a id="lab8"></a><h2 class="section">General solvers</h2>
+<a id="lab9"></a><h2 class="section">General solvers</h2>
 
 </div>
 <div class="code">

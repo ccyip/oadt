@@ -58,7 +58,7 @@
 </div>
 
 <div class="doc">
-<a id="lab87"></a><h1 class="section">Properties of indistinguishability</h1>
+<a id="lab92"></a><h1 class="section">Properties of indistinguishability</h1>
 
 <div class="paragraph"> </div>
 
@@ -157,12 +157,7 @@
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> <span class="id" title="var">v'</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span> ?? [];<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : ?<span class="id" title="var">e</span> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.semantics.html#b923e2787de76f0e5ca63673be2d015d"><span class="id" title="notation">⊨</span></a> ?<span class="id" title="var">e</span> <a class="idref" href="oadt.lang_oadt.semantics.html#b923e2787de76f0e5ca63673be2d015d"><span class="id" title="notation">--&gt;!</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_ectx_inv</span>; <span class="id" title="var">simplify_eq</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> (<span class="id" title="var">indistinguishable_inv</span> || <span class="id" title="var">step_inv</span>);<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span>; <span class="id" title="var">sfirstorder</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
 
@@ -176,7 +171,7 @@
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span> ?? [];<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">select</span> (<span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span>);<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">select</span> (<span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.semantics.html#b923e2787de76f0e5ca63673be2d015d"><span class="id" title="notation">⊨</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.semantics.html#b923e2787de76f0e5ca63673be2d015d"><span class="id" title="notation">--&gt;!</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span>);<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_ectx_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">ectx_inv</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simplify_eq</span>; <span class="id" title="tactic">eauto</span>; <span class="id" title="var">sfirstorder</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
 
@@ -279,26 +274,23 @@ the most important lemmas.
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">Hwf</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> <span class="id" title="var">v'</span> <span class="id" title="var">l'</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <a class="idref" href="oadt.lang_oadt.syntax.html#val"><span class="id" title="inductive">val</span></a> ?<span class="id" title="var">e</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>; <span class="id" title="var">simplify_eq</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_regularity</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_canonical_form</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_type_inv</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_kind_inv</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">simpl_whnf_equiv</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simplify_eq</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [ <span class="id" title="var">easy</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="tactic">econstructor</span>; <span class="id" title="var">auto_eapply</span>; <span class="id" title="tactic">eauto</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">eauto</span>; <span class="id" title="var">equiv_naive_solver</span> ].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">val_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_regularity</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_canonical_form</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">type_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">kind_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">simpl_whnf_equiv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simplify_eq</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span> [ <span class="id" title="var">easy</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="tactic">econstructor</span>; <span class="id" title="var">auto_eapply</span>; <span class="id" title="tactic">eauto</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">eauto</span>; <span class="id" title="var">equiv_naive_solver</span> ].<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="comment">(*&nbsp;Boxed&nbsp;injection&nbsp;*)</span><br/>
 &nbsp;&nbsp;- <span class="id" title="var">select</span> (<a class="idref" href="oadt.lang_oadt.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a> <span class="id" title="var">_</span> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span>).<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_canonical_form</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_type_inv</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_kind_inv</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">type_inv</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">kind_inv</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">select</span> (<span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#2097a8fcd82b9c0f8c94e431f4611f2e"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#2097a8fcd82b9c0f8c94e431f4611f2e"><span class="id" title="notation">≡</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.values.html#otval_uniq"><span class="id" title="lemma">otval_uniq</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.syntax.html#otval"><span class="id" title="inductive">otval</span></a>; <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>).<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">econstructor</span>.<br/>
@@ -322,18 +314,13 @@ the most important lemmas.
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">Hwf</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> <span class="id" title="var">v'</span> <span class="id" title="var">l'</span> τ'.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : ?<span class="id" title="var">e</span> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>; <span class="id" title="var">simplify_eq</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <a class="idref" href="oadt.lang_oadt.syntax.html#val"><span class="id" title="inductive">val</span></a> ?<span class="id" title="var">e</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>; <span class="id" title="var">simplify_eq</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_regularity</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_type_inv</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_kind_inv</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simplify_eq</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">easy</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">indistinguishable_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">val_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">apply_regularity</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">type_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">kind_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simplify_eq</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">easy</span>.<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="comment">(*&nbsp;Product&nbsp;*)</span><br/>
@@ -391,7 +378,7 @@ provable.&nbsp;But&nbsp;this&nbsp;version&nbsp;is&nbsp;good&nbsp;enough&nbsp;for
 </div>
 
 <div class="doc">
-<a id="lab88"></a><h1 class="section">Obliviousness theorem</h1>
+<a id="lab93"></a><h1 class="section">Obliviousness theorem</h1>
 
 </div>
 <div class="code">
@@ -420,19 +407,12 @@ provable.&nbsp;But&nbsp;this&nbsp;version&nbsp;is&nbsp;good&nbsp;enough&nbsp;for
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">Hwf</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> <span class="id" title="var">e1'</span> <span class="id" title="var">e2'</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_ectx_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">ectx_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : ?<span class="id" title="var">e</span> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> ?<span class="id" title="var">e</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">indistinguishable_inv</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> (<span class="id" title="var">select</span> (<span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">\/</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> [ [?[?[?[?[??]]]]] | [?[?[??]]] ]));<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">apply_type_inv</span>; <span class="id" title="var">apply_kind_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.semantics.html#b923e2787de76f0e5ca63673be2d015d"><span class="id" title="notation">⊨</span></a> ?<span class="id" title="var">e</span> <a class="idref" href="oadt.lang_oadt.semantics.html#b923e2787de76f0e5ca63673be2d015d"><span class="id" title="notation">--&gt;!</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">head_constructor</span> <span class="id" title="var">e</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">apply_ectx_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">type_inv</span>; <span class="id" title="var">kind_inv</span>; <span class="id" title="var">simplify_eq</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">step_inv</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">select</span> (<a class="idref" href="oadt.lang_oadt.syntax.html#oval"><span class="id" title="inductive">oval</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">apply</span> <a class="idref" href="oadt.lang_oadt.values.html#oval_val"><span class="id" title="lemma">oval_val</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">apply</span> <a class="idref" href="oadt.lang_oadt.values.html#val_wval"><span class="id" title="lemma">val_wval</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>);<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">select</span>! (<a class="idref" href="oadt.lang_oadt.semantics.html#woval"><span class="id" title="inductive">woval</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">apply</span> <a class="idref" href="oadt.lang_oadt.values.html#woval_wval"><span class="id" title="lemma">woval_wval</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>);<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">solve</span><br/>
@@ -446,16 +426,6 @@ provable.&nbsp;But&nbsp;this&nbsp;version&nbsp;is&nbsp;good&nbsp;enough&nbsp;for
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">qauto</span> <span class="id" title="var">rew</span>: <span class="id" title="var">off</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.obliviousness.html#indistinguishable_open"><span class="id" title="lemma">indistinguishable_open</span></a> <span class="id" title="tactic">solve</span>: <span class="id" title="tactic">reflexivity</span>.<br/>
 
 <br/>
-&nbsp;&nbsp;<span class="comment">(*&nbsp;Step&nbsp;from&nbsp;oblivious&nbsp;case&nbsp;to&nbsp;mux&nbsp;*)</span><br/>
-&nbsp;&nbsp;- <span class="id" title="tactic">repeat</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">H</span> : <a class="idref" href="oadt.lang_oadt.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a> ?<span class="id" title="var">v</span> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head_constructor</span> <span class="id" title="var">v</span>; <span class="id" title="var">sinvert</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.syntax.html#indistinguishable"><span class="id" title="inductive">indistinguishable</span></a>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">case_splitting</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.obliviousness.html#indistinguishable_open"><span class="id" title="lemma">indistinguishable_open</span></a>, <a class="idref" href="oadt.lang_oadt.obliviousness.html#indistinguishable_ovalty"><span class="id" title="lemma">indistinguishable_ovalty</span></a>.<br/>
-
-<br/>
 &nbsp;&nbsp;<span class="comment">(*&nbsp;Step&nbsp;from&nbsp;oblivious&nbsp;injection&nbsp;to&nbsp;boxed&nbsp;injection&nbsp;*)</span><br/>
 &nbsp;&nbsp;- <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;| |- <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">[</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">inj@_</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&lt;</span></a> ?ω1 <a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&gt;</span></a> <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">]</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">≈</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">[</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">inj@_</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&lt;</span></a> ?ω2 <a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&gt;</span></a> <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">]</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a> =&gt;<br/>
@@ -463,6 +433,13 @@ provable.&nbsp;But&nbsp;this&nbsp;version&nbsp;is&nbsp;good&nbsp;enough&nbsp;for
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">by</span> (<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.syntax.html#indistinguishable"><span class="id" title="inductive">indistinguishable</span></a>, <a class="idref" href="oadt.lang_oadt.obliviousness.html#indistinguishable_otval_inv"><span class="id" title="lemma">indistinguishable_otval_inv</span></a>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.syntax.html#indistinguishable"><span class="id" title="inductive">indistinguishable</span></a>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;Step&nbsp;from&nbsp;oblivious&nbsp;case&nbsp;to&nbsp;mux&nbsp;*)</span><br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">repeat</span> <span class="id" title="var">ovalty_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">econstructor</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.syntax.html#indistinguishable"><span class="id" title="inductive">indistinguishable</span></a>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">case_splitting</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.obliviousness.html#indistinguishable_open"><span class="id" title="lemma">indistinguishable_open</span></a>, <a class="idref" href="oadt.lang_oadt.obliviousness.html#indistinguishable_ovalty"><span class="id" title="lemma">indistinguishable_ovalty</span></a>.<br/>
 
 <br/>
 &nbsp;&nbsp;<span class="comment">(*&nbsp;Step&nbsp;from&nbsp;mux&nbsp;*)</span><br/>
