@@ -63,3 +63,6 @@ Proof.
     + select (_ ⊨ _ -->{_} _) (fun H => sinvert H).
       qauto use: preservation.
 Qed.
+
+Print Assumptions soundness.
+Print Assumptions obliviousness.
