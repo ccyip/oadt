@@ -34,8 +34,6 @@ Inductive expr :=
 | EPi (l : llabel) (τ1 τ2: expr)
 | EAbs (l : llabel) (τ e : expr)
 | EApp (e1 e2 : expr)
-(* Oblivious type application *)
-| ETApp (X : atom) (e : expr)
 (* Let binding *)
 | ELet (e1 e2 : expr)
 (* Unit *)
@@ -172,8 +170,6 @@ Notation "\ ~: τ '=>' e" := (EAbs LLeak τ e)
                                   left associativity,
                                   format "\ ~: τ  =>  e").
 Notation "e1 e2" := (EApp e1 e2) (in custom oadt at level 2, left associativity).
-Notation "X @ e" := (ETApp X e) (in custom oadt at level 2,
-                                    format "X @ e").
 Notation "()" := EUnitV (in custom oadt at level 0).
 Notation "( x , y , .. , z )" := (EPair .. (EPair x y) .. z)
                                    (in custom oadt at level 0,
@@ -338,9 +334,6 @@ Inductive indistinguishable : expr -> expr -> Prop :=
     e1 ≈ e1' ->
     e2 ≈ e2' ->
     <{ e1 e2 }> ≈ <{ e1' e2' }>
-| ITApp X e e' :
-    e ≈ e' ->
-    <{ X@e }> ≈ <{ X@e' }>
 | ILet e1 e1' e2 e2' :
     e1 ≈ e1' ->
     e2 ≈ e2' ->
@@ -421,7 +414,6 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
   (* Congruence rules *)
   | <{ e1 e2 }> => <{ ({k~>s}e1) ({k~>s}e2) }>
-  | <{ X@e }> => <{ X@({k~>s}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k~>s}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k~>s}e0 then {k~>s}e1 else {k~>s}e2 }>
   | <{ τ1 * τ2 }> => <{ ({k~>s}τ1) * ({k~>s}τ2) }>
@@ -451,7 +443,6 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   | <{ Π:{l}τ1, τ2 }> => <{ Π:{l}({x↦s}τ1), {x↦s}τ2 }>
   | <{ \:{l}τ => e }> => <{ \:{l}({x↦s}τ) => {x↦s}e }>
   | <{ e1 e2 }> => <{ ({x↦s}e1) ({x↦s}e2) }>
-  | <{ X@e }> => <{ X@({x↦s}e) }>
   | <{ let e1 in e2 }> => <{ let {x↦s}e1 in {x↦s}e2 }>
   | <{ s𝔹 e }> => <{ s𝔹 ({x↦s}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {x↦s}e0 then {x↦s}e1 else {x↦s}e2 }>
@@ -522,7 +513,6 @@ Inductive lc : expr -> Prop :=
 | LCUnitV : lc <{ () }>
 | LCBool l : lc <{ 𝔹{l} }>
 | LCApp e1 e2 : lc e1 -> lc e2 -> lc <{ e1 e2 }>
-| LCTApp X e : lc e -> lc <{ X@e }>
 | LCLit b : lc <{ lit b }>
 | LCSec e : lc e -> lc <{ s𝔹 e }>
 | LCIte l e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if{l} e0 then e1 else e2 }>

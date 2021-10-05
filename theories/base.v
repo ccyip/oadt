@@ -2,21 +2,6 @@ From stdpp Require Export prelude fin_maps fin_map_dom.
 From smpl Require Export Smpl.
 From Hammer Require Export Tactics.
 
-(** * Classes *)
-
-Class FinMapPack K M := {
-  pack_finmap_decision :> EqDecision K | 0;
-  pack_finmap_fmap :> FMap M | 0;
-  pack_finmap_lookup :> ∀ A, Lookup K A (M A) | 0;
-  pack_finmap_empty :> ∀ A, Empty (M A) | 0;
-  pack_finmap_partial_alter :> ∀ A, PartialAlter K A (M A) | 0;
-  pack_finmap_omap :> OMap M | 0;
-  pack_finmap_merge :> Merge M | 0;
-  pack_finmap_to_list :> ∀ A, FinMapToList K A (M A) | 0;
-
-  pack_finmap :> FinMap K M | 0;
-}.
-
 (** * Lemmas *)
 
 Lemma insert_fresh_subseteq `{FinMapDom K M D} {A} k (m : M A) v :

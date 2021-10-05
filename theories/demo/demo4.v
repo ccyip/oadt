@@ -35,24 +35,24 @@ Definition defs := [{
   obliv ~tree (:nat) :=
     case unfold<nat> $0 of
       𝟙
-    | 𝟙 ~+ ~𝔹 * (~tree@$0) * (~tree@$0);
+    | 𝟙 ~+ ~𝔹 * (~tree $0) * (~tree $0);
 
-  def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
+  def s_tree :{⊥} Π~:tree, Π:nat, ~tree $0 :=
     \~:tree => \:nat =>
       case unfold<nat> $0 of
         ()
       | tape (case unfold<tree> $2 of
-                   ~inl<𝟙 ~+ ~𝔹 * (~tree@$1) * (~tree@$1)> ()
-                 | ~inr<𝟙 ~+ ~𝔹 * (~tree@$1) * (~tree@$1)>
+                   ~inl<𝟙 ~+ ~𝔹 * (~tree $1) * (~tree $1)> ()
+                 | ~inr<𝟙 ~+ ~𝔹 * (~tree $1) * (~tree $1)>
                      tape (s𝔹 ($0).1.1,
                            s_tree ($0).1.2 $1,
                            s_tree ($0).2 $1));
 
-  def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
+  def r_tree :{⊤} Π:nat, Π:~tree $0, tree :=
     \:nat =>
       case unfold<nat> $0 of
         \:𝟙 => leaf
-      | \:𝟙 ~+ ~𝔹 * (~tree@$0) * (~tree@$0) =>
+      | \:𝟙 ~+ ~𝔹 * (~tree $0) * (~tree $0) =>
           ~case $0 of
             leaf
           | node (r𝔹 ($0).1.1,
@@ -67,8 +67,8 @@ Definition defs := [{
 
   (* The oblivious counterpart of the map function. Note that this idea of
   lifting a public function to its oblivious version works naturally here. *)
-  def ~map :{⊥} Π~:(Π~:𝔹, 𝔹), Π:nat, Π:~tree@$0, ~tree@$1 :=
-    \~:(Π~:𝔹, 𝔹) => \:nat => \:~tree@$0 =>
+  def ~map :{⊥} Π~:(Π~:𝔹, 𝔹), Π:nat, Π:~tree $0, ~tree $1 :=
+    \~:(Π~:𝔹, 𝔹) => \:nat => \:~tree $0 =>
       s_tree (map $2 (r_tree $1 $0)) $1
 }].
 

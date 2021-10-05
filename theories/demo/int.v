@@ -4,14 +4,7 @@ From Coq Require Import Int63.Int63.
 From oadt Require Import prelude.
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
-From oadt Require Import lang_oadt.admissible.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.inversion.
-From oadt Require Import lang_oadt.preservation.
-From oadt Require Import lang_oadt.equivalence.
-From oadt Require Import lang_oadt.values.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -30,7 +23,6 @@ Inductive expr :=
 | EPi (l : llabel) (τ1 τ2: expr)
 | EAbs (l : llabel) (τ e : expr)
 | EApp (e1 e2 : expr)
-| ETApp (X : atom) (e : expr)
 | ELet (e1 e2 : expr)
 | EUnitT
 | EUnitV
@@ -148,8 +140,6 @@ Notation "\ ~: τ '=>' e" := (EAbs LLeak τ e)
                                   left associativity,
                                   format "\ ~: τ  =>  e").
 Notation "e1 e2" := (EApp e1 e2) (in custom oadt at level 2, left associativity).
-Notation "X @ e" := (ETApp X e) (in custom oadt at level 2,
-                                    format "X @ e").
 Notation "()" := EUnitV (in custom oadt at level 0).
 Notation "( x , y , .. , z )" := (EPair .. (EPair x y) .. z)
                                    (in custom oadt at level 0,
@@ -325,7 +315,6 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k~>s}e0 of {S k~>s}e1 | {S k~>s}e2 }>
   (* Congruence rules *)
   | <{ e1 e2 }> => <{ ({k~>s}e1) ({k~>s}e2) }>
-  | <{ X@e }> => <{ X@({k~>s}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k~>s}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k~>s}e0 then {k~>s}e1 else {k~>s}e2 }>
   | <{ τ1 * τ2 }> => <{ ({k~>s}τ1) * ({k~>s}τ2) }>
@@ -406,7 +395,6 @@ Inductive lc : expr -> Prop :=
 | LCUnitV : lc <{ () }>
 | LCBool l : lc <{ 𝔹{l} }>
 | LCApp e1 e2 : lc e1 -> lc e2 -> lc <{ e1 e2 }>
-| LCTApp X e : lc e -> lc <{ X@e }>
 | LCLit b : lc <{ lit b }>
 | LCSec e : lc e -> lc <{ s𝔹 e }>
 | LCIte l e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if{l} e0 then e1 else e2 }>
@@ -502,9 +490,8 @@ Variant ectx : (expr -> expr) -> Prop :=
 | CtxProd2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
 | CtxOSum2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
-| CtxApp1 e2 : ectx (fun e1 => <{ e1 e2 }>)
-| CtxApp2 v1 : wval v1 -> ectx (fun e2 => <{ v1 e2 }>)
-| CtxTApp X : ectx (fun e => <{ X@e }>)
+| CtxApp1 v2 : wval v2 -> ectx (fun e1 => <{ e1 v2 }>)
+| CtxApp2 e1 : ectx (fun e2 => <{ e1 e2 }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
 | CtxSec : ectx (fun e => <{ s𝔹 e }>)
 | CtxIte e1 e2 : ectx (fun e0 => <{ if e0 then e1 else e2 }>)
@@ -559,7 +546,7 @@ Inductive step : expr -> expr -> Prop :=
 | STApp X τ e v :
     wval v ->
     Σ !! X = Some (DOADT τ e) ->
-    <{ X@v }> -->! <{ e^v }>
+    <{ (gvar X) v }> -->! <{ e^v }>
 | SFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> -->! <{ e }>
@@ -678,7 +665,7 @@ Inductive pared : expr -> expr -> Prop :=
 | RTApp X τ e1 e2 e1' :
     Σ !! X = Some (DOADT τ e2) ->
     e1 ==>! e1' ->
-    <{ X@e1 }> ==>! <{ e2^e1' }>
+    <{ (gvar X) e1 }> ==>! <{ e2^e1' }>
 | RLet e1 e2 e1' e2' L :
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
@@ -784,9 +771,6 @@ Inductive pared : expr -> expr -> Prop :=
     e1 ==>! e1' ->
     e2 ==>! e2' ->
     <{ e1 e2 }> ==>! <{ e1' e2' }>
-| RCgrTApp X e e' :
-    e ==>! e' ->
-    <{ X@e }> ==>! <{ X@e' }>
 | RCgrLet e1 e2 e1' e2' L :
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
@@ -1013,7 +997,7 @@ with kinding : tctx -> expr -> kind -> Prop :=
 | KApp Γ e' e τ X :
     Σ !! X = Some (DOADT τ e') ->
     Γ ⊢ e :{⊥} τ ->
-    Γ ⊢ X@e :: *@O
+    Γ ⊢ (gvar X) e :: *@O
 | KProd Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
@@ -1179,7 +1163,6 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k<~x}e0 of {S k<~x}e1 | {S k<~x}e2 }>
   (* Congruence rules *)
   | <{ e1 e2 }> => <{ ({k<~x}e1) ({k<~x}e2) }>
-  | <{ X@e }> => <{ X@({k<~x}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k<~x}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k<~x}e0 then {k<~x}e1 else {k<~x}e2 }>
   | <{ τ1 * τ2 }> => <{ ({k<~x}τ1) * ({k<~x}τ2) }>
@@ -1218,7 +1201,7 @@ Fixpoint fv (e : expr) : aset :=
   | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }>
   | <{ mux e0 e1 e2 }> =>
     fv e0 ∪ fv e1 ∪ fv e2
-  | <{ _@e }> | <{ s𝔹 e }> | <{ π@_ e }>
+  | <{ s𝔹 e }> | <{ π@_ e }>
   | <{ fold<_> e }> | <{ unfold<_> e }>
   | <{ tape e }> =>
     fv e
@@ -1640,23 +1623,23 @@ Fixpoint ovalty_ (ω : expr) : option expr :=
 Fixpoint step_ (e : expr) : option expr :=
   match e with
   | <{ e1 e2 }> =>
-    if decide (wval e1)
-    then if decide (wval e2)
+    if decide (wval e2)
+    then if decide (wval e1)
          then match e1 with
               | <{ \:{_}_ => e }> => mret <{ e^e2 }>
               | <{ ~if [b] then v1 else v2 }> =>
                   mret <{ ~if [b] then v1 e2 else v2 e2 }>
               | _ => None
               end
-         else e2' <- step_ e2; mret <{ e1 e2' }>
-    else e1' <- step_ e1; mret <{ e1' e2 }>
-  | <{ X@e }> =>
-    if decide (wval e)
-    then match Σ !! X with
-         | Some (DOADT _ e') => mret <{ e'^e }>
-         | _ => None
-         end
-    else e' <- step_ e; mret <{ X@e' }>
+         else match e1 with
+              | <{ gvar X }> =>
+                  match Σ !! X with
+                  | Some (DOADT _ e') => mret <{ e'^e2 }>
+                  | _ => e1' <- step_ e1; mret <{ e1' e2 }>
+                  end
+              | _ => e1' <- step_ e1; mret <{ e1' e2 }>
+              end
+    else e2' <- step_ e2; mret <{ e1 e2' }>
   | <{ let e1 in e2 }> =>
     if decide (wval e1)
     then mret <{ e2^e1 }>
@@ -1844,12 +1827,15 @@ Lemma step_sound e : forall e',
   e -->! e'.
 Proof.
   induction e; intros ? H; simplify_eq; simpl in H;
+    try (goal_contains <{ _ _ }>; shelve);
     repeat case_decide;
     repeat
       match goal with
       | H : match ?e with _ => _ end = _ |- _ =>
           sdestruct e; simplify_eq
       end; try wval_inv; try woval_inv;
+    (* Remove induction hypotheses when they are not needed to avoid unnecessary
+    subgoals from [simplify_option_eq]. *)
     repeat
       match goal with
       | IH : forall _, step_ ?e = _ -> _ -->! _ |- _ =>
@@ -1859,6 +1845,33 @@ Proof.
     try solve [ eauto using step | solve_ctx ].
 
   eauto using step, ovalty_sound.
+
+  Unshelve.
+
+  repeat case_decide.
+  1,3: try case_split; try wval_inv;
+  repeat
+    match goal with
+    | IH : forall _, step_ ?e = _ -> _ -->! _ |- _ =>
+        assert_fails is_var e; clear IH
+    end;
+  simplify_option_eq;
+  try solve [ eauto using step | solve_ctx ].
+
+  match goal with
+  | H : ?e = Some ?e' |- ?T =>
+      match e with
+      | context [step_ ?e >>= ?k] =>
+          let H' := fresh in
+          assert (step_ e >>= k = Some e' -> T) as H'
+              by (clear H; intros; simplify_option_eq; solve_ctx)
+      end
+  end.
+
+  case_split; eauto.
+  repeat case_split; eauto.
+  simplify_option_eq.
+  eauto using step.
 Qed.
 
 Lemma mstep_sound n : forall e e',

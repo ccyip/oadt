@@ -300,7 +300,7 @@ Lemma pared_equiv_oadtapp X τ e1 e1' e2 :
   Σ !! X = Some (DOADT τ e1) ->
   lc e2 ->
   <{ e1^e2 }> = e1' ->
-  Σ ⊢ X@e2 ≡ e1'.
+  Σ ⊢ gvar X e2 ≡ e1'.
 Proof.
   intros. subst.
   repeat econstructor; eauto.
@@ -311,7 +311,7 @@ Lemma pared_equiv_oadtapp_pi X l e1 e1' e2 τ τ' :
   lc e2 ->
   lc τ' ->
   <{ e1^e2 }> = e1' ->
-  Σ ⊢ Π:{l}X@e2, τ' ≡ Π:{l}e1', τ'.
+  Σ ⊢ Π:{l}(gvar X) e2, τ' ≡ Π:{l}e1', τ'.
 Proof.
   intros. subst.
   repeat (econstructor; simpl_cofin?); eauto.
@@ -362,13 +362,13 @@ Ltac simpl_open :=
 Ltac typing_tac :=
   simpl_open;
   match goal with
-  | |- _; _ ⊢ if _ then _ else _ : Π:{_}_@_, ?τ' =>
+  | |- _; _ ⊢ if _ then _ else _ : Π:{_}gvar _ _, ?τ' =>
     eapply TConv; [ eapply TIte_alt_pi with (τ := τ') | .. ]
-  | |- _; _ ⊢ if _ then _ else _ : _@_ =>
+  | |- _; _ ⊢ if _ then _ else _ : gvar _ _ =>
     eapply TConv; [ eapply TIte_alt | .. ]
-  | |- _; _ ⊢ case _ of _ | _ : Π:{_}_@_, ?τ' =>
+  | |- _; _ ⊢ case _ of _ | _ : Π:{_}gvar _ _, ?τ' =>
     eapply TConv; [ eapply TCase_alt_pi with (τ := τ') | .. ]
-  | |- _; _ ⊢ case _ of _ | _ : _@_ =>
+  | |- _; _ ⊢ case _ of _ | _ : gvar _ _ =>
     eapply TConv; [ eapply TCase_alt | .. ]
   | |- _; _ ⊢ if _ then _ else _ : _ => eapply TIteNoDep
   | |- _; _ ⊢ case _ of _ | _ : _ => eapply TCaseNoDep
@@ -381,10 +381,10 @@ Ltac typing_tac :=
   | |- _ ⊑ _ => reflexivity
   | |- _ = _ => reflexivity
   | |- _ ⊢ _ ≡ _ => reflexivity
-  | |- _ ⊢ _ ≡ Π:{_}_@_, _ => symmetry
-  | |- _ ⊢ Π:{_}_@_, _ ≡ _ => eapply pared_equiv_oadtapp_pi
-  | |- _ ⊢ _ ≡ _@_ => symmetry
-  | |- _ ⊢ _@_ ≡ _ => eapply pared_equiv_oadtapp
+  | |- _ ⊢ _ ≡ Π:{_}gvar _ _, _ => symmetry
+  | |- _ ⊢ Π:{_}gvar _ _, _ ≡ _ => eapply pared_equiv_oadtapp_pi
+  | |- _ ⊢ _ ≡ gvar _ _ => symmetry
+  | |- _ ⊢ gvar _ _ ≡ _ => eapply pared_equiv_oadtapp
   | |- forall _, _ ∉ _ -> _ => simpl_cofin || simpl_cofin (∅ : aset)
   | |- lc _ => solve [ repeat econstructor; eauto | eauto 10 with lc ]
   | |- exists _, _ => repeat esplit

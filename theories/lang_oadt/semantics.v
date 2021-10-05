@@ -56,14 +56,15 @@ style later. This one can be quite annoying for proof automation. *)
 (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
 the hole in [ℇ] with [e]. [ectx ℇ] asserts that [ℇ] is a well-formed
 context. *)
+(** Due to reusing the same syntax for both term-level and type-level
+application, application is evaluated from right to left for convenience. *)
 Variant ectx : (expr -> expr) -> Prop :=
 | CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 * τ2 }>)
 | CtxProd2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
 | CtxOSum2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
-| CtxApp1 e2 : ectx (fun e1 => <{ e1 e2 }>)
-| CtxApp2 v1 : wval v1 -> ectx (fun e2 => <{ v1 e2 }>)
-| CtxTApp X : ectx (fun e => <{ X@e }>)
+| CtxApp1 v2 : wval v2 -> ectx (fun e1 => <{ e1 v2 }>)
+| CtxApp2 e1 : ectx (fun e2 => <{ e1 e2 }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
 | CtxSec : ectx (fun e => <{ s𝔹 e }>)
 | CtxIte e1 e2 : ectx (fun e0 => <{ if e0 then e1 else e2 }>)
@@ -111,7 +112,7 @@ Inductive step : expr -> expr -> Prop :=
 | STApp X τ e v :
     wval v ->
     Σ !! X = Some (DOADT τ e) ->
-    <{ X@v }> -->! <{ e^v }>
+    <{ (gvar X) v }> -->! <{ e^v }>
 | SFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> -->! <{ e }>

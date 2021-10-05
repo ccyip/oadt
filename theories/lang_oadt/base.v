@@ -15,18 +15,5 @@ Opaque aset.
 #[global]
 Opaque is_atom.
 
-Definition aamap := gmap (atom * atom).
-Instance aamap_is_finmap : FinMapPack (atom * atom) aamap.
-Proof.
-  esplit.
-  typeclasses eauto.
-Defined.
-
-#[global]
-Opaque aamap.
-
-#[global]
-Opaque aamap_is_finmap.
-
 Declare Custom Entry oadt.
 Declare Custom Entry oadt_def.

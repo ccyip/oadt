@@ -109,23 +109,23 @@ Fixpoint ovalty_ (ω : expr) : option expr :=
 Fixpoint step_ (e : expr) : option expr :=
   match e with
   | <{ e1 e2 }> =>
-    if decide (wval e1)
-    then if decide (wval e2)
+    if decide (wval e2)
+    then if decide (wval e1)
          then match e1 with
               | <{ \:{_}_ => e }> => mret <{ e^e2 }>
               | <{ ~if [b] then v1 else v2 }> =>
                   mret <{ ~if [b] then v1 e2 else v2 e2 }>
               | _ => None
               end
-         else e2' <- step_ e2; mret <{ e1 e2' }>
-    else e1' <- step_ e1; mret <{ e1' e2 }>
-  | <{ X@e }> =>
-    if decide (wval e)
-    then match Σ !! X with
-         | Some (DOADT _ e') => mret <{ e'^e }>
-         | _ => None
-         end
-    else e' <- step_ e; mret <{ X@e' }>
+         else match e1 with
+              | <{ gvar X }> =>
+                  match Σ !! X with
+                  | Some (DOADT _ e') => mret <{ e'^e2 }>
+                  | _ => e1' <- step_ e1; mret <{ e1' e2 }>
+                  end
+              | _ => e1' <- step_ e1; mret <{ e1' e2 }>
+              end
+    else e2' <- step_ e2; mret <{ e1 e2' }>
   | <{ let e1 in e2 }> =>
     if decide (wval e1)
     then mret <{ e2^e1 }>
@@ -276,6 +276,7 @@ Lemma step_sound e : forall e',
   e -->! e'.
 Proof.
   induction e; intros ? H; simplify_eq; simpl in H;
+    try (goal_contains <{ _ _ }>; shelve);
     repeat case_decide;
     repeat
       match goal with
@@ -293,6 +294,33 @@ Proof.
     try solve [ eauto using step | solve_ctx ].
 
   eauto using step, ovalty_sound.
+
+  Unshelve.
+
+  repeat case_decide.
+  1,3: try case_split; try wval_inv;
+  repeat
+    match goal with
+    | IH : forall _, step_ ?e = _ -> _ -->! _ |- _ =>
+        assert_fails is_var e; clear IH
+    end;
+  simplify_option_eq;
+  try solve [ eauto using step | solve_ctx ].
+
+  match goal with
+  | H : ?e = Some ?e' |- ?T =>
+      match e with
+      | context [step_ ?e >>= ?k] =>
+          let H' := fresh in
+          assert (step_ e >>= k = Some e' -> T) as H'
+              by (clear H; intros; simplify_option_eq; solve_ctx)
+      end
+  end.
+
+  case_split; eauto.
+  repeat case_split; eauto.
+  simplify_option_eq.
+  eauto using step.
 Qed.
 
 Lemma mstep_sound n : forall e e',

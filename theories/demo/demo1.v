@@ -89,24 +89,24 @@ Definition defs := [{
   obliv ~tree (:nat) :=
     if is_zero $0
     then 𝟙
-    else 𝟙 ~+ ~int * (~tree@(pred $0)) * (~tree@(pred $0));
+    else 𝟙 ~+ ~int * (~tree (pred $0)) * (~tree (pred $0));
 
-  def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
+  def s_tree :{⊥} Π~:tree, Π:nat, ~tree $0 :=
     \~:tree => \:nat =>
       if is_zero $0
       then ()
       else tape (case unfold<tree> $1 of
-                   ~inl<𝟙 ~+ ~int * (~tree@(pred $1)) * (~tree@(pred $1))> ()
-                 | ~inr<𝟙 ~+ ~int * (~tree@(pred $1)) * (~tree@(pred $1))>
+                   ~inl<𝟙 ~+ ~int * (~tree (pred $1)) * (~tree (pred $1))> ()
+                 | ~inr<𝟙 ~+ ~int * (~tree (pred $1)) * (~tree (pred $1))>
                      tape (s_int ($0).1.1,
                            s_tree ($0).1.2 (pred $1),
                            s_tree ($0).2 (pred $1)));
 
-  def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
+  def r_tree :{⊤} Π:nat, Π:~tree $0, tree :=
     \:nat =>
       if is_zero $0
       then \:𝟙 => leaf
-      else \:𝟙 ~+ ~int * (~tree@(pred $0)) * (~tree@(pred $0)) =>
+      else \:𝟙 ~+ ~int * (~tree (pred $0)) * (~tree (pred $0)) =>
              ~case $0 of
                leaf
              | node (r_int ($0).1.1,
@@ -118,24 +118,24 @@ Definition defs := [{
   obliv ~tree' (:spine) :=
     case unfold<spine> $0 of
       𝟙
-    | 𝟙 ~+ ~int * (~tree'@($0).1) * (~tree'@($0).2);
+    | 𝟙 ~+ ~int * (~tree' ($0).1) * (~tree' ($0).2);
 
-  def s_tree' :{⊥} Π~:tree, Π:spine, ~tree'@$0 :=
+  def s_tree' :{⊥} Π~:tree, Π:spine, ~tree' $0 :=
     \~:tree => \:spine =>
       case unfold<spine> $0 of
         ()
       | tape (case unfold<tree> $2 of
-                   ~inl<𝟙 ~+ ~int * (~tree'@($1).1) * (~tree'@($1).2)> ()
-                 | ~inr<𝟙 ~+ ~int * (~tree'@($1).1) * (~tree'@($1).2)>
+                   ~inl<𝟙 ~+ ~int * (~tree' ($1).1) * (~tree' ($1).2)> ()
+                 | ~inr<𝟙 ~+ ~int * (~tree' ($1).1) * (~tree' ($1).2)>
                      tape (s_int ($0).1.1,
                            s_tree' ($0).1.2 ($1).1,
                            s_tree' ($0).2 ($1).2));
 
-  def r_tree' :{⊤} Π:spine, Π:~tree'@$0, tree :=
+  def r_tree' :{⊤} Π:spine, Π:~tree' $0, tree :=
     \:spine =>
       case unfold<spine> $0 of
         \:𝟙 => leaf
-      | \:𝟙 ~+ ~int * (~tree'@($0).1) * (~tree'@($0).2) =>
+      | \:𝟙 ~+ ~int * (~tree' ($0).1) * (~tree' ($0).2) =>
           ~case $0 of
             leaf
           | node (r_int ($0).1.1,
@@ -143,20 +143,20 @@ Definition defs := [{
                   r_tree' ($2).2 ($0).2);
 
   (* The oblivious lookup function for [~tree]. *)
-  def ~lookup :{⊥} Π:~int, Π:nat, Π:~tree@$0, ~𝔹 :=
-    \:~int => \:nat => \:~tree@$0 =>
+  def ~lookup :{⊥} Π:~int, Π:nat, Π:~tree $0, ~𝔹 :=
+    \:~int => \:nat => \:~tree $0 =>
       tape (s𝔹 (lookup (r_int $2) (r_tree $1 $0)));
 
   (* The oblivious lookup function that uses [~tree'] instead. Note that the
   implementation is the same as [~lookup] above with different oblivious tree
   and its section/retraction functions. *)
-  def ~lookup' :{⊥} Π:~int, Π:spine, Π:~tree'@$0, ~𝔹 :=
-    \:~int => \:spine => \:~tree'@$0 =>
+  def ~lookup' :{⊥} Π:~int, Π:spine, Π:~tree' $0, ~𝔹 :=
+    \:~int => \:spine => \:~tree' $0 =>
       tape (s𝔹 (lookup (r_int $2) (r_tree' $1 $0)));
 
   (* The oblivious insert function for [~tree]. *)
-  def ~insert :{⊥} Π:~int, Π:nat, Π:~tree@$0, ~tree@(succ $1) :=
-    \:~int => \:nat => \:~tree@$0 =>
+  def ~insert :{⊥} Π:~int, Π:nat, Π:~tree $0, ~tree (succ $1) :=
+    \:~int => \:nat => \:~tree $0 =>
       s_tree (insert (r_int $2) (r_tree $1 $0)) (succ $1)
 }].
 
@@ -173,7 +173,7 @@ Qed.
 
 (** An example oblivious tree type, with index 2. *)
 Example ex_tree_type :=
-  <{ ~tree@(succ (succ zero)) }>.
+  <{ ~tree (succ (succ zero)) }>.
 Print ex_tree_type.
 
 (** It can be evaluted to type value. *)
@@ -245,7 +245,7 @@ Notation "'ex_spine'" := <{ snode ((snode (sleaf, sleaf)), sleaf) }>
                          (in custom oadt, only parsing).
 
 Example ex_spine_tree_type :=
-  <{ ~tree'@ex_spine }>.
+  <{ ~tree' ex_spine }>.
 Print ex_spine_tree_type.
 
 Definition ex_spine_tree_type_pack :

@@ -498,10 +498,6 @@ Proof using Hwf.
   repeat esplit; [ pared_intro | eapply pared_open ];
     eauto; set_shelve.
 
-  (* OADT application. *)
-  1-2:
-    repeat esplit; solve [ econstructor; eauto using lc ].
-
   Unshelve.
   all : eauto; rewrite ?close_fv by eauto; fast_set_solver!!.
 Qed.

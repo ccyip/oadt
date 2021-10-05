@@ -94,7 +94,7 @@ Inductive pared : expr -> expr -> Prop :=
 | RTApp X τ e1 e2 e1' :
     Σ !! X = Some (DOADT τ e2) ->
     e1 ==>! e1' ->
-    <{ X@e1 }> ==>! <{ e2^e1' }>
+    <{ (gvar X) e1 }> ==>! <{ e2^e1' }>
 | RLet e1 e2 e1' e2' L :
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
@@ -206,9 +206,6 @@ proof convenience. *)
     e1 ==>! e1' ->
     e2 ==>! e2' ->
     <{ e1 e2 }> ==>! <{ e1' e2' }>
-| RCgrTApp X e e' :
-    e ==>! e' ->
-    <{ X@e }> ==>! <{ X@e' }>
 | RCgrLet e1 e2 e1' e2' L :
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
@@ -432,7 +429,7 @@ with kinding : tctx -> expr -> kind -> Prop :=
 | KApp Γ e' e τ X :
     Σ !! X = Some (DOADT τ e') ->
     Γ ⊢ e :{⊥} τ ->
-    Γ ⊢ X@e :: *@O
+    Γ ⊢ (gvar X) e :: *@O
 | KProd Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
