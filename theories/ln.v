@@ -1,5 +1,6 @@
 From oadt Require Import base.
 From oadt Require Import tactics.
+From stdpp Require Import stringmap mapset.
 
 (** This file contains common definitions for locally nameless representation
 and tactics for automation. *)
@@ -10,27 +11,27 @@ and tactics for automation. *)
 proof contexts. *)
 Class Atom A M D := {
   (* Constraints. *)
-  atom_finmap_dom :> ∀ C, Dom (M C) D;
-  atom_finmap_fmap :> FMap M;
-  atom_finmap_lookup :> ∀ C, Lookup A C (M C);
-  atom_finmap_empty :> ∀ C, Empty (M C);
-  atom_finmap_partial_alter :> ∀ C, PartialAlter A C (M C);
-  atom_finmap_omap :> OMap M;
-  atom_finmap_merge :> Merge M;
-  atom_finmap_to_list :> ∀ C, FinMapToList A C (M C);
-  atom_finset_elem_of :> ElemOf A D;
-  atom_finset_empty :> Empty D;
-  atom_finset_singleton :> Singleton A D;
-  atom_finset_union :> Union D;
-  atom_finset_intersection :> Intersection D;
-  atom_finset_difference :> Difference D;
-  atom_finset_elements :> Elements A D;
+  atom_finmap_dom :> ∀ C, Dom (M C) D | 0;
+  atom_finmap_fmap :> FMap M | 0;
+  atom_finmap_lookup :> ∀ C, Lookup A C (M C) | 0;
+  atom_finmap_empty :> ∀ C, Empty (M C) | 0;
+  atom_finmap_partial_alter :> ∀ C, PartialAlter A C (M C) | 0;
+  atom_finmap_omap :> OMap M | 0;
+  atom_finmap_merge :> Merge M | 0;
+  atom_finmap_to_list :> ∀ C, FinMapToList A C (M C) | 0;
+  atom_finset_elem_of :> ElemOf A D | 0;
+  atom_finset_empty :> Empty D | 0;
+  atom_finset_singleton :> Singleton A D | 0;
+  atom_finset_union :> Union D | 0;
+  atom_finset_intersection :> Intersection D | 0;
+  atom_finset_difference :> Difference D | 0;
+  atom_finset_elements :> Elements A D | 0;
 
   (* Properties that we care about. *)
-  atom_eq_decision :> EqDecision A;
-  atom_infinite :> Infinite A;
-  atom_finset :> FinSet A D;
-  atom_finmap :> FinMap A M;
+  atom_eq_decision :> EqDecision A | 0;
+  atom_infinite :> Infinite A | 0;
+  atom_finset :> FinSet A D | 0;
+  atom_finmap :> FinMap A M | 0;
 
   (* Property about FinMapDom; we do it this way to avoid duplicates. *)
   atom_elem_of_dom {C} (m : M C) i : i ∈ dom D m <-> is_Some (m !! i);
@@ -38,7 +39,7 @@ Class Atom A M D := {
   (* Decision procedure of ∈ can technically be derived from other constrains
   (by applying [elem_of_dec_slow]). But this allows an efficient
   implementation. *)
-  atom_finmap_elem_of_dec :> RelDecision (∈@{D});
+  atom_finmap_elem_of_dec :> RelDecision (∈@{D}) | 0;
 }.
 
 Instance atom_dom_spec `{is_atom : Atom A M D} : FinMapDom A M D.
@@ -46,18 +47,20 @@ Proof.
   destruct is_atom. split; first [typeclasses eauto | auto].
 Defined.
 
-(* From stdpp Require Import stringmap mapset. *)
-(* (** An Atom instance, showing Atom can be inhabited. This instance is not *)
-(* intended to be used in the acutal implementation. *) *)
-(* Module atom_instance. *)
+(** Strings as atoms. *)
+Module atom_instance.
 
-(*   Instance atom_string : Atom string stringmap (mapset stringmap). *)
-(*   Proof. *)
-(*     econstructor; try typeclasses eauto. *)
-(*     apply mapset_dom_spec. *)
-(*   Defined. *)
+  Definition atom := string.
+  Definition amap := stringmap.
+  Definition aset := stringset.
 
-(* End atom_instance. *)
+  Instance is_atom : Atom atom amap aset.
+  Proof.
+    econstructor; try typeclasses eauto.
+    apply mapset_dom_spec.
+  Defined.
+
+End atom_instance.
 
 (** * Tactics for cofinite quantifiers  *)
 

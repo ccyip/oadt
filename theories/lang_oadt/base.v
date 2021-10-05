@@ -1,9 +1,19 @@
 From oadt Require Export prelude.
+From stdpp Require Import gmap.
 
-Parameter atom : Type.
-Parameter amap : Type -> Type.
-Parameter aset : Type.
-Parameter is_atom : Atom atom amap aset.
+Export atom_instance.
 
-#[export]
-Hint Resolve is_atom : typeclass_instances.
+#[global]
+Opaque atom.
+
+#[global]
+Opaque amap.
+
+#[global]
+Opaque aset.
+
+#[global]
+Opaque is_atom.
+
+Declare Custom Entry oadt.
+Declare Custom Entry oadt_def.

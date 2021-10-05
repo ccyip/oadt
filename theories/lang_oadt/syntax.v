@@ -2,9 +2,6 @@ From oadt Require Import lang_oadt.base.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
-Declare Custom Entry oadt.
-Declare Custom Entry oadt_def.
-
 (** * Definitions *)
 
 (** ** Expressions (e, τ) *)
