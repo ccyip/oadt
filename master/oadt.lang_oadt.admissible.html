@@ -59,11 +59,11 @@ Admissible rules for semantics, typing and kinding.
 </div>
 
 <div class="doc">
-<a id="lab78"></a><h1 class="section">Admissible step introduction rules</h1>
+<a id="lab77"></a><h1 class="section">Admissible step introduction rules</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab79"></a><h1 class="section">Renaming lemmas</h1>
+<a id="lab78"></a><h1 class="section">Renaming lemmas</h1>
 
 </div>
 <div class="code">
@@ -279,7 +279,7 @@ the general version.
 </div>
 
 <div class="doc">
-<a id="lab80"></a><h1 class="section">Admissible typing and kinding introduction rules</h1>
+<a id="lab79"></a><h1 class="section">Admissible typing and kinding introduction rules</h1>
 
 </div>
 <div class="code">
@@ -425,12 +425,12 @@ the general version.
 </div>
 
 <div class="doc">
-<a id="lab81"></a><h1 class="section">Tactics</h1>
+<a id="lab80"></a><h1 class="section">Tactics</h1>
 
 <div class="paragraph"> </div>
 
  Tactics for apply typing/kinding rules. Similar to <span class="inlinecode"><span class="id" title="tactic">econstructor</span></span>, but it
-uses the admissible rules. It also fails rather than applying <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.typing.html#TConv"><span class="id" title="constructor">TConv</span></a></span>
+uses the admissible rules. It also fails rather than applying <span class="inlinecode"><a class="idref" href="oadt.demo.int.html#TConv"><span class="id" title="constructor">TConv</span></a></span>
 blindly. 
 </div>
 <div class="code">
@@ -472,7 +472,7 @@ constructors.&nbsp;*)</span><br/>
 &nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#d3ebdb2dba8b1be0eebea39121749a17"><span class="id" title="notation">𝟙</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.typing.html#KUnit"><span class="id" title="constructor">KUnit</span></a><br/>
 &nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#92eb6ec2a2660ce200a1086f16289b9f"><span class="id" title="notation">𝔹{</span></a><span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#92eb6ec2a2660ce200a1086f16289b9f"><span class="id" title="notation">}</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.typing.html#KBool"><span class="id" title="constructor">KBool</span></a><br/>
 &nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">Π</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">:{</span></a><span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">}</span></a><span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#64b10b4e76538085f47d4c33fcb6997c"><span class="id" title="notation">,</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.admissible.html#KPi_intro"><span class="id" title="lemma">KPi_intro</span></a><br/>
-&nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">_@_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.typing.html#KApp"><span class="id" title="constructor">KApp</span></a><br/>
+&nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#f173e8e430c04b74212c1c90cbf3dff3"><span class="id" title="notation">(</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#expr_notations.:oadt::'gvar'_x"><span class="id" title="notation">gvar</span></a> <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.syntax.html#f173e8e430c04b74212c1c90cbf3dff3"><span class="id" title="notation">)</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.typing.html#KApp"><span class="id" title="constructor">KApp</span></a><br/>
 &nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.syntax.html#d314baafad1cbaf3b45f9bfd95f57969"><span class="id" title="notation">*</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.admissible.html#KProd_intro"><span class="id" title="lemma">KProd_intro</span></a><br/>
 &nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.syntax.html#a98fc115c9006ba8f39cd9223729b7a3"><span class="id" title="notation">+</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.typing.html#KSum"><span class="id" title="constructor">KSum</span></a><br/>
 &nbsp;&nbsp;| |- <span class="id" title="var">_</span><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.syntax.html#b36fc6b347010b3c55fdf2ce621df671"><span class="id" title="notation">~+</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">eapply</span> <a class="idref" href="oadt.lang_oadt.typing.html#KOSum"><span class="id" title="constructor">KOSum</span></a><br/>
