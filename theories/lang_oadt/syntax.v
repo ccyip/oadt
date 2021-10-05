@@ -8,10 +8,13 @@ Declare Custom Entry oadt_def.
 (** * Definitions *)
 
 (** ** Expressions (e, τ) *)
+(** We use locally nameless representation for binders. *)
 Inductive expr :=
-(* Variables *)
+(* Locally bound variables, i.e. de Bruijn indices. *)
 | EBVar (k : nat)
+(* Free variables *)
 | EFVar (x : atom)
+(* Global variables, referring to global functions, ADTs and OADTs. *)
 | EGVar (x : atom)
 (* Expressions with binders *)
 | EPi (τ1 τ2: expr)
@@ -389,7 +392,7 @@ where "'{' k '~>' s '}' e" := (open_ k s e) (in custom oadt).
 Definition open s e := open_ 0 s e.
 Notation "e ^ s" := (open s e) (in custom oadt at level 20).
 
-(** ** Substitution (for locally free variables) *)
+(** ** Substitution *)
 Reserved Notation "'{' x '↦' s '}' e" (in custom oadt at level 20, x constr).
 
 Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
