@@ -18,4 +18,3 @@ theories/lang_oadt/preservation.v
 theories/lang_oadt/progress.v
 theories/lang_oadt/obliviousness.v
 theories/lang_oadt/metatheories.v
-theories/lang.v
