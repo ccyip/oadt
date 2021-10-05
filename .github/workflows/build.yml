@@ -12,7 +12,7 @@ jobs:
     env:
       TARGET_COQ_VERSION: 8.13
       TARGET_OCAML_VERSION: 4.11-flambda
-      TARGET_DOC_FOLDER: master
+      TARGET_DOC_FOLDER: tape
     strategy:
       matrix:
         coq_version:
