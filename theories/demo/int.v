@@ -4,14 +4,7 @@ From Coq Require Import Int63.Int63.
 From oadt Require Import prelude.
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
-From oadt Require Import lang_oadt.admissible.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.inversion.
-From oadt Require Import lang_oadt.preservation.
-From oadt Require Import lang_oadt.equivalence.
-From oadt Require Import lang_oadt.values.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 

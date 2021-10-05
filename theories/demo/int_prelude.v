@@ -4,6 +4,7 @@ From Coq Require Export Int63.Int63.
 From stdpp Require Export pretty.
 From oadt Require Import prelude.
 From oadt Require Export lang_oadt.base.
+From oadt Require Import lang_oadt.preservation.
 From oadt Require Export demo.int.
 
 #[local]
