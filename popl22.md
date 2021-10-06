@@ -59,10 +59,10 @@ This artifact can be reviewed fully online.
 
 ### Virtual Machine
 We also provide a virtual machine (based on Debian 11 with Gnome desktop),
-available on [Zenodo](FIXME), so one can inspect our proofs interactively, with
-environment already set up. The virtual machine was tested in Oracle VirtualBox
-(6.1). To get started,
-1. Download the `oadt.ova` file from [Zenodo](FIXME).
+available on [Zenodo](https://zenodo.org/record/5553360), so one can inspect our
+proofs interactively, with environment already set up. The virtual machine was
+tested in Oracle VirtualBox (6.1). To get started,
+1. Download the `oadt.ova` file from [Zenodo](https://zenodo.org/record/5553360).
 2. Open VirtualBox and select menu `File` then `Import Appliance`.
 3. Choose the downloaded `ova` file to import.
 4. Adjust settings such as CPU cores and RAM. Note that compiling our Coq code
@@ -101,8 +101,9 @@ build the project again, run `make clean` first.
 A few tips:
 - We recommend taking a snapshot after booting up the virtual machine. If
   anything happens, one can easily revert back to the inital state.
-- You may want to set the screen resolution first. Click the top-right corner and
-  select `Settings`. Resolution options can be found under the `Display` tab.
+- You may want to set the screen resolution first. Click the top-right corner
+  and select `Settings`. Resolution options can be found under the `Display`
+  tab.
 
 
 ### Build manually
