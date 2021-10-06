@@ -28,7 +28,9 @@ The easiest way to install the dependencies and build the project is via
 
 ``` sh
 opam repo add coq-released https://coq.inria.fr/opam/released
-opam install coq-oadt --deps-only
+opam update
+cd path/to/oadt
+opam install . --deps-only
 ```
 
 ## Building
