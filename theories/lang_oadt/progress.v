@@ -314,4 +314,11 @@ Proof.
   hauto use: progress_, wval_val.
 Qed.
 
+Theorem kinding_progress τ :
+  Σ; ∅ ⊢ τ :: *@O ->
+  otval τ \/ exists τ', Σ ⊨ τ -->! τ'.
+Proof.
+  hauto use: progress_.
+Qed.
+
 End progress.
