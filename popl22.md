@@ -203,7 +203,7 @@ These files only appear in λOADT✚.
   step relation. It is used for the demos.
 - demo/demo_prelude.v: auxiliary definitions, lemmas and tactics for the demos.
 - demo/int.v: extending the core calculus with primitive bounded integers. We
-  did not prove the metatheories about it. Only the lemmas needed for the demos
+  did not prove the metatheories about this extension. Only the lemmas needed for the demos
   are proved.
 - demo/int_prelude.v: the same as `demo_prelude.v`, but for the integer
   extensions.
