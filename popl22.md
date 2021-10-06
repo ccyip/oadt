@@ -27,8 +27,7 @@ Section (File Structures) outlines how we organize the formalization by
 explaining the purpose of each file.
 
 Section (Paper-to-artifact Correspondence) connects the definitions and theorems
-in the paper to the formalization in the artifact, and shows the differences
-between them.
+in the paper to the formalization in the artifact.
 
 Section (Differences Between Paper and Artifact) discusses the minor
 discrepancies between our Coq formalization and the paper due to presentation
