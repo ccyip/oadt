@@ -34,7 +34,7 @@ Section (Differences Between Paper and Artifact) discusses the minor
 discrepancies between our Coq formalization and the paper due to presentation
 reasons.
 
-Section (Review the Build Logs) explains how to read 
+Section (Review the Build Logs) explains how to review the compilation output.
 
 ## Review Instructions
 
