@@ -660,3 +660,12 @@ Theorem preservation Σ Γ e e' τ :
 Proof.
   hauto use: pared_preservation, pared_step, typing_lc.
 Qed.
+
+Theorem kinding_preservation Σ Γ τ τ' κ :
+  gctx_wf Σ ->
+  Σ; Γ ⊢ τ :: κ ->
+  Σ ⊨ τ -->! τ' ->
+  Σ; Γ ⊢ τ' :: κ.
+Proof.
+  hauto use: pared_kinding_preservation, pared_step, kinding_lc.
+Qed.
