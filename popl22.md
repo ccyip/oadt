@@ -169,71 +169,71 @@ These files only appear in λOADT✚.
 
 - Definitions and theorems of λOADT in Section 3 (λOADT, formally): (in the pure branch)
 
-| Definition/Theorems in paper | File | Name (link to CoqDoc) |
-|---------------------|------|-----------------------|
-| Expression syntax in Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [expr](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#expr) |
-| Global definitions in Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [gdef](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#gdef) |
-| Oblivious type values in Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [otval](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#otval) |
-| Oblivious values in Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [oval](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#oval) |
-| Values in Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [val](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#val) |
-| Small-step relation in Fig. 10 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/semantics.v) | [step](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.semantics.html#step) |
-| Evaluation context in Fig. 10 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/semantics.v) | [ectx](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.semantics.html#ectx) |
-| Auxiliary oblivious value typing relation in Fig. 10 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/semantics.v) | [ovalty](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.semantics.html#ovalty) |
-| The definition of kinds at the begining of Section 3.3 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [kind](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#kind) |
-| Kinding rules in Fig. 12 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [kinding](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#kinding) |
-| Typing rules in Fig. 13 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [typing](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#typing) |
-| Parallel reduction rules in Fig. 14 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [pared](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#pared) |
-| Global definition typing in Fig. 15 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [gdef_typing](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#gdef_typing) |
-| Theorem 3.1 (Progress) in Section 3.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/progress.v) | [progress](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.progress.html#progress), [kinding_progress](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.progress.html#kinding_progress) |
-| Theorem 3.2 (Preservation) in Section 3.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/preservation.v) | [preservation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#preservation), [kinding_presevation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#kinding_preservation) |
-| Lemma 3.3 (Preservation for parallel reduction) in Section 3.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/preservation.v) | [pared_preservation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#pared_preservation) |
-| Lemma 3.4 (Regularity) in Section 3.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/preservation.v) | [regularity](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#regularity) |
-| Lemma 3.5 (Confluence of parallel reduction) in Section 3.4 | [theories/lang_oadt/equivalence.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/equivalence.v) | [pared_confluent](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.equivalence.html#pared_confluent) |
-| Definition 3.6 (indistinguishability) in Section 3.4 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [indistinguishable](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#indistinguishable) |
-| Theorem 3.7 (Obliviousness) in Section 3.4 | [theories/lang_oadt/metatheories.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/metatheories.v) | [obliviousness](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.metatheories.html#obliviousness) |
-| Lemma 3.8 in Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [indistinguishable_obliv_val](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#indistinguishable_obliv_val) |
-| Lemma 3.9 in Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [indistinguishable_val_obliv_type_equiv](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#indistinguishable_val_obliv_type_equiv) |
-| Lemma 3.10 in Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [pared_equiv_obliv_preservation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#pared_equiv_obliv_preservation) |
+| Definition/Theorems | Paper | File | Name (link to CoqDoc) |
+|---------------------|-------|------|-----------------------|
+| Expression syntax | Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [expr](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#expr) |
+| Global definitions | Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [gdef](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#gdef) |
+| Oblivious type values | Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [otval](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#otval) |
+| Oblivious values | Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [oval](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#oval) |
+| Values | Fig. 9 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [val](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#val) |
+| Small-step relation | Fig. 10 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/semantics.v) | [step](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.semantics.html#step) |
+| Evaluation context | Fig. 10 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/semantics.v) | [ectx](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.semantics.html#ectx) |
+| Auxiliary oblivious value typing relation | Fig. 10 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/semantics.v) | [ovalty](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.semantics.html#ovalty) |
+| Kinds | At the begining of Section 3.3 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [kind](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#kind) |
+| Kinding rules | Fig. 12 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [kinding](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#kinding) |
+| Typing rules | Fig. 13 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [typing](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#typing) |
+| Parallel reduction rules | Fig. 14 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [pared](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#pared) |
+| Global definition typing | Fig. 15 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/typing.v) | [gdef_typing](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.typing.html#gdef_typing) |
+| Theorem 3.1 (Progress) | Section 3.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/progress.v) | [progress](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.progress.html#progress), [kinding_progress](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.progress.html#kinding_progress) |
+| Theorem 3.2 (Preservation) | Section 3.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/preservation.v) | [preservation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#preservation), [kinding_presevation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#kinding_preservation) |
+| Lemma 3.3 (Preservation for parallel reduction) | Section 3.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/preservation.v) | [pared_preservation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#pared_preservation) |
+| Lemma 3.4 (Regularity) | Section 3.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/preservation.v) | [regularity](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.preservation.html#regularity) |
+| Lemma 3.5 (Confluence of parallel reduction) | Section 3.4 | [theories/lang_oadt/equivalence.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/equivalence.v) | [pared_confluent](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.equivalence.html#pared_confluent) |
+| Definition 3.6 (indistinguishability) | Section 3.4 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/syntax.v) | [indistinguishable](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.syntax.html#indistinguishable) |
+| Theorem 3.7 (Obliviousness) | Section 3.4 | [theories/lang_oadt/metatheories.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/metatheories.v) | [obliviousness](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.metatheories.html#obliviousness) |
+| Lemma 3.8 | Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [indistinguishable_obliv_val](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#indistinguishable_obliv_val) |
+| Lemma 3.9 | Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [indistinguishable_val_obliv_type_equiv](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#indistinguishable_val_obliv_type_equiv) |
+| Lemma 3.10 | Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [pared_equiv_obliv_preservation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#pared_equiv_obliv_preservation) |
 
 - Definitions and theorems of λOADT✚ in Section 4 (λOADT✚, formally): (in the tape branch)
 
-| Definition/Theorems in paper | File | Name (link to CoqDoc) |
-|---------------------|------|-----------------------|
-| Expression syntax in Fig. 16 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/syntax.v) | [expr](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.syntax.html#expr) |
-| Global definitions in Fig. 16 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/syntax.v) | [gdef](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.syntax.html#gdef) |
-| Leakage label in Fig. 16 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/syntax.v) | [llabel](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.syntax.html#llabel) |
-| Small-step relation in Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [step](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#step) |
-| Weak values in Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [wval](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#wval) |
-| Evaluation context in Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [ectx](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#ectx) |
-| Leaky context in Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [lectx](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#lectx) |
-| Typing rules in Fig. 18 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/typing.v) | [typing](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.typing.html#typing) |
-| Kinding rules in Fig. 19 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/typing.v) | [kinding](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.typing.html#kinding) |
-| Parallel reduction rules in Fig. 20 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/typing.v) | [pared](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.typing.html#pared) |
-| Theorem 4.1 (Progress) in Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [progress](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#progress), [kinding_progress](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#kinding_progress) |
-| Lemma 4.2 in Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [progress_weak](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#progress_weak) |
-| Updated version of Lemma 3.10 mentioned in Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [pared_equiv_obliv_preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#pared_equiv_obliv_preservation) |
-| Theorem 4.3 (Preservation) in Section 4.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/preservation.v) | [preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.preservation.html#preservation), [kinding_preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.preservation.html#kinding_preservation) |
-| Theorem 4.4 (Obliviousness) in Section 4.4 | [theories/lang_oadt/metatheories.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/metatheories.v) | [obliviousness](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.metatheories.html#obliviousness) |
+| Definition/Theorems | Paper | File | Name (link to CoqDoc) |
+|---------------------|-------|------|-----------------------|
+| Expression syntax | Fig. 16 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/syntax.v) | [expr](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.syntax.html#expr) |
+| Global definitions | Fig. 16 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/syntax.v) | [gdef](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.syntax.html#gdef) |
+| Leakage label | Fig. 16 | [theories/lang_oadt/syntax.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/syntax.v) | [llabel](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.syntax.html#llabel) |
+| Small-step relation | Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [step](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#step) |
+| Weak values | Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [wval](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#wval) |
+| Evaluation context | Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [ectx](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#ectx) |
+| Leaky context | Fig. 17 | [theories/lang_oadt/semantics.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/semantics.v) | [lectx](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.semantics.html#lectx) |
+| Typing rules | Fig. 18 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/typing.v) | [typing](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.typing.html#typing) |
+| Kinding rules | Fig. 19 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/typing.v) | [kinding](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.typing.html#kinding) |
+| Parallel reduction rules | Fig. 20 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/typing.v) | [pared](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.typing.html#pared) |
+| Theorem 4.1 (Progress) | Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [progress](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#progress), [kinding_progress](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#kinding_progress) |
+| Lemma 4.2 | Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [progress_weak](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#progress_weak) |
+| Updated version of Lemma 3.10 mentioned | Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [pared_equiv_obliv_preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#pared_equiv_obliv_preservation) |
+| Theorem 4.3 (Preservation) | Section 4.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/preservation.v) | [preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.preservation.html#preservation), [kinding_preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.preservation.html#kinding_preservation) |
+| Theorem 4.4 (Obliviousness) | Section 4.4 | [theories/lang_oadt/metatheories.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/metatheories.v) | [obliviousness](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.metatheories.html#obliviousness) |
 
 - Extending λOADT✚ with primitive integers, in Section 4.5 (Extending λOADT✚)
 
-| Definition in paper | File | Name (link to CoqDoc) |
-|---------------------|------|-----------------------|
-| Expression syntax in Fig. 21 | [theories/demo/int.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/int.v) | [expr](https://ccyip.github.io/oadt/tape/oadt.demo.int.html#expr) |
-| Typing rules in Fig. 21 | [theories/demo/int.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/int.v) | [typing](https://ccyip.github.io/oadt/tape/oadt.demo.int.html#typing) |
-| Small-step relation in Fig. 21 | [theories/demo/int.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/int.v) | [step](https://ccyip.github.io/oadt/tape/oadt.demo.int.html#step) |
+| Definition | Paper | File | Name (link to CoqDoc) |
+|------------|-------|------|-----------------------|
+| Expression syntax | Fig. 21 | [theories/demo/int.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/int.v) | [expr](https://ccyip.github.io/oadt/tape/oadt.demo.int.html#expr) |
+| Typing rules | Fig. 21 | [theories/demo/int.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/int.v) | [typing](https://ccyip.github.io/oadt/tape/oadt.demo.int.html#typing) |
+| Small-step relation | Fig. 21 | [theories/demo/int.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/int.v) | [step](https://ccyip.github.io/oadt/tape/oadt.demo.int.html#step) |
 
 - Examples in Section 2 (Overview) and Section 4.6 (λOADT✚ in action)
 
-| Example in paper | File | CoqDoc |
-|------------------|------|--------|
-| Oblivious trees in Fig. 3 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
-| Section, retraction and oblivious lookup function in Fig. 3 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
-| Oblivious list with the upper bound of its length in Section 4.6 | [theories/demo/demo2.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo2.v) | [demo2](https://ccyip.github.io/oadt/tape/oadt.demo.demo2.html) |
-| Oblivious tree with the upper bound of its depth in Section 4.6 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
-| Oblivious tree with the upper bound of its spine in Section 4.6 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
-| Oblivious tree with the upper bound of the number of its vertices in Section 4.6 | [theories/demo/demo3.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo3.v) | [demo3](https://ccyip.github.io/oadt/tape/oadt.demo.demo3.html) |
-| Example of map function in Section 4.6 | [theories/demo/demo4.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo4.v) | [demo4](https://ccyip.github.io/oadt/tape/oadt.demo.demo4.html) |
+| Example | Paper | File | CoqDoc |
+|---------|-------|------|--------|
+| Oblivious trees | Fig. 3 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
+| Section, retraction and oblivious lookup function | Fig. 3 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
+| Oblivious list with the upper bound of its length | Section 4.6 | [theories/demo/demo2.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo2.v) | [demo2](https://ccyip.github.io/oadt/tape/oadt.demo.demo2.html) |
+| Oblivious tree with the upper bound of its depth | Section 4.6 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
+| Oblivious tree with the upper bound of its spine | Section 4.6 | [theories/demo/demo1.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo1.v) | [demo1](https://ccyip.github.io/oadt/tape/oadt.demo.demo1.html) |
+| Oblivious tree with the upper bound of the number of its vertices | Section 4.6 | [theories/demo/demo3.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo3.v) | [demo3](https://ccyip.github.io/oadt/tape/oadt.demo.demo3.html) |
+| Example of the map function | Section 4.6 | [theories/demo/demo4.v](https://github.com/ccyip/oadt/blob/tape/theories/demo/demo4.v) | [demo4](https://ccyip.github.io/oadt/tape/oadt.demo.demo4.html) |
 
 ## Differences Between Paper and Artifact
 
@@ -280,3 +280,4 @@ What to look for:
 - In the tape branch, `demo1.v` and `demo4.v` will print out the results of
   running the sample programs, to test the small-step semantics. Check that
   these results make sense.
+
