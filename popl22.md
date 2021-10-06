@@ -101,7 +101,8 @@ build the project again, run `make clean` first.
 A few tips:
 - We recommend taking a snapshot after booting up the virtual machine. If
   anything happens, one can easily revert back to the inital state.
-- You may want to set the screen resolution first.
+- You may want to set the screen resolution first. Click the top-right corner and
+  select `Settings`. Resolution options can be found under the `Display` tab.
 
 
 ### Build manually
