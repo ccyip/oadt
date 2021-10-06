@@ -106,7 +106,7 @@ we use many tactics from the hammer library to ease the automation in our proof
 scripts.
 
 Our formalization takes inspiration and ideas from the following work, though
-not directly depends on them:
+does not directly depend on them:
 - [Software Foundations](https://softwarefoundations.cis.upenn.edu/): a lot of
   our formalization is inspired by the style used in Software Foundations.
 - [The Locally Nameless
