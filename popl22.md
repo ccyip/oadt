@@ -34,10 +34,11 @@ Section (Differences Between Paper and Artifact) discusses the minor
 discrepancies between our Coq formalization and the paper due to presentation
 reasons.
 
-Section (Review the Build Logs) explains how to review the compilation output.
+Section (Review the Build Logs) explains how to read 
 
 ## Review Instructions
 
+### Review online
 This artifact can be reviewed fully online.
 - The source code for λOADT can be reviewed on the [pure
   branch](https://github.com/ccyip/oadt/tree/pure) of our repository, and λOADT✚
@@ -49,13 +50,61 @@ This artifact can be reviewed fully online.
 - We use Github Actions to automatically compile the project against different
   Coq versions. Therefore, one can easily confirm that Coq indeed accepts our
   proofs by heading to the [action page](https://github.com/ccyip/oadt/actions)
-  and checking the build logs. More specifically, the build logs of λOADT can be
-  found [here](https://github.com/ccyip/oadt/actions?query=branch%3Apure), and
-  that of λOADT✚ can be found
+  of the right branch, selecting the latest "workflow", and checking the build
+  logs. More specifically, the action page of λOADT can be found
+  [here](https://github.com/ccyip/oadt/actions?query=branch%3Apure), and that of
+  λOADT✚ can be found
   [here](https://github.com/ccyip/oadt/actions?query=branch%3Atape). We explain
   how to review these build logs in section (Review the Build Logs).
 
+### Virtual Machine
+We also provide a virtual machine (based on Debian 11 with Gnome desktop),
+available on [Zenodo](FIXME), so one can inspect our proofs interactively, with
+environment already set up. The virtual machine was tested in Oracle VirtualBox
+(6.1). To get started,
+1. Download the `oadt.ova` file from [Zenodo](FIXME).
+2. Open VirtualBox and select menu `File` then `Import Appliance`.
+3. Choose the downloaded `ova` file to import.
+4. Adjust settings such as CPU cores and RAM. Note that compiling our Coq code
+   requires more than 1.2 GB of RAM, not including RAM used by system and other
+   applications, so we suggest allocate 4 GB of RAM.
+5. Import it and boot up the system.
 
+You may need the login information to run `sudo` command:
+- User name: oadt
+- Password: oadt
+
+After launching the terminal (from the dock to the left, accessed by clicking
+the top-left corner or pressing the `Super`/`Win`/`Cmd` key), you can experiment
+with our Coq development interactively:
+```
+# Check out λOADT
+cd ~/oadt-pure
+
+# Or check out λOADT✚
+cd ~/oadt-tape
+
+# Use CoqIDE
+coqide theories/lang_oadt/metatheories.v
+
+# Use Emacs
+emacs theories/lang_oadt/metatheories.v
+
+# Use VSCode
+code theories/lang_oadt/metatheories.v
+
+```
+
+Emacs and VSCode are also accessible from the dock. The code is pre-compiled. To
+build the project again, run `make clean` first.
+
+A few tips:
+- We recommend taking a snapshot after booting up the virtual machine. If
+  anything happens, one can easily revert back to the inital state.
+- You may want to set the screen resolution first.
+
+
+### Build manually
 Alternatively, you can build our project on your own machine following the next
 section.
 
@@ -106,7 +155,7 @@ we use many tactics from the hammer library to ease the automation in our proof
 scripts.
 
 Our formalization takes inspiration and ideas from the following work, though
-does not directly depend on them:
+not directly depends on them:
 - [Software Foundations](https://softwarefoundations.cis.upenn.edu/): a lot of
   our formalization is inspired by the style used in Software Foundations.
 - [The Locally Nameless
@@ -269,6 +318,10 @@ Github Action page (See Section (Review Instructions)). Then
 2. Select a job, e.g., build (8.13, 4.11-flambda).
 3. Expand the toggle `Run coq-community/docker-coq-action@v1`, and then the
    toggle `Build project`.
+   
+When reviewing with the provided virtual machine, run `make clean` first and run
+`make` (in the pure branch) or `make DEMO=1` (in the tape branch).
+
 
 What to look for:
 - The compilation succeeds.
@@ -280,4 +333,3 @@ What to look for:
 - In the tape branch, `demo1.v` and `demo4.v` will print out the results of
   running the sample programs, to test the small-step semantics. Check that
   these results make sense.
-
