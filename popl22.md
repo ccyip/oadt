@@ -199,7 +199,7 @@ The following files appear in λOADT✚ and λOADT.
 - lang_oadt/metatheories.v: corollaries of soundness and obliviousness.
 
 These files only appear in λOADT✚.
-- lang_oadt/dec.v: a few decision procedure and a naive implementation of the
+- lang_oadt/dec.v: a few decision procedures and a naive implementation of the
   step relation. It is used for the demos.
 - demo/demo_prelude.v: auxiliary definitions, lemmas and tactics for the demos.
 - demo/int.v: extending the core calculus with primitive bounded integers. We
