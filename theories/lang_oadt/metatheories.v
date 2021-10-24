@@ -42,19 +42,28 @@ Qed.
 
 (** * Obliviousness *)
 
+(** [e1] and [e1'] are trace-indistinguishable if the traces they produce are
+pointwise indistinguishable, i.e. they always take the same number of steps, and
+each expressions they step to remain indistinguishable. This ensures that an
+attacker can not tell [e1] and [e1'] apart, even given the entire execution
+traces of them. *)
+Definition trace_indistinguishable Σ e1 e1' : Prop :=
+  forall n e2,
+    Σ ⊨ e1 -->{n} e2 ->
+    (exists e2', Σ ⊨ e1' -->{n} e2') /\
+    (forall e2', Σ ⊨ e1' -->{n} e2' -> e2 ≈ e2').
+
 (** Essentially a noninterference theorem. Indistinguishable well-typed
-expressions can always take the same steps and new expressions remain
-indistinguishable. *)
-Theorem obliviousness Σ e1 e1' e2 τ τ' n :
+expressions produce indistinguishable traces. *)
+Theorem obliviousness Σ e1 e1' τ τ' :
   Σ; e1 ▷ τ ->
   Σ; e1' ▷ τ' ->
-  Σ ⊨ e1 -->{n} e2 ->
   e1 ≈ e1' ->
-  (exists e2', Σ ⊨ e1' -->{n} e2') /\
-  (forall e2', Σ ⊨ e1' -->{n} e2' -> e2 ≈ e2').
+  trace_indistinguishable Σ e1 e1'.
 Proof.
+  unfold trace_indistinguishable.
   intros [Hd Ht1] [_ Ht1']. apply gdefs_typing_wf in Hd.
-  intros H. revert dependent e1'.
+  intros ??? H. revert dependent e1'.
   induction H; intros.
   - hauto ctrs: nsteps inv: nsteps.
   - edestruct obliviousness_step as [[??] ?]; eauto.
@@ -62,4 +71,43 @@ Proof.
     + hauto ctrs: nsteps use: preservation.
     + select (_ ⊨ _ -->{_} _) (fun H => sinvert H).
       qauto use: preservation.
+Qed.
+
+(** This is a corollary for open programs. An open (partial) program can be
+instantiated with indistinguishable expressions, and the resulting programs
+produce indistinguishable traces. As a consequence, a type-checked function does
+not leak when it is applied to concrete arguments. *)
+Corollary obliviousness_open Σ x l τ' e0 τ s s' :
+  gctx_typing Σ ->
+  Σ; ({[x:=(l, τ')]}) ⊢ e0 :{⊥} τ ->
+  x ∉ fv τ' ->
+  Σ; ∅ ⊢ s :{l} τ' ->
+  Σ; ∅ ⊢ s' :{l} τ' ->
+  s ≈ s' ->
+  trace_indistinguishable Σ <{ {x↦s}e0 }> <{ {x↦s'}e0 }>.
+Proof.
+  intros.
+  eapply obliviousness; eauto.
+
+  1-2: split; eauto;
+  eapply subst_preservation;
+  eauto using gdefs_typing_wf; fast_set_solver!!.
+
+  apply indistinguishable_subst; try reflexivity; eauto.
+Qed.
+
+(** This is another corollary. Two expressions that only differ in an oblivious
+value in it produce indistinguishable traces, meaning that an attacker can not
+infer the oblivious value by analyzing the execution trace. *)
+Corollary obliviousness_open_obliv_val Σ x l τ' e0 τ v v' :
+  gctx_typing Σ ->
+  Σ; ({[x:=(l, τ')]}) ⊢ e0 :{⊥} τ ->
+  x ∉ fv τ' ->
+  Σ; ∅ ⊢ v :{l} τ' ->
+  Σ; ∅ ⊢ v' :{l} τ' ->
+  Σ; ∅ ⊢ τ' :: *@O ->
+  val v -> val v' ->
+  trace_indistinguishable Σ <{ {x↦v}e0 }> <{ {x↦v'}e0 }>.
+Proof.
+  eauto using obliviousness_open, indistinguishable_obliv_val, gdefs_typing_wf.
 Qed.
