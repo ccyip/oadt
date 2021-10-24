@@ -4,6 +4,7 @@ theories/base.v
 theories/tactics.v
 theories/ln.v
 theories/semilattice.v
+theories/idt.v
 theories/prelude.v
 theories/lang_oadt/base.v
 theories/lang_oadt/syntax.v

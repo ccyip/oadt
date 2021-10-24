@@ -24,6 +24,7 @@ depends: [
   "coq-stdpp" {>= "1.5.0"}
   "coq-hammer-tactics" {>= "1.3.1+8.12"}
   "coq-smpl" {>= "8.12.0.1"}
+  "coq-metacoq-template" {>= "1.0~beta2+8.12"}
 ]
 
 synopsis: "Oblivious algebraic data types"
