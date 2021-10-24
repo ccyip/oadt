@@ -65,7 +65,7 @@ Inductive expr :=
 (* Tape the leakage. *)
 | ETape (e : expr)
 (* Oblivious conditional, i.e. MUX. Technically we do not need this in the
-source language, but it is a convenient mechinery for a conceptually cleaner
+source language, but it is a convenient machinery for a conceptually cleaner
 semantics. *)
 | EMux (e0 e1 e2 : expr)
 (* Runtime expressions *)
