@@ -96,10 +96,10 @@ Inductive pared : expr -> expr -> Prop :=
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
     <{ let e1 in e2 }> ==>! <{ e2'^e1' }>
-| RAppOADT X τ e1 e2 e1' :
-    Σ !! X = Some (DOADT τ e2) ->
-    e1 ==>! e1' ->
-    <{ (gvar X) e1 }> ==>! <{ e2^e1' }>
+| ROADT X τ' τ e e' :
+    Σ !! X = Some (DOADT τ' τ) ->
+    e ==>! e' ->
+    <{ (gvar X) e }> ==>! <{ τ^e' }>
 | RAppFun x τ e :
     Σ !! x = Some (DFun τ e) ->
     <{ gvar x }> ==>! <{ e }>
