@@ -29,7 +29,7 @@ Inductive ovalty : expr -> expr -> Prop :=
 (** ** Evaluation context (ℇ) *)
 (* This style is inspired by Iron Lambda. Maybe I should try other encoding
 style later. This one can be quite annoying for proof automation. *)
-(** This corresponds to _ℇ_ in Fig. 10 in the paper. *)
+(** This corresponds to ℇ in Fig. 10 in the paper. *)
 (** We define evaluation context [ℇ] as the hole-filling function. [ℇ e] fills
 the hole in [ℇ] with [e]. [ectx ℇ] asserts that [ℇ] is a well-formed
 context.
