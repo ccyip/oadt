@@ -82,7 +82,7 @@ Inductive step : expr -> expr -> Prop :=
 | SProj b v1 v2 :
     val v1 -> val v2 ->
     <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
-| SFold X X' v :
+| SUnfold X X' v :
     val v ->
     <{ unfold<X> (fold <X'> v) }> -->! v
 | SFun x τ e :
