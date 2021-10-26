@@ -298,27 +298,27 @@ Ltac val_step_absurd :=
 
 (** * Obliviousness theorem *)
 
-Lemma indistinguishable_step Σ e1 e1' e2 l l' τ τ' :
+Lemma indistinguishable_step Σ e1 e1' e2 l1 l2 τ1 τ2 :
   gctx_wf Σ ->
-  Σ ⊨ e1 -->! e2 ->
-  e1 ≈ e1' ->
-  Σ; ∅ ⊢ e1 :{l} τ ->
-  Σ; ∅ ⊢ e1' :{l'} τ' ->
-  exists e2', Σ ⊨ e1' -->! e2'.
+  Σ ⊨ e1 -->! e1' ->
+  e1 ≈ e2 ->
+  Σ; ∅ ⊢ e1 :{l1} τ1 ->
+  Σ; ∅ ⊢ e2 :{l2} τ2 ->
+  exists e2', Σ ⊨ e2 -->! e2'.
 Proof.
   qauto use: progress_weak solve: val_step_absurd.
 Qed.
 
 Lemma indistinguishable_deterministic Σ e1 e1' e2 e2' :
   gctx_wf Σ ->
-  Σ ⊨ e1 -->! e2 ->
-  Σ ⊨ e1' -->! e2' ->
-  e1 ≈ e1' ->
-  ((exists τ τ' l l', Σ; ∅ ⊢ e1 :{l} τ /\ Σ; ∅ ⊢ e1' :{l'} τ') \/
-   (exists κ κ', Σ; ∅ ⊢ e1 :: κ /\ Σ; ∅ ⊢ e1' :: κ')) ->
-  e2 ≈ e2'.
+  Σ ⊨ e1 -->! e1' ->
+  Σ ⊨ e2 -->! e2' ->
+  e1 ≈ e2 ->
+  ((exists τ1 τ2 l1 l2, Σ; ∅ ⊢ e1 :{l1} τ1 /\ Σ; ∅ ⊢ e2 :{l2} τ2) \/
+   (exists κ1 κ2, Σ; ∅ ⊢ e1 :: κ1 /\ Σ; ∅ ⊢ e2 :: κ2)) ->
+  e1' ≈ e2'.
 Proof.
-  intros Hwf H. revert e1' e2'.
+  intros Hwf H. revert e2 e2'.
   induction H; intros;
     repeat ectx_inv; simplify_eq;
       repeat
@@ -363,14 +363,14 @@ theorem. Two indistinguishable well-typed expressions always step to
 indistinguishable new expressions, or they both can not take any more step. It
 is important that if one of them takes step, another one also takes step.
 Otherwise the adversaries can distinguish them by this mismatched behavior. *)
-Corollary obliviousness_step Σ e1 e1' e2 l l' τ τ' :
+Corollary obliviousness_step Σ e1 e1' e2 l1 l2 τ1 τ2 :
   gctx_wf Σ ->
-  Σ ⊨ e1 -->! e2 ->
-  e1 ≈ e1' ->
-  Σ; ∅ ⊢ e1 :{l} τ ->
-  Σ; ∅ ⊢ e1' :{l'} τ' ->
-  (exists e2', Σ ⊨ e1' -->! e2') /\
-  (forall e2', Σ ⊨ e1' -->! e2' -> e2 ≈ e2').
+  Σ ⊨ e1 -->! e1' ->
+  e1 ≈ e2 ->
+  Σ; ∅ ⊢ e1 :{l1} τ1 ->
+  Σ; ∅ ⊢ e2 :{l2} τ2 ->
+  (exists e2', Σ ⊨ e2 -->! e2') /\
+  (forall e2', Σ ⊨ e2 -->! e2' -> e1' ≈ e2').
 Proof.
   hauto use: indistinguishable_step, indistinguishable_deterministic.
 Qed.

@@ -45,16 +45,16 @@ Qed.
 (** Essentially a noninterference theorem. Indistinguishable well-typed
 expressions can always take the same steps and new expressions remain
 indistinguishable. *)
-Theorem obliviousness Σ e1 e1' e2 τ τ' n :
-  Σ; e1 ▷ τ ->
-  Σ; e1' ▷ τ' ->
-  Σ ⊨ e1 -->{n} e2 ->
-  e1 ≈ e1' ->
-  (exists e2', Σ ⊨ e1' -->{n} e2') /\
-  (forall e2', Σ ⊨ e1' -->{n} e2' -> e2 ≈ e2').
+Theorem obliviousness Σ e1 e1' e2 τ1 τ2 n :
+  Σ; e1 ▷ τ1 ->
+  Σ; e2 ▷ τ2 ->
+  Σ ⊨ e1 -->{n} e1' ->
+  e1 ≈ e2 ->
+  (exists e2', Σ ⊨ e2 -->{n} e2') /\
+  (forall e2', Σ ⊨ e2 -->{n} e2' -> e1' ≈ e2').
 Proof.
   intros [Hd Ht1] [_ Ht1']. apply gdefs_typing_wf in Hd.
-  intros H. revert dependent e1'.
+  intros H. revert dependent e2.
   induction H; intros.
   - hauto ctrs: nsteps inv: nsteps.
   - edestruct obliviousness_step as [[??] ?]; eauto.

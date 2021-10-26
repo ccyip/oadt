@@ -662,10 +662,10 @@ Inductive pared : expr -> expr -> Prop :=
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
     lc τ ->
     <{ (\:{l}τ => e2) e1 }> ==>! <{ e2'^e1' }>
-| RTApp X τ e1 e2 e1' :
-    Σ !! X = Some (DOADT τ e2) ->
-    e1 ==>! e1' ->
-    <{ (gvar X) e1 }> ==>! <{ e2^e1' }>
+| ROADT X τ' τ e e' :
+    Σ !! X = Some (DOADT τ' τ) ->
+    e ==>! e' ->
+    <{ (gvar X) e }> ==>! <{ τ^e' }>
 | RLet e1 e2 e1' e2' L :
     e1 ==>! e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
