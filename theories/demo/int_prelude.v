@@ -293,7 +293,7 @@ Proof.
     simpl_cofin; simp_hyps; subst; rewrite open_close; eauto.
 Qed.
 
-Lemma pared_equiv_oadtapp X τ e1 e1' e2 :
+Lemma pared_equiv_tapp X τ e1 e1' e2 :
   Σ !! X = Some (DOADT τ e1) ->
   lc e2 ->
   <{ e1^e2 }> = e1' ->
@@ -303,7 +303,7 @@ Proof.
   repeat econstructor; eauto.
 Qed.
 
-Lemma pared_equiv_oadtapp_pi X l e1 e1' e2 τ τ' :
+Lemma pared_equiv_tapp_pi X l e1 e1' e2 τ τ' :
   Σ !! X = Some (DOADT τ e1) ->
   lc e2 ->
   lc τ' ->
@@ -378,9 +378,9 @@ Ltac typing_tac :=
   | |- _ = _ => reflexivity
   | |- _ ⊢ _ ≡ _ => reflexivity
   | |- _ ⊢ _ ≡ Π:{_}_@_, _ => symmetry
-  | |- _ ⊢ Π:{_}_@_, _ ≡ _ => eapply pared_equiv_oadtapp_pi
+  | |- _ ⊢ Π:{_}_@_, _ ≡ _ => eapply pared_equiv_tapp_pi
   | |- _ ⊢ _ ≡ _@_ => symmetry
-  | |- _ ⊢ _@_ ≡ _ => eapply pared_equiv_oadtapp
+  | |- _ ⊢ _@_ ≡ _ => eapply pared_equiv_tapp
   | |- forall _, _ ∉ _ -> _ => simpl_cofin || simpl_cofin (∅ : aset)
   | |- lc _ => solve [ repeat econstructor; eauto | eauto 10 with lc ]
   | |- exists _, _ => repeat esplit

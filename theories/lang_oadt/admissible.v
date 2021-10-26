@@ -368,7 +368,7 @@ Ltac typing_intro_ :=
 
 Ltac kinding_intro_ :=
   lazymatch goal with
-  | |- _; _ ⊢ gvar _ :: _ => eapply KVarADT
+  | |- _; _ ⊢ gvar _ :: _ => eapply KGVar
   | |- _; _ ⊢ 𝟙 :: _ => eapply KUnit
   | |- _; _ ⊢ 𝔹{_} :: _ => eapply KBool
   | |- _; _ ⊢ Π:{_}_, _ :: _ => eapply KPi_intro

@@ -420,7 +420,7 @@ since they are "encrypted" values. *)
     Γ ⊢ e :{l} τ
 
 with kinding : tctx -> expr -> kind -> Prop :=
-| KVarADT Γ X τ :
+| KGVar Γ X τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ gvar X :: *@P
 | KUnit Γ : Γ ⊢ 𝟙 :: *@A
@@ -497,14 +497,14 @@ Reserved Notation "Σ '⊢₁' D" (at level 40,
                                D constr at level 0).
 
 Inductive gdef_typing : gctx -> gdef -> Prop :=
-| TADT Σ τ :
+| DTADT Σ τ :
     Σ; ∅ ⊢ τ :: *@P ->
     Σ ⊢₁ (DADT τ)
-| TOADT Σ τ e L :
+| DTOADT Σ τ e L :
     Σ; ∅ ⊢ τ :: *@P ->
     (forall x, x ∉ L -> Σ; ({[x:=(⊥, τ)]}) ⊢ e^x :: *@O) ->
     Σ ⊢₁ (DOADT τ e)
-| TFun Σ l τ e κ :
+| DTFun Σ l τ e κ :
     Σ; ∅ ⊢ τ :: κ ->
     Σ; ∅ ⊢ e :{l} τ ->
     Σ ⊢₁ (DFun (l, τ) e)
