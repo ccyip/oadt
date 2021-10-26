@@ -200,6 +200,7 @@ Proof.
   - select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
 Qed.
 
+(** The next two theorems correspond to Theorem 3.1 (Progress) in the paper. *)
 Theorem progress τ e :
   Σ; ∅ ⊢ e : τ ->
   val e \/ exists e', Σ ⊨ e -->! e'.

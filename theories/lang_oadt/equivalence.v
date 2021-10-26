@@ -329,7 +329,7 @@ Set Default Proof Using "Type".
 Notation "e '⇛' e'" := (Σ ⊢ e ⇛ e')
                             (at level 40,
                              e' constr at level 0).
-Notation "e '⇛**' e'" := (Σ ⊢ e ⇛** e')
+Notation "e '⇛*' e'" := (Σ ⊢ e ⇛* e')
                             (at level 40,
                              e' custom oadt at level 99).
 Notation "e ≡ e'" := (Σ ⊢ e ≡ e').

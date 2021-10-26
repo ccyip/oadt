@@ -113,7 +113,7 @@ Inductive pared : expr -> expr -> Prop :=
 | RFold X X' e e' :
     e ⇛ e' ->
     <{ unfold<X> (fold<X'> e) }> ⇛ e'
-| RIte b e1 e2 e1' e2' :
+| RIf b e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ if b then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
@@ -186,7 +186,7 @@ not needed because they are not involved in type-level computation. *)
     e ⇛ e' ->
     τ ⇛ τ' ->
     <{ inj{l}@b<τ> e }> ⇛ <{ inj{l}@b<τ'> e' }>
-| RCgrIte l e0 e1 e2 e0' e1' e2' :
+| RCgrIf l e0 e1 e2 e0' e1' e2' :
     e0 ⇛ e0' ->
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
@@ -204,7 +204,7 @@ not needed because they are not involved in type-level computation. *)
 where "e1 '⇛' e2" := (pared e1 e2)
 .
 
-Notation "e '⇛**' e'" := (rtc pared e e')
+Notation "e '⇛*' e'" := (rtc pared e e')
                             (at level 40,
                              e' custom oadt at level 99).
 
@@ -230,7 +230,7 @@ where "e ≡ e'" := (pared_equiv e e')
 
 (** This is equivalent to [pared_equiv]. *)
 Definition pared_equiv_join (e1 e2 : expr) : Prop :=
-  exists e, e1 ⇛** e /\ e2 ⇛** e.
+  exists e, e1 ⇛* e /\ e2 ⇛* e.
 
 (** ** Typing and kinding *)
 (** They are mutually defined. *)
@@ -458,7 +458,7 @@ Notation "Σ '⊢' e '⇛' e'" := (pared Σ e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).
-Notation "Σ '⊢' e '⇛**' e'" := (rtc (pared Σ) e e')
+Notation "Σ '⊢' e '⇛*' e'" := (rtc (pared Σ) e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).

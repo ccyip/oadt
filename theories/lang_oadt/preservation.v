@@ -348,7 +348,7 @@ Qed.
 
 (** * Other lemmas *)
 
-(** Types of well-typed expressions are well-kinded *)
+(** Types of well-typed expressions are well-kinded. *)
 (** This corresponds to Lemma 3.4 (Regularity) in the paper. *)
 Lemma regularity Σ Γ e τ :
   gctx_wf Σ ->
