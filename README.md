@@ -9,8 +9,10 @@
 [doc-badge]: https://img.shields.io/badge/docs-coqdoc-blue.svg
 [doc-link]: https://ccyip.github.io/oadt
 
-This is the Coq formalization of the core calculus for oblivious algebraic data
-types.
+This is the Coq formalization of POPL22 paper _Oblivious Algebraic Data Types_,
+a language for writing secure computation with recursive data types whose
+structures are protected. Specifically, this branch formalizes the core calculus
+λOADT from the paper.
 
 [The coqdoc documentation](https://ccyip.github.io/oadt)
 

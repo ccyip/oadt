@@ -42,6 +42,7 @@ Qed.
 
 (** * Obliviousness *)
 
+(** This corresponds to Theorem 3.7 (Obliviousness) in the paper. *)
 (** Essentially a noninterference theorem. Indistinguishable well-typed
 expressions can always take the same steps and new expressions remain
 indistinguishable. *)

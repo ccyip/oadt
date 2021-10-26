@@ -21,7 +21,7 @@ Coercion EFVar : atom >-> expr.
 
 Lemma pared_obliv_preservation_inv Σ Γ τ τ' κ :
   gctx_wf Σ ->
-  Σ ⊢ τ ==>! τ' ->
+  Σ ⊢ τ ⇛ τ' ->
   Σ; Γ ⊢ τ :: κ ->
   Σ; Γ ⊢ τ' :: *@O ->
   Σ; Γ ⊢ τ :: *@O.
@@ -41,6 +41,7 @@ Proof.
   all : fast_set_solver!!.
 Qed.
 
+(** This corresponds to Lemma 3.10 in the paper. *)
 Lemma pared_equiv_obliv_preservation Σ Γ τ τ' κ :
   gctx_wf Σ ->
   Σ ⊢ τ ≡ τ' ->
@@ -228,6 +229,7 @@ Ltac apply_canonical_form :=
 (** [indistinguishable_obliv_val] and [indistinguishable_val_type] are two of
 the most important lemmas. *)
 
+(** This corresponds to Lemma 3.8 in the paper. *)
 Lemma indistinguishable_obliv_val Σ Γ v v' τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ v : τ ->
@@ -268,6 +270,7 @@ Proof.
     eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
+(** This corresponds to Lemma 3.9 in the paper. *)
 Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' τ τ' :
   gctx_wf Σ ->
   Σ; Γ ⊢ v : τ ->
@@ -389,15 +392,6 @@ Proof.
       (* Solve other less trivial cases *)
       try qauto rew: off use: indistinguishable_open solve: reflexivity.
 
-  (* Step from oblivious case to mux *)
-  - repeat
-      match goal with
-      | H : ovalty ?v _ |- _ => head_constructor v; sinvert H
-      end.
-    econstructor; eauto using indistinguishable;
-      case_splitting;
-      eauto using indistinguishable_open, indistinguishable_ovalty.
-
   (* Step from oblivious injection to boxed injection *)
   - match goal with
     | |- <{ [inj@_< ?ω1 > _] }> ≈ <{ [inj@_< ?ω2 > _] }> =>
@@ -410,6 +404,14 @@ Proof.
   - case_splitting;
       eauto using indistinguishable_obliv_val, indistinguishable_val_type.
 
+  (* Step from oblivious case to mux *)
+  - repeat
+      match goal with
+      | H : ovalty ?v _ |- _ => head_constructor v; sinvert H
+      end.
+    econstructor; eauto using indistinguishable;
+      case_splitting;
+      eauto using indistinguishable_open, indistinguishable_ovalty.
 Qed.
 
 (** The one-step obliviousness theorem, which is essentially a noninterference

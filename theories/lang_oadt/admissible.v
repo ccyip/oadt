@@ -333,7 +333,7 @@ constructors. *)
 Ltac typing_intro_ Σ T :=
   lazymatch T with
   | Σ; _ ⊢ fvar _ : _ => eapply TFVar
-  | Σ; _ ⊢ gvar _ : _ => eapply TGVar
+  | Σ; _ ⊢ gvar _ : _ => eapply TFun
   | Σ; _ ⊢ \:_ => _ : _ => eapply TAbs_intro
   | Σ; _ ⊢ let _ in _ : _ => eapply TLet_intro
   | Σ; _ ⊢ _ _ : _ => eapply TApp
@@ -348,7 +348,7 @@ Ltac typing_intro_ Σ T :=
   | Σ; _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
   | Σ; _ ⊢ fold<_> _ : _ => eapply TFold
   | Σ; _ ⊢ unfold<_> _ : _ => eapply TUnfold
-  | Σ; _ ⊢ if _ then _ else _ : _ => eapply TIte
+  | Σ; _ ⊢ if _ then _ else _ : _ => eapply TIf
   | Σ; _ ⊢ case _ of _ | _ : _ => eapply TCase_intro
   | Σ; _ ⊢ [_] : _ => eapply TBoxedLit
   | Σ; _ ⊢ [inj@_<_> _] : _ => eapply TBoxedInj
@@ -357,15 +357,15 @@ Ltac typing_intro_ Σ T :=
 
 Ltac kinding_intro_ Σ T :=
   lazymatch T with
-  | Σ; _ ⊢ gvar _ :: _ => eapply KVarADT
+  | Σ; _ ⊢ gvar _ :: _ => eapply KADT
   | Σ; _ ⊢ 𝟙 :: _ => eapply KUnit
   | Σ; _ ⊢ 𝔹{_} :: _ => eapply KBool
   | Σ; _ ⊢ Π:_, _ :: _ => eapply KPi_intro
-  | Σ; _ ⊢ (gvar _) _ :: _ => eapply KApp
+  | Σ; _ ⊢ (gvar _) _ :: _ => eapply KOADT
   | Σ; _ ⊢ _ * _ :: _ => eapply KProd_intro
   | Σ; _ ⊢ _ + _ :: _ => eapply KSum
   | Σ; _ ⊢ _ ~+ _ :: _ => eapply KOSum
-  | Σ; _ ⊢ if _ then _ else _ :: _ => eapply KIte
+  | Σ; _ ⊢ if _ then _ else _ :: _ => eapply KIf
   | Σ; _ ⊢ case _ of _ | _ :: _ => eapply KCase_intro
   | Σ; _ ⊢ let _ in _ :: _ => eapply KLet_intro
   | Σ; _ ⊢ ?τ :: _ => is_var τ; eapply KSub

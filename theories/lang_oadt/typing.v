@@ -10,6 +10,8 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 (** * Definitions *)
 
 (** ** Kinds (κ) *)
+(** This corresponds to the kind definition at the beginning of Section 3.3 in
+the paper. *)
 (** Essentially a kind is a security label. We do not need kind abstraction. *)
 Variant kind :=
 | KAny
@@ -83,125 +85,126 @@ Section fix_gctx.
 Context (Σ : gctx).
 
 (** ** Parallel reduction *)
-Reserved Notation "e '==>!' e'" (at level 40,
+Reserved Notation "e '⇛' e'" (at level 40,
                                  e' constr at level 0).
 
+(** This corresponds to the parallel reduction in Fig. 14 in the paper. *)
 Inductive pared : expr -> expr -> Prop :=
 | RApp τ e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
     lc τ ->
-    <{ (\:τ => e2) e1 }> ==>! <{ e2'^e1' }>
-| RLet e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ let e1 in e2 }> ==>! <{ e2'^e1' }>
+    <{ (\:τ => e2) e1 }> ⇛ <{ e2'^e1' }>
+| RFun x τ e :
+    Σ !! x = Some (DFun τ e) ->
+    <{ gvar x }> ⇛ <{ e }>
 | ROADT X τ' τ e e' :
     Σ !! X = Some (DOADT τ' τ) ->
-    e ==>! e' ->
-    <{ (gvar X) e }> ==>! <{ τ^e' }>
-| RAppFun x τ e :
-    Σ !! x = Some (DFun τ e) ->
-    <{ gvar x }> ==>! <{ e }>
+    e ⇛ e' ->
+    <{ (gvar X) e }> ⇛ <{ τ^e' }>
+| RLet e1 e2 e1' e2' L :
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ⇛ <{ e2'^e1' }>
 | RProj b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ π@b (e1, e2) }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ π@b (e1, e2) }> ⇛ <{ ite b e1' e2' }>
 | RFold X X' e e' :
-    e ==>! e' ->
-    <{ unfold<X> (fold<X'> e) }> ==>! e'
+    e ⇛ e' ->
+    <{ unfold<X> (fold<X'> e) }> ⇛ e'
 | RIte b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ if b then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ if b then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
 | RCase b τ e0 e1 e2 e0' e1' e2' L1 L2 :
-    e0 ==>! e0' ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    e0 ⇛ e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
     lc τ ->
-    <{ case inj@b<τ> e0 of e1 | e2 }> ==>! <{ ite b (e1'^e0') (e2'^e0') }>
+    <{ case inj@b<τ> e0 of e1 | e2 }> ⇛ <{ ite b (e1'^e0') (e2'^e0') }>
 (* The rules for oblivous constructs are solely for proof convenience. They are
 not needed because they are not involved in type-level computation. *)
 | RMux b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ ~if [b] then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ ~if [b] then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
+| RSec b :
+    <{ s𝔹 b }> ⇛ <{ [b] }>
+| ROInj b ω v :
+    otval ω -> oval v ->
+    <{ ~inj@b<ω> v }> ⇛ <{ [inj@b<ω> v] }>
 | ROCase b ω1 ω2 v v1 v2 e1 e2 e1' e2' L1 L2 :
     oval v ->
     ovalty v1 ω1 -> ovalty v2 ω2 ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ==>!
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ⇛
       <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>
-| RSec b :
-    <{ s𝔹 b }> ==>! <{ [b] }>
-| ROInj b ω v :
-    otval ω -> oval v ->
-    <{ ~inj@b<ω> v }> ==>! <{ [inj@b<ω> v] }>
 (* Congruence rules *)
 | RCgrProd τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 * τ2 }> ==>! <{ τ1' * τ2' }>
+    τ1 ⇛ τ1' ->
+    τ2 ⇛ τ2' ->
+    <{ τ1 * τ2 }> ⇛ <{ τ1' * τ2' }>
 | RCgrSum l τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 +{l} τ2 }> ==>! <{ τ1' +{l} τ2' }>
+    τ1 ⇛ τ1' ->
+    τ2 ⇛ τ2' ->
+    <{ τ1 +{l} τ2 }> ⇛ <{ τ1' +{l} τ2' }>
 | RCgrPi τ1 τ2 τ1' τ2' L :
-    τ1 ==>! τ1' ->
-    (forall x, x ∉ L -> <{ τ2^x }> ==>! <{ τ2'^x }>) ->
-    <{ Π:τ1, τ2 }> ==>! <{ Π:τ1', τ2' }>
+    τ1 ⇛ τ1' ->
+    (forall x, x ∉ L -> <{ τ2^x }> ⇛ <{ τ2'^x }>) ->
+    <{ Π:τ1, τ2 }> ⇛ <{ Π:τ1', τ2' }>
 | RCgrAbs τ e τ' e' L :
-    τ ==>! τ' ->
-    (forall x, x ∉ L -> <{ e^x }> ==>! <{ e'^x }>) ->
-    <{ \:τ => e }> ==>! <{ \:τ' => e' }>
+    τ ⇛ τ' ->
+    (forall x, x ∉ L -> <{ e^x }> ⇛ <{ e'^x }>) ->
+    <{ \:τ => e }> ⇛ <{ \:τ' => e' }>
 | RCgrApp e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ e1 e2 }> ==>! <{ e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ e1 e2 }> ⇛ <{ e1' e2' }>
 | RCgrLet e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ let e1 in e2 }> ==>! <{ let e1' in e2' }>
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ⇛ <{ let e1' in e2' }>
 | RCgrSec e e' :
-    e ==>! e' ->
-    <{ s𝔹 e }> ==>! <{ s𝔹 e' }>
+    e ⇛ e' ->
+    <{ s𝔹 e }> ⇛ <{ s𝔹 e' }>
 | RCgrProj b e e' :
-    e ==>! e' ->
-    <{ π@b e }> ==>! <{ π@b e' }>
+    e ⇛ e' ->
+    <{ π@b e }> ⇛ <{ π@b e' }>
 | RCgrFold X e e' :
-    e ==>! e' ->
-    <{ fold<X> e }> ==>! <{ fold<X> e' }>
+    e ⇛ e' ->
+    <{ fold<X> e }> ⇛ <{ fold<X> e' }>
 | RCgrUnfold X e e' :
-    e ==>! e' ->
-    <{ unfold<X> e }> ==>! <{ unfold<X> e' }>
+    e ⇛ e' ->
+    <{ unfold<X> e }> ⇛ <{ unfold<X> e' }>
 | RCgrPair e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ (e1, e2) }> ==>! <{ (e1', e2') }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ (e1, e2) }> ⇛ <{ (e1', e2') }>
 | RCgrInj l b τ e τ' e' :
-    e ==>! e' ->
-    τ ==>! τ' ->
-    <{ inj{l}@b<τ> e }> ==>! <{ inj{l}@b<τ'> e' }>
+    e ⇛ e' ->
+    τ ⇛ τ' ->
+    <{ inj{l}@b<τ> e }> ⇛ <{ inj{l}@b<τ'> e' }>
 | RCgrIte l e0 e1 e2 e0' e1' e2' :
-    e0 ==>! e0' ->
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ if{l} e0 then e1 else e2 }> ==>! <{ if{l} e0' then e1' else e2' }>
+    e0 ⇛ e0' ->
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ if{l} e0 then e1 else e2 }> ⇛ <{ if{l} e0' then e1' else e2' }>
 | RCgrCase l e0 e1 e2 e0' e1' e2' L1 L2 :
-    e0 ==>! e0' ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ case{l} e0 of e1 | e2 }> ==>! <{ case{l} e0' of e1' | e2' }>
+    e0 ⇛ e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ case{l} e0 of e1 | e2 }> ⇛ <{ case{l} e0' of e1' | e2' }>
 (* Reflexive rule *)
 | RRefl e :
     lc e ->
-    e ==>! e
+    e ⇛ e
 
-where "e1 '==>!' e2" := (pared e1 e2)
+where "e1 '⇛' e2" := (pared e1 e2)
 .
 
-Notation "e '==>*' e'" := (rtc pared e e')
+Notation "e '⇛**' e'" := (rtc pared e e')
                             (at level 40,
                              e' custom oadt at level 99).
 
@@ -214,11 +217,11 @@ most cases. *)
 Inductive pared_equiv : expr -> expr -> Prop :=
 | QRRefl e : e ≡ e
 | QRRedL e1 e1' e2 :
-    e1 ==>! e1' ->
+    e1 ⇛ e1' ->
     e1' ≡ e2 ->
     e1 ≡ e2
 | QRRedR e1 e2 e2' :
-    e2 ==>! e2' ->
+    e2 ⇛ e2' ->
     e1 ≡ e2' ->
     e1 ≡ e2
 
@@ -227,7 +230,7 @@ where "e ≡ e'" := (pared_equiv e e')
 
 (** This is equivalent to [pared_equiv]. *)
 Definition pared_equiv_join (e1 e2 : expr) : Prop :=
-  exists e, e1 ==>* e /\ e2 ==>* e.
+  exists e, e1 ⇛** e /\ e2 ⇛** e.
 
 (** ** Typing and kinding *)
 (** They are mutually defined. *)
@@ -238,12 +241,15 @@ Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
+(** This corresponds to the typing relation in Fig. 13 in the paper. *)
 Inductive typing : tctx -> expr -> expr -> Prop :=
 | TFVar Γ x τ κ :
     Γ !! x = Some τ ->
     Γ ⊢ τ :: κ ->
     Γ ⊢ fvar x : τ
-| TGVar Γ x τ e :
+| TUnit Γ : Γ ⊢ () : 𝟙
+| TLit Γ b : Γ ⊢ lit b : 𝔹
+| TFun Γ x τ e :
     Σ !! x = Some (DFun τ e) ->
     Γ ⊢ gvar x : τ
 | TAbs Γ e τ1 τ2 κ L :
@@ -258,43 +264,6 @@ Inductive typing : tctx -> expr -> expr -> Prop :=
     Γ ⊢ e1 : (Π:τ2, τ1) ->
     Γ ⊢ e2 : τ2 ->
     Γ ⊢ e1 e2 : τ1^e2
-| TUnit Γ : Γ ⊢ () : 𝟙
-| TLit Γ b : Γ ⊢ lit b : 𝔹
-| TSec Γ e :
-    Γ ⊢ e : 𝔹 ->
-    Γ ⊢ s𝔹 e : ~𝔹
-| TIte Γ e0 e1 e2 τ κ :
-    Γ ⊢ e0 : 𝔹 ->
-    Γ ⊢ e1 : τ^(lit true) ->
-    Γ ⊢ e2 : τ^(lit false) ->
-    Γ ⊢ τ^e0 :: κ ->
-    Γ ⊢ if e0 then e1 else e2 : τ^e0
-| TMux Γ e0 e1 e2 τ :
-    Γ ⊢ e0 : ~𝔹 ->
-    Γ ⊢ e1 : τ ->
-    Γ ⊢ e2 : τ ->
-    Γ ⊢ τ :: *@O ->
-    Γ ⊢ ~if e0 then e1 else e2 : τ
-| TInj Γ b e τ1 τ2 κ :
-    Γ ⊢ e : ite b τ1 τ2 ->
-    Γ ⊢ τ1 + τ2 :: κ ->
-    Γ ⊢ inj@b<τ1 + τ2> e : τ1 + τ2
-| TOInj Γ b e τ1 τ2 :
-    Γ ⊢ e : ite b τ1 τ2 ->
-    Γ ⊢ τ1 ~+ τ2 :: *@O ->
-    Γ ⊢ ~inj@b<τ1 ~+ τ2> e : τ1 ~+ τ2
-| TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
-    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ^(inl<τ1 + τ2> x)) ->
-    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ^(inr<τ1 + τ2> x)) ->
-    Γ ⊢ e0 : τ1 + τ2 ->
-    Γ ⊢ τ^e0 :: κ ->
-    Γ ⊢ case e0 of e1 | e2 : τ^e0
-| TOCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
-    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
-    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
-    Γ ⊢ e0 : τ1 ~+ τ2 ->
-    Γ ⊢ τ :: *@O ->
-    Γ ⊢ ~case e0 of e1 | e2 : τ
 | TPair Γ e1 e2 τ1 τ2 :
     Γ ⊢ e1 : τ1 ->
     Γ ⊢ e2 : τ2 ->
@@ -302,6 +271,22 @@ Inductive typing : tctx -> expr -> expr -> Prop :=
 | TProj Γ b e τ1 τ2 :
     Γ ⊢ e : τ1 * τ2 ->
     Γ ⊢ π@b e : ite b τ1 τ2
+| TInj Γ b e τ1 τ2 κ :
+    Γ ⊢ e : ite b τ1 τ2 ->
+    Γ ⊢ τ1 + τ2 :: κ ->
+    Γ ⊢ inj@b<τ1 + τ2> e : τ1 + τ2
+| TIf Γ e0 e1 e2 τ κ :
+    Γ ⊢ e0 : 𝔹 ->
+    Γ ⊢ e1 : τ^(lit true) ->
+    Γ ⊢ e2 : τ^(lit false) ->
+    Γ ⊢ τ^e0 :: κ ->
+    Γ ⊢ if e0 then e1 else e2 : τ^e0
+| TCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ^(inl<τ1 + τ2> x)) ->
+    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ^(inr<τ1 + τ2> x)) ->
+    Γ ⊢ e0 : τ1 + τ2 ->
+    Γ ⊢ τ^e0 :: κ ->
+    Γ ⊢ case e0 of e1 | e2 : τ^e0
 | TFold Γ X e τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e : τ ->
@@ -310,6 +295,25 @@ Inductive typing : tctx -> expr -> expr -> Prop :=
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e : gvar X ->
     Γ ⊢ unfold<X> e : τ
+| TSec Γ e :
+    Γ ⊢ e : 𝔹 ->
+    Γ ⊢ s𝔹 e : ~𝔹
+| TMux Γ e0 e1 e2 τ :
+    Γ ⊢ e0 : ~𝔹 ->
+    Γ ⊢ e1 : τ ->
+    Γ ⊢ e2 : τ ->
+    Γ ⊢ τ :: *@O ->
+    Γ ⊢ ~if e0 then e1 else e2 : τ
+| TOInj Γ b e τ1 τ2 :
+    Γ ⊢ e : ite b τ1 τ2 ->
+    Γ ⊢ τ1 ~+ τ2 :: *@O ->
+    Γ ⊢ ~inj@b<τ1 ~+ τ2> e : τ1 ~+ τ2
+| TOCase Γ e0 e1 e2 τ1 τ2 τ L1 L2 :
+    (forall x, x ∉ L1 -> <[x:=τ1]>Γ ⊢ e1^x : τ) ->
+    (forall x, x ∉ L2 -> <[x:=τ2]>Γ ⊢ e2^x : τ) ->
+    Γ ⊢ e0 : τ1 ~+ τ2 ->
+    Γ ⊢ τ :: *@O ->
+    Γ ⊢ ~case e0 of e1 | e2 : τ
 (* Typing for runtime expressions is for metatheories. These expressions do not
 appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
@@ -324,8 +328,9 @@ since they are "encrypted" values. *)
     τ' ≡ τ ->
     Γ ⊢ e : τ
 
+(** This corresponds to the kinding relation in Fig. 12 in the paper. *)
 with kinding : tctx -> expr -> kind -> Prop :=
-| KVarADT Γ X τ :
+| KADT Γ X τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ gvar X :: *@P
 | KUnit Γ : Γ ⊢ 𝟙 :: *@A
@@ -334,10 +339,6 @@ with kinding : tctx -> expr -> kind -> Prop :=
     (forall x, x ∉ L -> <[x:=τ1]>Γ ⊢ τ2^x :: κ2) ->
     Γ ⊢ τ1 :: κ1 ->
     Γ ⊢ (Π:τ1, τ2) :: *@M
-| KApp Γ e' e τ X :
-    Σ !! X = Some (DOADT τ e') ->
-    Γ ⊢ e : τ ->
-    Γ ⊢ (gvar X) e :: *@O
 | KProd Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
@@ -350,7 +351,11 @@ with kinding : tctx -> expr -> kind -> Prop :=
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
     Γ ⊢ τ1 ~+ τ2 :: *@O
-| KIte Γ e0 τ1 τ2 :
+| KOADT Γ e' e τ X :
+    Σ !! X = Some (DOADT τ e') ->
+    Γ ⊢ e : τ ->
+    Γ ⊢ (gvar X) e :: *@O
+| KIf Γ e0 τ1 τ2 :
     Γ ⊢ e0 : 𝔹 ->
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
@@ -399,18 +404,19 @@ Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
 Reserved Notation "Σ '⊢₁' D" (at level 40,
                                D constr at level 0).
 
+(** This corresponds to the global definition typing in Fig. 15 in the paper. *)
 Inductive gdef_typing : gctx -> gdef -> Prop :=
-| TADT Σ X τ :
-    Σ; ∅ ⊢ τ :: *@P ->
-    Σ ⊢₁ (DADT τ)
-| TOADT Σ X τ e L :
-    Σ; ∅ ⊢ τ :: *@P ->
-    (forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O) ->
-    Σ ⊢₁ (DOADT τ e)
-| TFun Σ X τ e κ :
+| DTFun Σ X τ e κ :
     Σ; ∅ ⊢ τ :: κ ->
     Σ; ∅ ⊢ e : τ ->
     Σ ⊢₁ (DFun τ e)
+| DTADT Σ X τ :
+    Σ; ∅ ⊢ τ :: *@P ->
+    Σ ⊢₁ (DADT τ)
+| DTOADT Σ X τ e L :
+    Σ; ∅ ⊢ τ :: *@P ->
+    (forall x, x ∉ L -> Σ; ({[x:=τ]}) ⊢ e^x :: *@O) ->
+    Σ ⊢₁ (DOADT τ e)
 
 where "Σ '⊢₁' D" := (gdef_typing Σ D)
 .
@@ -448,11 +454,11 @@ Module notations.
 
 Export kind_notations.
 
-Notation "Σ '⊢' e '==>!' e'" := (pared Σ e e')
+Notation "Σ '⊢' e '⇛' e'" := (pared Σ e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).
-Notation "Σ '⊢' e '==>*' e'" := (rtc (pared Σ) e e')
+Notation "Σ '⊢' e '⇛**' e'" := (rtc (pared Σ) e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).

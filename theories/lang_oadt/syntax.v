@@ -5,7 +5,8 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 (** * Definitions *)
 
 (** ** Expressions (e, τ) *)
-(** We use locally nameless representation for binders. *)
+(** This corresponds to _expressions_ in Fig. 9 in the paper. *)
+(** Here we use locally nameless representation for binders. *)
 Inductive expr :=
 (* Locally bound variables, i.e. de Bruijn indices. *)
 | EBVar (k : nat)
@@ -13,43 +14,51 @@ Inductive expr :=
 | EFVar (x : atom)
 (* Global variables, referring to global functions, ADTs and OADTs. *)
 | EGVar (x : atom)
-(* Expressions with binders *)
-| EPi (τ1 τ2: expr)
-| EAbs (τ e : expr)
-| ELet (e1 e2 : expr)
-(* Oblivious case if the label is [high], otherwise public case *)
-| ECase (l : bool) (e0 : expr) (e1 : expr) (e2 : expr)
-(* Types *)
+(* Simple types *)
 | EUnitT
 (* Oblivious Boolean if the label is [high], otherwise public Boolean *)
 | EBool (l : bool)
 | EProd (τ1 τ2 : expr)
 (* Oblivious sum if the label is [high], otherwise public sum *)
 | ESum (l : bool) (τ1 τ2 : expr)
-(* Other expressions *)
-| EApp (e1 e2 : expr)
+(* Dependent function type *)
+| EPi (τ1 τ2: expr)
+(* Unit and Boolean values *)
 | EUnitV
 | ELit (b : bool)
-| ESec (e : expr)
-(* Oblivious condition (i.e. MUX) if the label is [high], otherwise public
-condition *)
+(* Function abstraction *)
+| EAbs (τ e : expr)
+(* Expression and type application *)
+| EApp (e1 e2 : expr)
+(* Let binding *)
+| ELet (e1 e2 : expr)
+(* Oblivious conditional (i.e. MUX) if the label is [high], otherwise public
+conditional *)
 | EIte (l : bool) (e0 e1 e2 : expr)
+(* Pair and projection *)
 | EPair (e1 e2 : expr)
 | EProj (b : bool) (e : expr)
 (* Oblivious injection if the label is [high], otherwise public injection *)
 | EInj (l : bool) (b : bool) (τ e : expr)
+(* Oblivious sum elimination if the label is [high], otherwise public sum
+elimination *)
+| ECase (l : bool) (e0 : expr) (e1 : expr) (e2 : expr)
+(* Iso-recursive type introduction and elimination *)
 | EFold (X : atom) (e : expr)
 | EUnfold (X : atom) (e : expr)
-(* Runtime expressions *)
+(* Section for Boolean *)
+| ESec (e : expr)
+(* Runtime boxed values *)
 | EBoxedLit (b : bool)
 | EBoxedInj (b : bool) (τ e : expr)
 .
 
 (** ** Global definitions (D) *)
+(** This corresponds to _global definitions_ in Fig. 9 in the paper. *)
 Variant gdef :=
 | DADT (e : expr)
-| DOADT (τ e : expr)
 | DFun (τ e : expr)
+| DOADT (τ e : expr)
 .
 
 (** ** Global context (Σ) *)
@@ -274,6 +283,7 @@ Coercion EFVar : atom >-> expr.
 
 (** ** Indistinguishability *)
 
+(** This corresponds to Definition 3.6 (Indistinguishability) in the paper. *)
 (** Instead of formalizing an observe function and considering two expressions
 indistinguishable if they are observed the same, we directly formalize the
 indistinguishability relation as the equivalence induced by the observe
@@ -416,6 +426,7 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
 where "'{' x '↦' s '}' e" := (subst x s e) (in custom oadt).
 
 (** ** Oblivious type values (ω) *)
+(** This corresponds to _oblivious type values_ in Fig. 9 in the paper. *)
 Inductive otval : expr -> Prop :=
 | OVUnitT : otval <{ 𝟙 }>
 | OVOBool : otval <{ ~𝔹 }>
@@ -424,6 +435,7 @@ Inductive otval : expr -> Prop :=
 .
 
 (** ** Oblivious values (v) *)
+(** This corresponds to _oblivious values_ in Fig. 9 in the paper. *)
 Inductive oval : expr -> Prop :=
 | OVUnitV : oval <{ () }>
 | OVBoxedLit b : oval <{ [b] }>
@@ -432,6 +444,7 @@ Inductive oval : expr -> Prop :=
 .
 
 (** ** Values (v) *)
+(** This corresponds to _values_ in Fig. 9 in the paper. *)
 Inductive val : expr -> Prop :=
 | VUnitV : val <{ () }>
 | VLit b : val <{ lit b }>
