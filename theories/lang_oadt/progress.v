@@ -29,7 +29,7 @@ Set Default Proof Using "Hwf".
 (** * Lemmas about obliviousness *)
 
 Lemma pared_obliv_preservation_inv Γ τ τ' κ :
-  Σ ⊢ τ ==>! τ' ->
+  Σ ⊢ τ ⇛ τ' ->
   Σ; Γ ⊢ τ :: κ ->
   Σ; Γ ⊢ τ' :: *@O ->
   Σ; Γ ⊢ τ :: *@O.

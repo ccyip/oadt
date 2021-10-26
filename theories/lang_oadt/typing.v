@@ -82,192 +82,192 @@ Section fix_gctx.
 Context (Σ : gctx).
 
 (** ** Parallel reduction *)
-Reserved Notation "e '==>!' e'" (at level 40,
+Reserved Notation "e '⇛' e'" (at level 40,
                                  e' constr at level 0).
 
 Inductive pared : expr -> expr -> Prop :=
 | RApp l τ e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
     lc τ ->
-    <{ (\:{l}τ => e2) e1 }> ==>! <{ e2'^e1' }>
+    <{ (\:{l}τ => e2) e1 }> ⇛ <{ e2'^e1' }>
 | RTApp X τ' τ e e' :
     Σ !! X = Some (DOADT τ' τ) ->
-    e ==>! e' ->
-    <{ X@e }> ==>! <{ τ^e' }>
+    e ⇛ e' ->
+    <{ X@e }> ⇛ <{ τ^e' }>
 | RLet e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ let e1 in e2 }> ==>! <{ e2'^e1' }>
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ⇛ <{ e2'^e1' }>
 | RFun x T e :
     Σ !! x = Some (DFun T e) ->
-    <{ gvar x }> ==>! <{ e }>
+    <{ gvar x }> ⇛ <{ e }>
 | RProj b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ π@b (e1, e2) }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ π@b (e1, e2) }> ⇛ <{ ite b e1' e2' }>
 | RFold X X' e e' :
-    e ==>! e' ->
-    <{ unfold<X> (fold<X'> e) }> ==>! e'
+    e ⇛ e' ->
+    <{ unfold<X> (fold<X'> e) }> ⇛ e'
 | RIte b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ if b then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ if b then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
 | RCase b τ e0 e1 e2 e0' e1' e2' L1 L2 :
-    e0 ==>! e0' ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    e0 ⇛ e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
     lc τ ->
-    <{ case inj@b<τ> e0 of e1 | e2 }> ==>! <{ ite b (e1'^e0') (e2'^e0') }>
+    <{ case inj@b<τ> e0 of e1 | e2 }> ⇛ <{ ite b (e1'^e0') (e2'^e0') }>
 (* The rules for oblivous constructs are solely for proof convenience. They are
 not needed because they are not involved in type-level computation. *)
 | RMux b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ mux [b] e1 e2 }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ mux [b] e1 e2 }> ⇛ <{ ite b e1' e2' }>
 (* This rule is needed for confluence. *)
 | ROIte b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ ~if [b] then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ ~if [b] then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
 | ROCase b ω1 ω2 v v1 v2 e1 e2 e1' e2' L1 L2 :
     oval v ->
     ovalty v1 ω1 -> ovalty v2 ω2 ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ==>!
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ⇛
       <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>
 | RSec b :
-    <{ s𝔹 b }> ==>! <{ [b] }>
+    <{ s𝔹 b }> ⇛ <{ [b] }>
 | ROInj b ω v :
     otval ω -> oval v ->
-    <{ ~inj@b<ω> v }> ==>! <{ [inj@b<ω> v] }>
+    <{ ~inj@b<ω> v }> ⇛ <{ [inj@b<ω> v] }>
 (* Unfortunately I have to spell out all the cases corresponding to [SOIte] for
 proof convenience. *)
 | ROIteApp b e1 e2 e e1' e2' e' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    e ==>! e' ->
-    <{ (~if [b] then e1 else e2) e }> ==>! <{ ~if [b] then e1' e' else e2' e' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    e ⇛ e' ->
+    <{ (~if [b] then e1 else e2) e }> ⇛ <{ ~if [b] then e1' e' else e2' e' }>
 | ROIteSec b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ s𝔹 (~if [b] then e1 else e2) }> ==>! <{ ~if [b] then s𝔹 e1' else s𝔹 e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ s𝔹 (~if [b] then e1 else e2) }> ⇛ <{ ~if [b] then s𝔹 e1' else s𝔹 e2' }>
 | ROIteIte b e1 e2 e3 e4 e1' e2' e3' e4' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    e3 ==>! e3' ->
-    e4 ==>! e4' ->
-    <{ if (~if [b] then e1 else e2) then e3 else e4 }> ==>!
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    e3 ⇛ e3' ->
+    e4 ⇛ e4' ->
+    <{ if (~if [b] then e1 else e2) then e3 else e4 }> ⇛
       <{ ~if [b] then (if e1' then e3' else e4') else (if e2' then e3' else e4') }>
 | ROIteProj b b' e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ π@b' (~if [b] then e1 else e2) }> ==>!
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ π@b' (~if [b] then e1 else e2) }> ⇛
       <{ ~if [b] then π@b' e1' else π@b' e2' }>
 | ROIteCase b e1 e2 e3 e4 e1' e2' e3' e4' L1 L2 :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    (forall x, x ∉ L1 -> <{ e3^x }> ==>! <{ e3'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e4^x }> ==>! <{ e4'^x }>) ->
-    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ==>!
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    (forall x, x ∉ L1 -> <{ e3^x }> ⇛ <{ e3'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e4^x }> ⇛ <{ e4'^x }>) ->
+    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ⇛
       <{ ~if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>
 | ROIteUnfold X b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ unfold<X> (~if [b] then e1 else e2) }> ==>!
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ unfold<X> (~if [b] then e1 else e2) }> ⇛
       <{ ~if [b] then unfold<X> e1' else unfold<X> e2' }>
 | RTapeOIte b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ tape (~if [b] then e1 else e2) }> ==>! <{ mux [b] (tape e1') (tape e2') }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ tape (~if [b] then e1 else e2) }> ⇛ <{ mux [b] (tape e1') (tape e2') }>
 | RTapePair e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
     woval e1 -> woval e2 ->
-    <{ tape (e1, e2) }> ==>! <{ (tape e1', tape e2') }>
+    <{ tape (e1, e2) }> ⇛ <{ (tape e1', tape e2') }>
 | RTapeUnitV :
-    <{ tape () }> ==>! <{ () }>
+    <{ tape () }> ⇛ <{ () }>
 | RTapeBoxedLit b :
-    <{ tape [b] }> ==>! <{ [b] }>
+    <{ tape [b] }> ⇛ <{ [b] }>
 | RTapeBoxedInj b ω v :
     otval ω -> oval v ->
-    <{ tape [inj@b<ω> v] }> ==>! <{ [inj@b<ω> v] }>
+    <{ tape [inj@b<ω> v] }> ⇛ <{ [inj@b<ω> v] }>
 (* Congruence rules *)
 | RCgrPi l τ1 τ2 τ1' τ2' L :
-    τ1 ==>! τ1' ->
-    (forall x, x ∉ L -> <{ τ2^x }> ==>! <{ τ2'^x }>) ->
-    <{ Π:{l}τ1, τ2 }> ==>! <{ Π:{l}τ1', τ2' }>
+    τ1 ⇛ τ1' ->
+    (forall x, x ∉ L -> <{ τ2^x }> ⇛ <{ τ2'^x }>) ->
+    <{ Π:{l}τ1, τ2 }> ⇛ <{ Π:{l}τ1', τ2' }>
 | RCgrAbs l τ e τ' e' L :
-    τ ==>! τ' ->
-    (forall x, x ∉ L -> <{ e^x }> ==>! <{ e'^x }>) ->
-    <{ \:{l}τ => e }> ==>! <{ \:{l}τ' => e' }>
+    τ ⇛ τ' ->
+    (forall x, x ∉ L -> <{ e^x }> ⇛ <{ e'^x }>) ->
+    <{ \:{l}τ => e }> ⇛ <{ \:{l}τ' => e' }>
 | RCgrApp e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ e1 e2 }> ==>! <{ e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ e1 e2 }> ⇛ <{ e1' e2' }>
 | RCgrTApp X e e' :
-    e ==>! e' ->
-    <{ X@e }> ==>! <{ X@e' }>
+    e ⇛ e' ->
+    <{ X@e }> ⇛ <{ X@e' }>
 | RCgrLet e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ let e1 in e2 }> ==>! <{ let e1' in e2' }>
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ⇛ <{ let e1' in e2' }>
 | RCgrSec e e' :
-    e ==>! e' ->
-    <{ s𝔹 e }> ==>! <{ s𝔹 e' }>
+    e ⇛ e' ->
+    <{ s𝔹 e }> ⇛ <{ s𝔹 e' }>
 | RCgrIte l e0 e1 e2 e0' e1' e2' :
-    e0 ==>! e0' ->
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ if{l} e0 then e1 else e2 }> ==>! <{ if{l} e0' then e1' else e2' }>
+    e0 ⇛ e0' ->
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ if{l} e0 then e1 else e2 }> ⇛ <{ if{l} e0' then e1' else e2' }>
 | RCgrProd τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 * τ2 }> ==>! <{ τ1' * τ2' }>
+    τ1 ⇛ τ1' ->
+    τ2 ⇛ τ2' ->
+    <{ τ1 * τ2 }> ⇛ <{ τ1' * τ2' }>
 | RCgrPair e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ (e1, e2) }> ==>! <{ (e1', e2') }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ (e1, e2) }> ⇛ <{ (e1', e2') }>
 | RCgrProj b e e' :
-    e ==>! e' ->
-    <{ π@b e }> ==>! <{ π@b e' }>
+    e ⇛ e' ->
+    <{ π@b e }> ⇛ <{ π@b e' }>
 | RCgrSum l τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 +{l} τ2 }> ==>! <{ τ1' +{l} τ2' }>
+    τ1 ⇛ τ1' ->
+    τ2 ⇛ τ2' ->
+    <{ τ1 +{l} τ2 }> ⇛ <{ τ1' +{l} τ2' }>
 | RCgrInj l b τ e τ' e' :
-    e ==>! e' ->
-    τ ==>! τ' ->
-    <{ inj{l}@b<τ> e }> ==>! <{ inj{l}@b<τ'> e' }>
+    e ⇛ e' ->
+    τ ⇛ τ' ->
+    <{ inj{l}@b<τ> e }> ⇛ <{ inj{l}@b<τ'> e' }>
 | RCgrCase l e0 e1 e2 e0' e1' e2' L1 L2 :
-    e0 ==>! e0' ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ case{l} e0 of e1 | e2 }> ==>! <{ case{l} e0' of e1' | e2' }>
+    e0 ⇛ e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ case{l} e0 of e1 | e2 }> ⇛ <{ case{l} e0' of e1' | e2' }>
 | RCgrFold X e e' :
-    e ==>! e' ->
-    <{ fold<X> e }> ==>! <{ fold<X> e' }>
+    e ⇛ e' ->
+    <{ fold<X> e }> ⇛ <{ fold<X> e' }>
 | RCgrUnfold X e e' :
-    e ==>! e' ->
-    <{ unfold<X> e }> ==>! <{ unfold<X> e' }>
+    e ⇛ e' ->
+    <{ unfold<X> e }> ⇛ <{ unfold<X> e' }>
 | RCgrMux e0 e1 e2 e0' e1' e2' :
-    e0 ==>! e0' ->
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ mux e0 e1 e2 }> ==>! <{ mux e0' e1' e2' }>
+    e0 ⇛ e0' ->
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ mux e0 e1 e2 }> ⇛ <{ mux e0' e1' e2' }>
 | RCgrTape e e' :
-    e ==>! e' ->
-    <{ tape e }> ==>! <{ tape e' }>
+    e ⇛ e' ->
+    <{ tape e }> ⇛ <{ tape e' }>
 (* Reflexive rule *)
 | RRefl e :
     lc e ->
-    e ==>! e
+    e ⇛ e
 
-where "e1 '==>!' e2" := (pared e1 e2)
+where "e1 '⇛' e2" := (pared e1 e2)
 .
 
-Notation "e '==>*' e'" := (rtc pared e e')
+Notation "e '⇛*' e'" := (rtc pared e e')
                             (at level 40,
                              e' custom oadt at level 99).
 
@@ -280,11 +280,11 @@ most cases. *)
 Inductive pared_equiv : expr -> expr -> Prop :=
 | QRRefl e : e ≡ e
 | QRRedL e1 e1' e2 :
-    e1 ==>! e1' ->
+    e1 ⇛ e1' ->
     e1' ≡ e2 ->
     e1 ≡ e2
 | QRRedR e1 e2 e2' :
-    e2 ==>! e2' ->
+    e2 ⇛ e2' ->
     e1 ≡ e2' ->
     e1 ≡ e2
 
@@ -293,7 +293,7 @@ where "e ≡ e'" := (pared_equiv e e')
 
 (** This is equivalent to [pared_equiv]. *)
 Definition pared_equiv_join (e1 e2 : expr) : Prop :=
-  exists e, e1 ==>* e /\ e2 ==>* e.
+  exists e, e1 ⇛* e /\ e2 ⇛* e.
 
 (** ** Typing and kinding *)
 (** They are mutually defined. *)
@@ -546,11 +546,11 @@ Module notations.
 
 Export kind_notations.
 
-Notation "Σ '⊢' e '==>!' e'" := (pared Σ e e')
+Notation "Σ '⊢' e '⇛' e'" := (pared Σ e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).
-Notation "Σ '⊢' e '==>*' e'" := (rtc (pared Σ) e e')
+Notation "Σ '⊢' e '⇛*' e'" := (rtc (pared Σ) e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).

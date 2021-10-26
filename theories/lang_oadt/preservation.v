@@ -20,9 +20,9 @@ Coercion EFVar : atom >-> expr.
 
 (** * Weakening lemmas  *)
 Lemma pared_weakening Σ e e' :
-  Σ ⊢ e ==>! e' ->
+  Σ ⊢ e ⇛ e' ->
   forall Σ', Σ ⊆ Σ' ->
-        Σ' ⊢ e ==>! e'.
+        Σ' ⊢ e ⇛ e'.
 Proof.
   induction 1; intros;
     econstructor; eauto using lookup_weaken.
@@ -479,11 +479,11 @@ Lemma pared_preservation_ Σ :
   gctx_wf Σ ->
   (forall Γ e l τ,
       Σ; Γ ⊢ e :{l} τ ->
-      forall e', Σ ⊢ e ==>! e' ->
+      forall e', Σ ⊢ e ⇛ e' ->
             Σ; Γ ⊢ e' :{l} τ) /\
   (forall Γ τ κ,
       Σ; Γ ⊢ τ :: κ ->
-      forall τ', Σ ⊢ τ ==>! τ' ->
+      forall τ', Σ ⊢ τ ⇛ τ' ->
             Σ; Γ ⊢ τ' :: κ).
 Proof.
   intros Hwf.
@@ -510,7 +510,7 @@ Proof.
                    end)];
     (* Now turn to the more interesting cases. *)
     (* Derive some equivalence for later convenience. *)
-    try select! (_ ⊢ _ ==>! _)
+    try select! (_ ⊢ _ ⇛ _)
         (fun H => dup_hyp H (fun H => apply pared_equiv_pared in H));
     (* Derive well-kindedness from typing. *)
     try apply_regularity;
@@ -520,12 +520,12 @@ Proof.
     (* Instantiate induction hypotheses. *)
     repeat
       match goal with
-      | H : forall _, _ ⊢ _ ==>! _ -> _ |- _ =>
+      | H : forall _, _ ⊢ _ ⇛ _ -> _ |- _ =>
         efeed specialize H; [
           solve [ repeat
                     (eauto;
                      lazymatch goal with
-                     | |- _ ⊢ ?e ==>! _ =>
+                     | |- _ ⊢ ?e ⇛ _ =>
                        first [ lazymatch e with
                                | <{ ~if _ then _ else _ }> =>
                                  eapply RCgrIte
@@ -654,7 +654,7 @@ Qed.
 Lemma pared_preservation Σ Γ e l e' τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ e :{l} τ ->
-  Σ ⊢ e ==>! e' ->
+  Σ ⊢ e ⇛ e' ->
   Σ; Γ ⊢ e' :{l} τ.
 Proof.
   hauto use: pared_preservation_.
@@ -663,7 +663,7 @@ Qed.
 Lemma pared_kinding_preservation Σ Γ τ τ' κ :
   gctx_wf Σ ->
   Σ; Γ ⊢ τ :: κ ->
-  Σ ⊢ τ ==>! τ' ->
+  Σ ⊢ τ ⇛ τ' ->
   Σ; Γ ⊢ τ' :: κ.
 Proof.
   hauto use: pared_preservation_.
