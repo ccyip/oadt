@@ -78,7 +78,7 @@ Proof.
   reflexivity.
 Qed.
 
-Lemma pared_equiv_ite1 τ1 τ2 :
+Lemma pared_equiv_if1 τ1 τ2 :
   lc τ1 ->
   lc τ2 ->
   Σ ⊢ if true then τ1 else τ2 ≡ τ1.
@@ -86,7 +86,7 @@ Proof.
   repeat econstructor; eauto.
 Qed.
 
-Lemma pared_equiv_ite2 τ1 τ2 :
+Lemma pared_equiv_if2 τ1 τ2 :
   lc τ1 ->
   lc τ2 ->
   Σ ⊢ if false then τ1 else τ2 ≡ τ2.
@@ -94,7 +94,7 @@ Proof.
   repeat econstructor; eauto.
 Qed.
 
-Lemma TIte_alt Γ l1 l2 l e0 e1 e2 τ1 τ2 :
+Lemma TIf_alt Γ l1 l2 l e0 e1 e2 τ1 τ2 :
   Γ ⊢ e0 :{⊥} 𝔹 ->
   Γ ⊢ e1 :{l1} τ1 ->
   Γ ⊢ e2 :{l2} τ2 ->
@@ -106,15 +106,15 @@ Proof.
   intros.
   select! (_ ⊢ _ :: _) (fun H => dup_hyp H (fun H => apply kinding_lc in H)).
   eapply TConv with (τ' := <{ (if bvar 0 then τ1 else τ2)^e0 }>);
-    [ eapply TIte | .. ];
+    [ eapply TIf | .. ];
     eauto; simpl; rewrite ?open_lc by assumption;
       econstructor; eauto using kinding, typing.
-  all : symmetry; eauto using pared_equiv_ite1, pared_equiv_ite2.
+  all : symmetry; eauto using pared_equiv_if1, pared_equiv_if2.
 Qed.
 
 (* These alternative rules can be more general, but it is more convenient to
 have simplified versions. *)
-Lemma TIte_alt_pi Γ l1 l2 l l' e0 e1 e2 τ1 τ2 τ κ:
+Lemma TIf_alt_pi Γ l1 l2 l l' e0 e1 e2 τ1 τ2 τ κ:
   Γ ⊢ e0 :{⊥} 𝔹 ->
   Γ ⊢ e1 :{l1} Π:{l'}τ1, τ ->
   Γ ⊢ e2 :{l2} Π:{l'}τ2, τ ->
@@ -127,7 +127,7 @@ Proof.
   intros.
   select! (_ ⊢ _ :: _) (fun H => dup_hyp H (fun H => apply kinding_lc in H)).
   eapply TConv with (τ' := <{ (Π:{l'}if bvar 0 then τ1 else τ2, τ)^e0 }>);
-    [ eapply TIte | .. ];
+    [ eapply TIf | .. ];
     eauto; simpl; rewrite ?open_lc by assumption; try reflexivity;
       repeat
         match goal with
@@ -296,7 +296,7 @@ Proof.
     simpl_cofin; simp_hyps; subst; rewrite open_close; eauto.
 Qed.
 
-Lemma pared_equiv_oadtapp X τ e1 e1' e2 :
+Lemma pared_equiv_oadt X τ e1 e1' e2 :
   Σ !! X = Some (DOADT τ e1) ->
   lc e2 ->
   <{ e1^e2 }> = e1' ->
@@ -306,7 +306,7 @@ Proof.
   repeat econstructor; eauto.
 Qed.
 
-Lemma pared_equiv_oadtapp_pi X l e1 e1' e2 τ τ' :
+Lemma pared_equiv_oadt_pi X l e1 e1' e2 τ τ' :
   Σ !! X = Some (DOADT τ e1) ->
   lc e2 ->
   lc τ' ->
@@ -363,14 +363,14 @@ Ltac typing_tac :=
   simpl_open;
   match goal with
   | |- _; _ ⊢ if _ then _ else _ : Π:{_}gvar _ _, ?τ' =>
-    eapply TConv; [ eapply TIte_alt_pi with (τ := τ') | .. ]
+    eapply TConv; [ eapply TIf_alt_pi with (τ := τ') | .. ]
   | |- _; _ ⊢ if _ then _ else _ : gvar _ _ =>
-    eapply TConv; [ eapply TIte_alt | .. ]
+    eapply TConv; [ eapply TIf_alt | .. ]
   | |- _; _ ⊢ case _ of _ | _ : Π:{_}gvar _ _, ?τ' =>
     eapply TConv; [ eapply TCase_alt_pi with (τ := τ') | .. ]
   | |- _; _ ⊢ case _ of _ | _ : gvar _ _ =>
     eapply TConv; [ eapply TCase_alt | .. ]
-  | |- _; _ ⊢ if _ then _ else _ : _ => eapply TIteNoDep
+  | |- _; _ ⊢ if _ then _ else _ : _ => eapply TIfNoDep
   | |- _; _ ⊢ case _ of _ | _ : _ => eapply TCaseNoDep
   | |- _; _ ⊢ _ : _ => econstructor
   | |- _; _ ⊢ _ * _ :: _ => eapply KProd_alt
@@ -382,9 +382,9 @@ Ltac typing_tac :=
   | |- _ = _ => reflexivity
   | |- _ ⊢ _ ≡ _ => reflexivity
   | |- _ ⊢ _ ≡ Π:{_}gvar _ _, _ => symmetry
-  | |- _ ⊢ Π:{_}gvar _ _, _ ≡ _ => eapply pared_equiv_oadtapp_pi
+  | |- _ ⊢ Π:{_}gvar _ _, _ ≡ _ => eapply pared_equiv_oadt_pi
   | |- _ ⊢ _ ≡ gvar _ _ => symmetry
-  | |- _ ⊢ gvar _ _ ≡ _ => eapply pared_equiv_oadtapp
+  | |- _ ⊢ gvar _ _ ≡ _ => eapply pared_equiv_oadt
   | |- forall _, _ ∉ _ -> _ => simpl_cofin || simpl_cofin (∅ : aset)
   | |- lc _ => solve [ repeat econstructor; eauto | eauto 10 with lc ]
   | |- exists _, _ => repeat esplit

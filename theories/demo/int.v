@@ -16,28 +16,29 @@ are redefined against the extensions. *)
 (** * Syntax *)
 
 (** ** Expressions (e, τ) *)
+(** This corresponds to _extended expressions_ in Fig. 21 in the paper. *)
 Inductive expr :=
 | EBVar (k : nat)
 | EFVar (x : atom)
 | EGVar (x : atom)
+| EUnitT
+| EBool (l : olabel)
+| EProd (τ1 τ2 : expr)
+| ESum (l : olabel) (τ1 τ2 : expr)
 | EPi (l : llabel) (τ1 τ2: expr)
+| EUnitV
+| ELit (b : bool)
 | EAbs (l : llabel) (τ e : expr)
 | EApp (e1 e2 : expr)
 | ELet (e1 e2 : expr)
-| EUnitT
-| EUnitV
-| EBool (l : olabel)
-| ELit (b : bool)
-| ESec (e : expr)
 | EIte (l : olabel) (e0 e1 e2 : expr)
-| EProd (τ1 τ2 : expr)
 | EPair (e1 e2 : expr)
 | EProj (b : bool) (e : expr)
-| ESum (l : olabel) (τ1 τ2 : expr)
 | EInj (l : olabel) (b : bool) (τ e : expr)
 | ECase (l : olabel) (e0 : expr) (e1 : expr) (e2 : expr)
 | EFold (X : atom) (e : expr)
 | EUnfold (X : atom) (e : expr)
+| ESec (e : expr)
 | ETape (e : expr)
 | EMux (e0 e1 e2 : expr)
 | EBoxedLit (b : bool)
@@ -61,8 +62,8 @@ Arguments lexpr_expr /.
 (** ** Global definitions (D) *)
 Variant gdef :=
 | DADT (e : expr)
-| DOADT (τ e : expr)
 | DFun (T : lexpr) (e : expr)
+| DOADT (τ e : expr)
 .
 
 (** ** Global context (Σ) *)
@@ -494,10 +495,10 @@ Variant ectx : (expr -> expr) -> Prop :=
 | CtxApp2 e1 : ectx (fun e2 => <{ e1 e2 }>)
 | CtxLet e2 : ectx (fun e1 => <{ let e1 in e2 }>)
 | CtxSec : ectx (fun e => <{ s𝔹 e }>)
-| CtxIte e1 e2 : ectx (fun e0 => <{ if e0 then e1 else e2 }>)
-| CtxOIte1 e1 e2 : ectx (fun e0 => <{ ~if e0 then e1 else e2 }>)
-| CtxOIte2 v0 e2 : wval v0 -> ectx (fun e1 => <{ ~if v0 then e1 else e2 }>)
-| CtxOIte3 v0 v1 : wval v0 -> wval v1 -> ectx (fun e2 => <{ ~if v0 then v1 else e2 }>)
+| CtxIf e1 e2 : ectx (fun e0 => <{ if e0 then e1 else e2 }>)
+| CtxOIf1 e1 e2 : ectx (fun e0 => <{ ~if e0 then e1 else e2 }>)
+| CtxOIf2 v0 e2 : wval v0 -> ectx (fun e1 => <{ ~if v0 then e1 else e2 }>)
+| CtxOIf3 v0 v1 : wval v0 -> wval v1 -> ectx (fun e2 => <{ ~if v0 then v1 else e2 }>)
 | CtxPair1 e2 : ectx (fun e1 => <{ (e1, e2) }>)
 | CtxPair2 v1 : wval v1 -> ectx (fun e2 => <{ (v1, e2) }>)
 | CtxProj b : ectx (fun e => <{ π@b e }>)
@@ -522,7 +523,7 @@ Variant ectx : (expr -> expr) -> Prop :=
 Variant lectx : (expr -> expr) -> Prop :=
 | LCtxApp v2 : wval v2 -> lectx (fun e1 => <{ e1 v2 }>)
 | LCtxSec : lectx (fun e => <{ s𝔹 e }>)
-| LCtxIte e1 e2 : lectx (fun e0 => <{ if e0 then e1 else e2 }>)
+| LCtxIf e1 e2 : lectx (fun e0 => <{ if e0 then e1 else e2 }>)
 | LCtxProj b : lectx (fun e => <{ π@b e }>)
 | LCtxCase e1 e2: lectx (fun e0 => <{ case e0 of e1 | e2 }>)
 | LCtxUnfold X : lectx (fun e => <{ unfold<X> e }>)
@@ -539,45 +540,46 @@ Context (Σ : gctx).
 
 Reserved Notation "e '-->!' e'" (at level 40).
 
+(** This corresponds to the step relation in Fig. 21 in the paper. *)
 Inductive step : expr -> expr -> Prop :=
 | SApp l τ e v :
     wval v ->
     <{ (\:{l}τ => e) v }> -->! <{ e^v }>
-| STApp X τ e v :
-    wval v ->
-    Σ !! X = Some (DOADT τ e) ->
-    <{ (gvar X) v }> -->! <{ e^v }>
-| SFun x T e :
-    Σ !! x = Some (DFun T e) ->
-    <{ gvar x }> -->! <{ e }>
 | SLet v e :
     wval v ->
     <{ let v in e }> -->! <{ e^v }>
-| SSec b :
-    <{ s𝔹 b }> -->! <{ [b] }>
-| SIte b e1 e2 :
+| SIf b e1 e2 :
     <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>
-| SProj b v1 v2 :
-    wval v1 -> wval v2 ->
-    <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
-| SOInj b ω v :
-    otval ω -> oval v ->
-    <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
 | SCase b τ v e1 e2 :
     wval v ->
     <{ case inj@b<τ> v of e1 | e2 }> -->! <{ ite b (e1^v) (e2^v) }>
+| SProj b v1 v2 :
+    wval v1 -> wval v2 ->
+    <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
+| SUnfold X X' v :
+    wval v ->
+    <{ unfold<X> (fold <X'> v) }> -->! v
+| SFun x T e :
+    Σ !! x = Some (DFun T e) ->
+    <{ gvar x }> -->! <{ e }>
+| SOADT X τ e v :
+    wval v ->
+    Σ !! X = Some (DOADT τ e) ->
+    <{ (gvar X) v }> -->! <{ e^v }>
+| SSec b :
+    <{ s𝔹 b }> -->! <{ [b] }>
+| SOInj b ω v :
+    otval ω -> oval v ->
+    <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
+| SMux b v1 v2 :
+    wval v1 -> wval v2 ->
+    <{ mux [b] v1 v2 }> -->! <{ ite b v1 v2 }>
 | SOCase b ω1 ω2 v e1 e2 v1 v2 :
     oval v ->
     ovalty v1 ω1 -> ovalty v2 ω2 ->
     <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> -->!
       <{ ~if [b] then (ite b (e1^v) (e1^v1)) else (ite b (e2^v2) (e2^v)) }>
-| SUnfold X X' v :
-    wval v ->
-    <{ unfold<X> (fold <X'> v) }> -->! v
-| SMux b v1 v2 :
-    wval v1 -> wval v2 ->
-    <{ mux [b] v1 v2 }> -->! <{ ite b v1 v2 }>
-| STapeOIte b v1 v2 :
+| STapeOIf b v1 v2 :
     woval v1 -> woval v2 ->
     <{ tape (~if [b] then v1 else v2) }> -->! <{ mux [b] (tape v1) (tape v2) }>
 | STapePair v1 v2 :
@@ -601,7 +603,7 @@ Inductive step : expr -> expr -> Prop :=
 | STapeOInt n : <{ tape i[n] }> -->! <{ i[n] }>
 
 (* Keep these two rules at the end for convenience. *)
-| SOIte b v1 v2 ℇ :
+| SOIf b v1 v2 ℇ :
     lectx ℇ ->
     wval v1 -> wval v2 ->
     ℇ <{ ~if [b] then v1 else v2 }> -->! <{ ~if [b] then ,(ℇ v1) else ,(ℇ v2) }>
@@ -650,7 +652,7 @@ Section fix_gctx.
 Context (Σ : gctx).
 
 (** ** Parallel reduction *)
-Reserved Notation "e '==>!' e'" (at level 40,
+Reserved Notation "e '⇛' e'" (at level 40,
                                  e' constr at level 0).
 
 (** We do not extend the parallel reduction, which means primitive integers are
@@ -658,185 +660,187 @@ not used in type level. While we can certainly do that, our demos currently do
 not need this feature. *)
 Inductive pared : expr -> expr -> Prop :=
 | RApp l τ e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
     lc τ ->
-    <{ (\:{l}τ => e2) e1 }> ==>! <{ e2'^e1' }>
-| ROADT X τ' τ e e' :
-    Σ !! X = Some (DOADT τ' τ) ->
-    e ==>! e' ->
-    <{ (gvar X) e }> ==>! <{ τ^e' }>
-| RLet e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ let e1 in e2 }> ==>! <{ e2'^e1' }>
+    <{ (\:{l}τ => e2) e1 }> ⇛ <{ e2'^e1' }>
 | RFun x T e :
     Σ !! x = Some (DFun T e) ->
-    <{ gvar x }> ==>! <{ e }>
+    <{ gvar x }> ⇛ <{ e }>
+| ROADT X τ' τ e e' :
+    Σ !! X = Some (DOADT τ' τ) ->
+    e ⇛ e' ->
+    <{ (gvar X) e }> ⇛ <{ τ^e' }>
+| RLet e1 e2 e1' e2' L :
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ⇛ <{ e2'^e1' }>
 | RProj b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ π@b (e1, e2) }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ π@b (e1, e2) }> ⇛ <{ ite b e1' e2' }>
 | RFold X X' e e' :
-    e ==>! e' ->
-    <{ unfold<X> (fold<X'> e) }> ==>! e'
-| RIte b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ if b then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+    e ⇛ e' ->
+    <{ unfold<X> (fold<X'> e) }> ⇛ e'
+| RIf b e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ if b then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
 | RCase b τ e0 e1 e2 e0' e1' e2' L1 L2 :
-    e0 ==>! e0' ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
+    e0 ⇛ e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
     lc τ ->
-    <{ case inj@b<τ> e0 of e1 | e2 }> ==>! <{ ite b (e1'^e0') (e2'^e0') }>
+    <{ case inj@b<τ> e0 of e1 | e2 }> ⇛ <{ ite b (e1'^e0') (e2'^e0') }>
 | RMux b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ mux [b] e1 e2 }> ==>! <{ ite b e1' e2' }>
-| ROIte b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ ~if [b] then e1 else e2 }> ==>! <{ ite b e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ mux [b] e1 e2 }> ⇛ <{ ite b e1' e2' }>
+| RSec b :
+    <{ s𝔹 b }> ⇛ <{ [b] }>
+| ROInj b ω v :
+    otval ω -> oval v ->
+    <{ ~inj@b<ω> v }> ⇛ <{ [inj@b<ω> v] }>
+| ROIf b e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ ~if [b] then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
 | ROCase b ω1 ω2 v v1 v2 e1 e2 e1' e2' L1 L2 :
     oval v ->
     ovalty v1 ω1 -> ovalty v2 ω2 ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ==>!
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ⇛
       <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>
-| RSec b :
-    <{ s𝔹 b }> ==>! <{ [b] }>
-| ROInj b ω v :
-    otval ω -> oval v ->
-    <{ ~inj@b<ω> v }> ==>! <{ [inj@b<ω> v] }>
-| ROIteApp b e1 e2 e e1' e2' e' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    e ==>! e' ->
-    <{ (~if [b] then e1 else e2) e }> ==>! <{ ~if [b] then e1' e' else e2' e' }>
-| ROIteSec b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ s𝔹 (~if [b] then e1 else e2) }> ==>! <{ ~if [b] then s𝔹 e1' else s𝔹 e2' }>
-| ROIteIte b e1 e2 e3 e4 e1' e2' e3' e4' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    e3 ==>! e3' ->
-    e4 ==>! e4' ->
-    <{ if (~if [b] then e1 else e2) then e3 else e4 }> ==>!
+| ROIfApp b e1 e2 e e1' e2' e' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    e ⇛ e' ->
+    <{ (~if [b] then e1 else e2) e }> ⇛ <{ ~if [b] then e1' e' else e2' e' }>
+| ROIfSec b e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ s𝔹 (~if [b] then e1 else e2) }> ⇛ <{ ~if [b] then s𝔹 e1' else s𝔹 e2' }>
+| ROIfIf b e1 e2 e3 e4 e1' e2' e3' e4' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    e3 ⇛ e3' ->
+    e4 ⇛ e4' ->
+    <{ if (~if [b] then e1 else e2) then e3 else e4 }> ⇛
       <{ ~if [b] then (if e1' then e3' else e4') else (if e2' then e3' else e4') }>
-| ROIteProj b b' e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ π@b' (~if [b] then e1 else e2) }> ==>!
+| ROIfProj b b' e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ π@b' (~if [b] then e1 else e2) }> ⇛
       <{ ~if [b] then π@b' e1' else π@b' e2' }>
-| ROIteCase b e1 e2 e3 e4 e1' e2' e3' e4' L1 L2 :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    (forall x, x ∉ L1 -> <{ e3^x }> ==>! <{ e3'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e4^x }> ==>! <{ e4'^x }>) ->
-    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ==>!
+| ROIfCase b e1 e2 e3 e4 e1' e2' e3' e4' L1 L2 :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    (forall x, x ∉ L1 -> <{ e3^x }> ⇛ <{ e3'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e4^x }> ⇛ <{ e4'^x }>) ->
+    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ⇛
       <{ ~if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>
-| ROIteUnfold X b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ unfold<X> (~if [b] then e1 else e2) }> ==>!
+| ROIfUnfold X b e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ unfold<X> (~if [b] then e1 else e2) }> ⇛
       <{ ~if [b] then unfold<X> e1' else unfold<X> e2' }>
-| RTapeOIte b e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ tape (~if [b] then e1 else e2) }> ==>! <{ mux [b] (tape e1') (tape e2') }>
+| RTapeOIf b e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ tape (~if [b] then e1 else e2) }> ⇛ <{ mux [b] (tape e1') (tape e2') }>
 | RTapePair e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
     woval e1 -> woval e2 ->
-    <{ tape (e1, e2) }> ==>! <{ (tape e1', tape e2') }>
+    <{ tape (e1, e2) }> ⇛ <{ (tape e1', tape e2') }>
 | RTapeUnitV :
-    <{ tape () }> ==>! <{ () }>
+    <{ tape () }> ⇛ <{ () }>
 | RTapeBoxedLit b :
-    <{ tape [b] }> ==>! <{ [b] }>
+    <{ tape [b] }> ⇛ <{ [b] }>
 | RTapeBoxedInj b ω v :
     otval ω -> oval v ->
-    <{ tape [inj@b<ω> v] }> ==>! <{ [inj@b<ω> v] }>
+    <{ tape [inj@b<ω> v] }> ⇛ <{ [inj@b<ω> v] }>
+(* Congruence rules *)
 | RCgrPi l τ1 τ2 τ1' τ2' L :
-    τ1 ==>! τ1' ->
-    (forall x, x ∉ L -> <{ τ2^x }> ==>! <{ τ2'^x }>) ->
-    <{ Π:{l}τ1, τ2 }> ==>! <{ Π:{l}τ1', τ2' }>
+    τ1 ⇛ τ1' ->
+    (forall x, x ∉ L -> <{ τ2^x }> ⇛ <{ τ2'^x }>) ->
+    <{ Π:{l}τ1, τ2 }> ⇛ <{ Π:{l}τ1', τ2' }>
 | RCgrAbs l τ e τ' e' L :
-    τ ==>! τ' ->
-    (forall x, x ∉ L -> <{ e^x }> ==>! <{ e'^x }>) ->
-    <{ \:{l}τ => e }> ==>! <{ \:{l}τ' => e' }>
+    τ ⇛ τ' ->
+    (forall x, x ∉ L -> <{ e^x }> ⇛ <{ e'^x }>) ->
+    <{ \:{l}τ => e }> ⇛ <{ \:{l}τ' => e' }>
 | RCgrApp e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ e1 e2 }> ==>! <{ e1' e2' }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ e1 e2 }> ⇛ <{ e1' e2' }>
 | RCgrLet e1 e2 e1' e2' L :
-    e1 ==>! e1' ->
-    (forall x, x ∉ L -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ let e1 in e2 }> ==>! <{ let e1' in e2' }>
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ let e1 in e2 }> ⇛ <{ let e1' in e2' }>
 | RCgrSec e e' :
-    e ==>! e' ->
-    <{ s𝔹 e }> ==>! <{ s𝔹 e' }>
-| RCgrIte l e0 e1 e2 e0' e1' e2' :
-    e0 ==>! e0' ->
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ if{l} e0 then e1 else e2 }> ==>! <{ if{l} e0' then e1' else e2' }>
+    e ⇛ e' ->
+    <{ s𝔹 e }> ⇛ <{ s𝔹 e' }>
+| RCgrIf l e0 e1 e2 e0' e1' e2' :
+    e0 ⇛ e0' ->
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ if{l} e0 then e1 else e2 }> ⇛ <{ if{l} e0' then e1' else e2' }>
 | RCgrProd τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 * τ2 }> ==>! <{ τ1' * τ2' }>
+    τ1 ⇛ τ1' ->
+    τ2 ⇛ τ2' ->
+    <{ τ1 * τ2 }> ⇛ <{ τ1' * τ2' }>
 | RCgrPair e1 e2 e1' e2' :
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ (e1, e2) }> ==>! <{ (e1', e2') }>
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ (e1, e2) }> ⇛ <{ (e1', e2') }>
 | RCgrProj b e e' :
-    e ==>! e' ->
-    <{ π@b e }> ==>! <{ π@b e' }>
+    e ⇛ e' ->
+    <{ π@b e }> ⇛ <{ π@b e' }>
 | RCgrSum l τ1 τ2 τ1' τ2' :
-    τ1 ==>! τ1' ->
-    τ2 ==>! τ2' ->
-    <{ τ1 +{l} τ2 }> ==>! <{ τ1' +{l} τ2' }>
+    τ1 ⇛ τ1' ->
+    τ2 ⇛ τ2' ->
+    <{ τ1 +{l} τ2 }> ⇛ <{ τ1' +{l} τ2' }>
 | RCgrInj l b τ e τ' e' :
-    e ==>! e' ->
-    τ ==>! τ' ->
-    <{ inj{l}@b<τ> e }> ==>! <{ inj{l}@b<τ'> e' }>
+    e ⇛ e' ->
+    τ ⇛ τ' ->
+    <{ inj{l}@b<τ> e }> ⇛ <{ inj{l}@b<τ'> e' }>
 | RCgrCase l e0 e1 e2 e0' e1' e2' L1 L2 :
-    e0 ==>! e0' ->
-    (forall x, x ∉ L1 -> <{ e1^x }> ==>! <{ e1'^x }>) ->
-    (forall x, x ∉ L2 -> <{ e2^x }> ==>! <{ e2'^x }>) ->
-    <{ case{l} e0 of e1 | e2 }> ==>! <{ case{l} e0' of e1' | e2' }>
+    e0 ⇛ e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    <{ case{l} e0 of e1 | e2 }> ⇛ <{ case{l} e0' of e1' | e2' }>
 | RCgrFold X e e' :
-    e ==>! e' ->
-    <{ fold<X> e }> ==>! <{ fold<X> e' }>
+    e ⇛ e' ->
+    <{ fold<X> e }> ⇛ <{ fold<X> e' }>
 | RCgrUnfold X e e' :
-    e ==>! e' ->
-    <{ unfold<X> e }> ==>! <{ unfold<X> e' }>
+    e ⇛ e' ->
+    <{ unfold<X> e }> ⇛ <{ unfold<X> e' }>
 | RCgrMux e0 e1 e2 e0' e1' e2' :
-    e0 ==>! e0' ->
-    e1 ==>! e1' ->
-    e2 ==>! e2' ->
-    <{ mux e0 e1 e2 }> ==>! <{ mux e0' e1' e2' }>
+    e0 ⇛ e0' ->
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ mux e0 e1 e2 }> ⇛ <{ mux e0' e1' e2' }>
 | RCgrTape e e' :
-    e ==>! e' ->
-    <{ tape e }> ==>! <{ tape e' }>
+    e ⇛ e' ->
+    <{ tape e }> ⇛ <{ tape e' }>
+(* Reflexive rule *)
 | RRefl e :
     lc e ->
-    e ==>! e
+    e ⇛ e
 
-where "e1 '==>!' e2" := (pared e1 e2)
+where "e1 '⇛' e2" := (pared e1 e2)
 .
 
 (** ** Expression equivalence *)
 Inductive pared_equiv : expr -> expr -> Prop :=
 | QRRefl e : e ≡ e
 | QRRedL e1 e1' e2 :
-    e1 ==>! e1' ->
+    e1 ⇛ e1' ->
     e1' ≡ e2 ->
     e1 ≡ e2
 | QRRedR e1 e2 e2' :
-    e2 ==>! e2' ->
+    e2 ⇛ e2' ->
     e1 ≡ e2' ->
     e1 ≡ e2
 
@@ -852,12 +856,15 @@ Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
+(** This corresponds to the typing relation in Fig. 21 in the paper. *)
 Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
 | TFVar Γ x l τ κ :
     Γ !! x = Some (l, τ) ->
     Γ ⊢ τ :: κ ->
     Γ ⊢ fvar x :{l} τ
-| TGVar Γ x l τ e :
+| TUnit Γ : Γ ⊢ () :{⊥} 𝟙
+| TLit Γ b : Γ ⊢ lit b :{⊥} 𝔹
+| TFun Γ x l τ e :
     Σ !! x = Some (DFun (l, τ) e) ->
     Γ ⊢ gvar x :{l} τ
 | TAbs Γ l1 l2 e τ1 τ2 κ L :
@@ -873,38 +880,31 @@ Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
     Γ ⊢ e1 :{l1} (Π:{l2}τ2, τ1) ->
     Γ ⊢ e2 :{l2} τ2 ->
     Γ ⊢ e1 e2 :{l1} τ1^e2
-| TUnit Γ : Γ ⊢ () :{⊥} 𝟙
-| TLit Γ b : Γ ⊢ lit b :{⊥} 𝔹
-| TSec Γ l e :
-    Γ ⊢ e :{l} 𝔹 ->
-    Γ ⊢ s𝔹 e :{l} ~𝔹
-| TIte Γ l1 l2 l e0 e1 e2 τ κ :
+| TPair Γ l1 l2 l e1 e2 τ1 τ2 :
+    Γ ⊢ e1 :{l1} τ1 ->
+    Γ ⊢ e2 :{l2} τ2 ->
+    l = l1 ⊔ l2 ->
+    Γ ⊢ (e1, e2) :{l} τ1 * τ2
+| TProj Γ l b e τ1 τ2 :
+    Γ ⊢ e :{l} τ1 * τ2 ->
+    Γ ⊢ π@b e :{l} ite b τ1 τ2
+| TInj Γ l b e τ1 τ2 κ :
+    Γ ⊢ e :{l} ite b τ1 τ2 ->
+    Γ ⊢ τ1 + τ2 :: κ ->
+    Γ ⊢ inj@b<τ1 + τ2> e :{l} τ1 + τ2
+| TIf Γ l1 l2 l e0 e1 e2 τ κ :
     Γ ⊢ e0 :{⊥} 𝔹 ->
     Γ ⊢ e1 :{l1} τ^(lit true) ->
     Γ ⊢ e2 :{l2} τ^(lit false) ->
     Γ ⊢ τ^e0 :: κ ->
     l = l1 ⊔ l2 ->
     Γ ⊢ if e0 then e1 else e2 :{l} τ^e0
-| TIteNoDep Γ l0 l1 l2 l e0 e1 e2 τ :
+| TIfNoDep Γ l0 l1 l2 l e0 e1 e2 τ :
     Γ ⊢ e0 :{l0} 𝔹 ->
     Γ ⊢ e1 :{l1} τ ->
     Γ ⊢ e2 :{l2} τ ->
     l = l0 ⊔ l1 ⊔ l2 ->
     Γ ⊢ if e0 then e1 else e2 :{l} τ
-| TOIte Γ l1 l2 e0 e1 e2 τ κ :
-    Γ ⊢ e0 :{⊥} ~𝔹 ->
-    Γ ⊢ e1 :{l1} τ ->
-    Γ ⊢ e2 :{l2} τ ->
-    Γ ⊢ τ :: κ ->
-    Γ ⊢ ~if e0 then e1 else e2 :{⊤} τ
-| TInj Γ l b e τ1 τ2 κ :
-    Γ ⊢ e :{l} ite b τ1 τ2 ->
-    Γ ⊢ τ1 + τ2 :: κ ->
-    Γ ⊢ inj@b<τ1 + τ2> e :{l} τ1 + τ2
-| TOInj Γ b e τ1 τ2 :
-    Γ ⊢ e :{⊥} ite b τ1 τ2 ->
-    Γ ⊢ τ1 ~+ τ2 :: *@O ->
-    Γ ⊢ ~inj@b<τ1 ~+ τ2> e :{⊥} τ1 ~+ τ2
 | TCase Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     Γ ⊢ e0 :{⊥} τ1 + τ2 ->
     (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x)) ->
@@ -919,20 +919,6 @@ Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
     Γ ⊢ τ :: κ ->
     l = l0 ⊔ l1 ⊔ l2 ->
     Γ ⊢ case e0 of e1 | e2 :{l} τ
-| TOCase Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ L1 L2 :
-    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
-    (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ) ->
-    (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ) ->
-    Γ ⊢ τ :: κ ->
-    Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ
-| TPair Γ l1 l2 l e1 e2 τ1 τ2 :
-    Γ ⊢ e1 :{l1} τ1 ->
-    Γ ⊢ e2 :{l2} τ2 ->
-    l = l1 ⊔ l2 ->
-    Γ ⊢ (e1, e2) :{l} τ1 * τ2
-| TProj Γ l b e τ1 τ2 :
-    Γ ⊢ e :{l} τ1 * τ2 ->
-    Γ ⊢ π@b e :{l} ite b τ1 τ2
 | TFold Γ l X e τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e :{l} τ ->
@@ -941,12 +927,31 @@ Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e :{l} gvar X ->
     Γ ⊢ unfold<X> e :{l} τ
+| TSec Γ l e :
+    Γ ⊢ e :{l} 𝔹 ->
+    Γ ⊢ s𝔹 e :{l} ~𝔹
 | TMux Γ e0 e1 e2 τ :
     Γ ⊢ e0 :{⊥} ~𝔹 ->
     Γ ⊢ e1 :{⊥} τ ->
     Γ ⊢ e2 :{⊥} τ ->
     Γ ⊢ τ :: *@O ->
     Γ ⊢ mux e0 e1 e2 :{⊥} τ
+| TOInj Γ b e τ1 τ2 :
+    Γ ⊢ e :{⊥} ite b τ1 τ2 ->
+    Γ ⊢ τ1 ~+ τ2 :: *@O ->
+    Γ ⊢ ~inj@b<τ1 ~+ τ2> e :{⊥} τ1 ~+ τ2
+| TOIf Γ l1 l2 e0 e1 e2 τ κ :
+    Γ ⊢ e0 :{⊥} ~𝔹 ->
+    Γ ⊢ e1 :{l1} τ ->
+    Γ ⊢ e2 :{l2} τ ->
+    Γ ⊢ τ :: κ ->
+    Γ ⊢ ~if e0 then e1 else e2 :{⊤} τ
+| TOCase Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
+    (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ) ->
+    (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ) ->
+    Γ ⊢ τ :: κ ->
+    Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ
 | TTape Γ l e τ :
     Γ ⊢ e :{l} τ ->
     Γ ⊢ τ :: *@O ->
@@ -985,7 +990,7 @@ Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
     Γ ⊢ e :{l} τ
 
 with kinding : tctx -> expr -> kind -> Prop :=
-| KVarADT Γ X τ :
+| KADT Γ X τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ gvar X :: *@P
 | KUnit Γ : Γ ⊢ 𝟙 :: *@A
@@ -994,10 +999,6 @@ with kinding : tctx -> expr -> kind -> Prop :=
     (forall x, x ∉ L -> <[x:=(l, τ1)]>Γ ⊢ τ2^x :: κ2) ->
     Γ ⊢ τ1 :: κ1 ->
     Γ ⊢ (Π:{l}τ1, τ2) :: *@M
-| KApp Γ e' e τ X :
-    Σ !! X = Some (DOADT τ e') ->
-    Γ ⊢ e :{⊥} τ ->
-    Γ ⊢ (gvar X) e :: *@O
 | KProd Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
@@ -1010,7 +1011,11 @@ with kinding : tctx -> expr -> kind -> Prop :=
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
     Γ ⊢ τ1 ~+ τ2 :: *@O
-| KIte Γ e0 τ1 τ2 :
+| KOADT Γ e' e τ X :
+    Σ !! X = Some (DOADT τ e') ->
+    Γ ⊢ e :{⊥} τ ->
+    Γ ⊢ (gvar X) e :: *@O
+| KIf Γ e0 τ1 τ2 :
     Γ ⊢ e0 :{⊥} 𝔹 ->
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
@@ -1066,14 +1071,14 @@ Reserved Notation "Σ '⊢₁' D" (at level 40,
                                D constr at level 0).
 
 Inductive gdef_typing : gctx -> gdef -> Prop :=
-| TADT Σ τ :
+| DTADT Σ τ :
     Σ; ∅ ⊢ τ :: *@P ->
     Σ ⊢₁ (DADT τ)
-| TOADT Σ τ e L :
+| DTOADT Σ τ e L :
     Σ; ∅ ⊢ τ :: *@P ->
     (forall x, x ∉ L -> Σ; ({[x:=(⊥, τ)]}) ⊢ e^x :: *@O) ->
     Σ ⊢₁ (DOADT τ e)
-| TFun Σ l τ e κ :
+| DTFun Σ l τ e κ :
     Σ; ∅ ⊢ τ :: κ ->
     Σ; ∅ ⊢ e :{l} τ ->
     Σ ⊢₁ (DFun (l, τ) e)
@@ -1094,11 +1099,11 @@ Module typing_notations.
 
 Export kind_notations.
 
-Notation "Σ '⊢' e '==>!' e'" := (pared Σ e e')
+Notation "Σ '⊢' e '⇛' e'" := (pared Σ e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).
-Notation "Σ '⊢' e '==>*' e'" := (rtc (pared Σ) e e')
+Notation "Σ '⊢' e '⇛*' e'" := (rtc (pared Σ) e e')
                                   (at level 40,
                                    e custom oadt at level 99,
                                    e' custom oadt at level 99).
@@ -1273,18 +1278,18 @@ Ltac solve_ectx :=
      | H : context [ _ -> _ ⊨ _ -->! _ ] |- _ ⊨ _ -->! _ => go H
      end.
 
-Ltac apply_SOIte :=
+Ltac apply_SOIf :=
   match goal with
   | |- _ ⊨ ?e -->! _ =>
     match e with
     | context E [<{ ~if ?b then ?v1 else ?v2 }>] =>
       let ℇ' := constr:(fun t : expr =>
                  ltac:(let t := context E [t] in exact t)) in
-      apply SOIte with (ℇ := ℇ')
+      apply SOIf with (ℇ := ℇ')
     end
   end.
 
-Ltac solve_lctx := apply_SOIte; eauto using lectx.
+Ltac solve_lctx := apply_SOIf; eauto using lectx.
 Ltac solve_ctx := solve [ solve_lctx | solve_ectx ].
 
 Ltac relax_typing_type :=
@@ -1451,9 +1456,9 @@ Proof.
 Qed.
 
 Lemma pared_weakening Σ e e' :
-  Σ ⊢ e ==>! e' ->
+  Σ ⊢ e ⇛ e' ->
   forall Σ', Σ ⊆ Σ' ->
-        Σ' ⊢ e ==>! e'.
+        Σ' ⊢ e ⇛ e'.
 Proof.
   induction 1; intros;
     econstructor; eauto using lookup_weaken.

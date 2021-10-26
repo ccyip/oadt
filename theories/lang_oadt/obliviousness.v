@@ -192,6 +192,7 @@ Ltac apply_canonical_form :=
 (** [indistinguishable_obliv_val] and [indistinguishable_val_type] are two of
 the most important lemmas. *)
 
+(** This is an updated version of Lemma 3.8 in the paper. *)
 Lemma indistinguishable_obliv_val Σ Γ v v' l l' τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ v :{l} τ ->
@@ -229,6 +230,7 @@ Proof.
     eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
+(** This is an updated version of Lemma 3.9 in the paper. *)
 Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' l l' τ τ' :
   gctx_wf Σ ->
   Σ; Γ ⊢ v :{l} τ ->
@@ -346,16 +348,16 @@ Proof.
     end.
     eauto using indistinguishable.
 
+  (* Step from mux *)
+  - case_splitting;
+      select! (wval _) (fun H => eapply wval_val in H; [ | solve [eauto] ]); eauto;
+      eauto using indistinguishable_obliv_val, indistinguishable_val_type.
+
   (* Step from oblivious case to mux *)
   - repeat ovalty_inv;
     econstructor; eauto using indistinguishable;
       case_splitting;
       eauto using indistinguishable_open, indistinguishable_ovalty.
-
-  (* Step from mux *)
-  - case_splitting;
-      select! (wval _) (fun H => eapply wval_val in H; [ | solve [eauto] ]); eauto;
-      eauto using indistinguishable_obliv_val, indistinguishable_val_type.
 Qed.
 
 (** The one-step obliviousness theorem, which is essentially a noninterference

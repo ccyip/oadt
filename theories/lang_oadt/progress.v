@@ -29,7 +29,7 @@ Set Default Proof Using "Hwf".
 (** * Lemmas about obliviousness *)
 
 Lemma pared_obliv_preservation_inv Γ τ τ' κ :
-  Σ ⊢ τ ==>! τ' ->
+  Σ ⊢ τ ⇛ τ' ->
   Σ; Γ ⊢ τ :: κ ->
   Σ; Γ ⊢ τ' :: *@O ->
   Σ; Γ ⊢ τ :: *@O.
@@ -48,6 +48,7 @@ Proof.
   all : fast_set_solver!!.
 Qed.
 
+(** This is an updated version of Lemma 3.10 in the paper. *)
 Lemma pared_equiv_obliv_preservation Γ τ τ' κ :
   Σ ⊢ τ ≡ τ' ->
   Σ; Γ ⊢ τ :: *@O ->
@@ -300,6 +301,7 @@ Proof.
   - select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
 Qed.
 
+(** This corresponds to Lemma 4.2 in the paper. *)
 Theorem progress_weak l τ e :
   Σ; ∅ ⊢ e :{l} τ ->
   wval e \/ exists e', Σ ⊨ e -->! e'.
@@ -307,6 +309,7 @@ Proof.
   hauto use: progress_.
 Qed.
 
+(** The next two theorems correspond to Theorem 4.1 (Progress) in the paper. *)
 Theorem progress τ e :
   Σ; ∅ ⊢ e :{⊥} τ ->
   val e \/ exists e', Σ ⊨ e -->! e'.

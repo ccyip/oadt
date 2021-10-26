@@ -217,18 +217,18 @@ Ltac solve_ectx :=
      | H : context [ _ -> _ ⊨ _ -->! _ ] |- _ ⊨ _ -->! _ => go H
      end.
 
-Ltac apply_SOIte :=
+Ltac apply_SOIf :=
   match goal with
   | |- _ ⊨ ?e -->! _ =>
     match e with
     | context E [<{ ~if ?b then ?v1 else ?v2 }>] =>
       let ℇ' := constr:(fun t : expr =>
                  ltac:(let t := context E [t] in exact t)) in
-      apply SOIte with (ℇ := ℇ')
+      apply SOIf with (ℇ := ℇ')
     end
   end.
 
-Ltac solve_lctx := apply_SOIte; eauto using lectx.
+Ltac solve_lctx := apply_SOIf; eauto using lectx.
 Ltac solve_ctx := solve [ solve_lctx | solve_ectx ].
 
 
@@ -1015,7 +1015,7 @@ Smpl Add simpl_typing_type_fv : fv.
 (** ** Properties of parallel reduction and local closure *)
 Lemma pared_lc1 Σ e e' :
   gctx_wf Σ ->
-  Σ ⊢ e ==>! e' ->
+  Σ ⊢ e ⇛ e' ->
   lc e.
 Proof.
   intros ?.
@@ -1027,7 +1027,7 @@ Qed.
 
 Lemma pared_lc2 Σ e e' :
   gctx_wf Σ ->
-  Σ ⊢ e ==>! e' ->
+  Σ ⊢ e ⇛ e' ->
   lc e'.
 Proof.
   intros ?.
@@ -1040,7 +1040,7 @@ Qed.
 
 Lemma pared_lc Σ e e' :
   gctx_wf Σ ->
-  Σ ⊢ e ==>! e' ->
+  Σ ⊢ e ⇛ e' ->
   lc e /\ lc e'.
 Proof.
   eauto using pared_lc1, pared_lc2.

@@ -15,6 +15,7 @@ Notation LObliv := true (only parsing).
 Notation LPub := false (only parsing).
 
 (** ** Leakage label *)
+(** This corresponds to _leakage label_ in Fig. 16 in the paper. *)
 (** Defined as alias of [bool]. A leaky expression (with [LLeak] label) may contain
 potential leaks, and a safe expression (with [LSafe] label) doesn't. A leaky
 expression need to be "fixed" by the [tape] construct in order for obliviousness
@@ -25,6 +26,8 @@ Notation LLeak := true (only parsing).
 Notation LSafe := false (only parsing).
 
 (** ** Expressions (e, τ) *)
+(** This corresponds to _extended expressions_ in Fig. 16 which extends
+_expressions_ in Fig. 9 in the paper. *)
 (** We use locally nameless representation for binders. *)
 Inductive expr :=
 (* Locally bound variables, i.e. de Bruijn indices. *)
@@ -33,35 +36,38 @@ Inductive expr :=
 | EFVar (x : atom)
 (* Global variables, referring to global functions, ADTs and OADTs. *)
 | EGVar (x : atom)
-(* Functions *)
+(* Simple types *)
+| EUnitT
+(* Public and oblivious Booleans *)
+| EBool (l : olabel)
+| EProd (τ1 τ2 : expr)
+(* Public and oblivious sum *)
+| ESum (l : olabel) (τ1 τ2 : expr)
+(* Dependent function type *)
 | EPi (l : llabel) (τ1 τ2: expr)
+(* Unit and Boolean values *)
+| EUnitV
+| ELit (b : bool)
+(* Function abstraction *)
 | EAbs (l : llabel) (τ e : expr)
+(* Expression and type application *)
 | EApp (e1 e2 : expr)
 (* Let binding *)
 | ELet (e1 e2 : expr)
-(* Unit *)
-| EUnitT
-| EUnitV
-(* Public and oblivious Booleans *)
-| EBool (l : olabel)
-| ELit (b : bool)
-(* Boolean section *)
-| ESec (e : expr)
 (* Public and oblivious conditional. The oblivious conditional may be leaky *)
 | EIte (l : olabel) (e0 e1 e2 : expr)
-(* Product *)
-| EProd (τ1 τ2 : expr)
+(* Pair and projection *)
 | EPair (e1 e2 : expr)
 | EProj (b : bool) (e : expr)
-(* Public and oblivious sum *)
-| ESum (l : olabel) (τ1 τ2 : expr)
 (* Public and oblivious injection *)
 | EInj (l : olabel) (b : bool) (τ e : expr)
 (* Public and oblivious case. The oblivious case may be leaky *)
 | ECase (l : olabel) (e0 : expr) (e1 : expr) (e2 : expr)
-(* Introduction and elimination of ADTs *)
+(* Iso-recursive type introduction and elimination *)
 | EFold (X : atom) (e : expr)
 | EUnfold (X : atom) (e : expr)
+(* Boolean section *)
+| ESec (e : expr)
 (* Tape the leakage. *)
 | ETape (e : expr)
 (* Oblivious conditional, i.e. MUX. Technically we do not need this in the
@@ -87,10 +93,12 @@ Definition lexpr_expr : lexpr -> expr := snd.
 Arguments lexpr_expr /.
 
 (** ** Global definitions (D) *)
+(** This corresponds to _extended global definition_ in Fig. 16 which extends
+_global definitions_ in Fig. 9 in the paper. *)
 Variant gdef :=
 | DADT (e : expr)
-| DOADT (τ e : expr)
 | DFun (T : lexpr) (e : expr)
+| DOADT (τ e : expr)
 .
 
 (** ** Global context (Σ) *)
@@ -311,6 +319,8 @@ Coercion EFVar : atom >-> expr.
 
 (** ** Indistinguishability *)
 
+(** This corresponds to Definition 3.6 (Indistinguishability) in the paper,
+extended to handle leakage labels. *)
 (** Instead of formalizing an observe function and considering two expressions
 indistinguishable if they are observed the same, we directly formalize the
 indistinguishability relation as the equivalence induced by the observe
@@ -467,6 +477,7 @@ where "'{' x '↦' s '}' e" := (subst x s e) (in custom oadt).
 Definition lexpr_subst x s (T : lexpr) := (T.1, subst x s T.2).
 
 (** ** Oblivious type values (ω) *)
+(** This corresponds to oblivious type values in Fig. 9 in the paper. *)
 Inductive otval : expr -> Prop :=
 | OVUnitT : otval <{ 𝟙 }>
 | OVOBool : otval <{ ~𝔹 }>
@@ -475,6 +486,7 @@ Inductive otval : expr -> Prop :=
 .
 
 (** ** Oblivious values (v) *)
+(** This corresponds to oblivious values in Fig. 9 in the paper. *)
 Inductive oval : expr -> Prop :=
 | OVUnitV : oval <{ () }>
 | OVBoxedLit b : oval <{ [b] }>
@@ -483,6 +495,8 @@ Inductive oval : expr -> Prop :=
 .
 
 (** ** Values (v) *)
+(** This corresponds to values in Fig. 9 in the paper, extended to handle
+leakage labels. *)
 Inductive val : expr -> Prop :=
 | VUnitV : val <{ () }>
 | VLit b : val <{ lit b }>

@@ -340,7 +340,7 @@ constructors. *)
 Ltac typing_intro_ :=
   lazymatch goal with
   | |- _; _ ⊢ fvar _ : _ => eapply TFVar
-  | |- _; _ ⊢ gvar _ : _ => eapply TGVar
+  | |- _; _ ⊢ gvar _ : _ => eapply TFun
   | |- _; _ ⊢ \:{_}_ => _ : _ => eapply TAbs_intro
   | |- _; _ ⊢ let _ in _ : _ => eapply TLet_intro
   | |- _; _ ⊢ _ _ : _ => eapply TApp
@@ -348,15 +348,15 @@ Ltac typing_intro_ :=
   | |- _; _ ⊢ lit _ : _ => eapply TLit
   | |- _; _ ⊢ s𝔹 _ : _ => eapply TSec
   | |- _; _ ⊢ (_, _) : _ => eapply TPair
-  | |- _; _ ⊢ ~if _ then _ else _ : _ => eapply TOIte
+  | |- _; _ ⊢ ~if _ then _ else _ : _ => eapply TOIf
   | |- _; _ ⊢ π@_ _ : _ => eapply TProj
   | |- _; _ ⊢ inj@_<_> _ : _ => eapply TInj
   | |- _; _ ⊢ ~inj@_<_> _ : _ => eapply TOInj
   | |- _; _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
   | |- _; _ ⊢ fold<_> _ : _ => eapply TFold
   | |- _; _ ⊢ unfold<_> _ : _ => eapply TUnfold
-  | H : _; _ ⊢ ?e :{⊥} _ |- _; _ ⊢ if ?e then _ else _ : _ => eapply TIte
-  | |- _; _ ⊢ if _ then _ else _ : _ => eapply TIteNoDep
+  | H : _; _ ⊢ ?e :{⊥} _ |- _; _ ⊢ if ?e then _ else _ : _ => eapply TIf
+  | |- _; _ ⊢ if _ then _ else _ : _ => eapply TIfNoDep
   | H : _; _ ⊢ ?e :{⊥} _ |- _; _ ⊢ case ?e of _ | _ : _ => eapply TCase_intro
   | |- _; _ ⊢ case _ of _ | _ : _ => eapply TCaseNoDep_intro
   | |- _; _ ⊢ tape _ : _ => eapply TTape
@@ -368,15 +368,15 @@ Ltac typing_intro_ :=
 
 Ltac kinding_intro_ :=
   lazymatch goal with
-  | |- _; _ ⊢ gvar _ :: _ => eapply KVarADT
+  | |- _; _ ⊢ gvar _ :: _ => eapply KADT
   | |- _; _ ⊢ 𝟙 :: _ => eapply KUnit
   | |- _; _ ⊢ 𝔹{_} :: _ => eapply KBool
   | |- _; _ ⊢ Π:{_}_, _ :: _ => eapply KPi_intro
-  | |- _; _ ⊢ (gvar _) _ :: _ => eapply KApp
+  | |- _; _ ⊢ (gvar _) _ :: _ => eapply KOADT
   | |- _; _ ⊢ _ * _ :: _ => eapply KProd_intro
   | |- _; _ ⊢ _ + _ :: _ => eapply KSum
   | |- _; _ ⊢ _ ~+ _ :: _ => eapply KOSum
-  | |- _; _ ⊢ if _ then _ else _ :: _ => eapply KIte
+  | |- _; _ ⊢ if _ then _ else _ :: _ => eapply KIf
   | |- _; _ ⊢ case _ of _ | _ :: _ => eapply KCase_intro
   | |- _; _ ⊢ let _ in _ :: _ => eapply KLet_intro
   | |- _; _ ⊢ ?τ :: ?κ => is_var τ; assert_fails (is_evar κ); eapply KSub
