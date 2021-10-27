@@ -31,6 +31,15 @@ Proof.
     induction H; intros e3; inversion 1; subst; eauto using indistinguishable.
 Qed.
 
+Lemma indistinguishable_subst e e' s s' x :
+  e ≈ e' ->
+  s ≈ s' ->
+  <{ {x↦s}e }> ≈ <{ {x↦s'}e' }>.
+Proof.
+  induction 1; intros; simpl in *;
+    try case_decide; eauto using indistinguishable.
+Qed.
+
 Lemma indistinguishable_open e e' s s' :
   e ≈ e' ->
   s ≈ s' ->
