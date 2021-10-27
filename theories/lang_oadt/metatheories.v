@@ -42,10 +42,10 @@ Qed.
 
 (** * Obliviousness *)
 
-(** [e1] and [e1'] are trace-indistinguishable if the traces they produce are
+(** [e1] and [e2] are trace-indistinguishable if the traces they produce are
 pointwise indistinguishable, i.e. they always take the same number of steps, and
 each expressions they step to remain indistinguishable. This ensures that an
-attacker can not tell [e1] and [e1'] apart, even given the entire execution
+attacker can not tell [e1] and [e2] apart, even given the entire execution
 traces of them. *)
 Definition trace_indistinguishable Σ e1 e2 : Prop :=
   forall n e1',
