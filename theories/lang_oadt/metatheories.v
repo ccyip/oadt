@@ -44,8 +44,9 @@ Qed.
 
 (** This corresponds to Theorem 3.7 (Obliviousness) in the paper. *)
 (** Essentially a noninterference theorem. Indistinguishable well-typed
-expressions can always take the same steps and new expressions remain
-indistinguishable. *)
+expressions always take the same number of steps, and each expressions they step
+to remain indistinguishable. This ensures that an attacker can not tell [e1] and
+[e2] apart, even given the entire execution traces of them. *)
 Theorem obliviousness Σ e1 e1' e2 τ1 τ2 n :
   Σ; e1 ▷ τ1 ->
   Σ; e2 ▷ τ2 ->
@@ -63,6 +64,50 @@ Proof.
     + hauto ctrs: nsteps use: preservation.
     + select (_ ⊨ _ -->{_} _) (fun H => sinvert H).
       qauto use: preservation.
+Qed.
+
+(** This is a corollary for open programs. An open (partial) program can be
+instantiated with indistinguishable expressions, and the resulting programs
+produce indistinguishable traces. As a consequence, a type-checked function does
+not leak when it is applied to concrete arguments. *)
+Corollary obliviousness_open Σ x τ' e e1 τ s1 s2 n :
+  gctx_typing Σ ->
+  Σ; ({[x:=τ']}) ⊢ e : τ ->
+  x ∉ fv τ' ->
+  Σ; ∅ ⊢ s1 : τ' ->
+  Σ; ∅ ⊢ s2 : τ' ->
+  s1 ≈ s2 ->
+  Σ ⊨ <{ {x↦s1}e }> -->{n} e1 ->
+  (exists e2, Σ ⊨ <{ {x↦s2}e }> -->{n} e2) /\
+  (forall e2, Σ ⊨ <{ {x↦s2}e }> -->{n} e2 -> e1 ≈ e2).
+Proof.
+  intros.
+  eapply obliviousness; eauto.
+
+  1-2: split; eauto;
+  eapply subst_preservation;
+  eauto using gdefs_typing_wf; fast_set_solver!!.
+
+  apply indistinguishable_subst; try reflexivity; eauto.
+Qed.
+
+(** This corresponds to Corollary 3.11 in the paper. *)
+(** Two expressions that only differ in an oblivious value in it produce
+indistinguishable traces, meaning that an attacker can not infer the oblivious
+value by analyzing the execution trace. *)
+Corollary obliviousness_open_obliv_val Σ x τ' e e1 τ v1 v2 n :
+  gctx_typing Σ ->
+  Σ; ({[x:=τ']}) ⊢ e : τ ->
+  x ∉ fv τ' ->
+  Σ; ∅ ⊢ v1 : τ' ->
+  Σ; ∅ ⊢ v2 : τ' ->
+  Σ; ∅ ⊢ τ' :: *@O ->
+  val v1 -> val v2 ->
+  Σ ⊨ <{ {x↦v1}e }> -->{n} e1 ->
+  (exists e2, Σ ⊨ <{ {x↦v2}e }> -->{n} e2) /\
+  (forall e2, Σ ⊨ <{ {x↦v2}e }> -->{n} e2 -> e1 ≈ e2).
+Proof.
+  eauto using obliviousness_open, indistinguishable_obliv_val, gdefs_typing_wf.
 Qed.
 
 Print Assumptions soundness.
