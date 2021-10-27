@@ -241,7 +241,6 @@ Set Default Proof Using "Hwf".
 
 Lemma type_inv_unit Γ l τ :
   Σ; Γ ⊢ () :{l} τ ->
-  ⊥ ⊑ l /\
   Σ ⊢ τ ≡ 𝟙.
 Proof.
   type_inv_solver.
