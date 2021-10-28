@@ -55,7 +55,7 @@ This artifact can be reviewed fully online.
   λOADT✚ can be found
   [here](https://github.com/ccyip/oadt/actions?query=branch%3Atape). We explain
   how to review these build logs in section (Review the Build Logs).
-- Github will delete the build log after a period of time. In that case, you can
+- Github will delete the build logs after a period of time. In that case, you can
   review with the virtual machine or by building the project manually.
 
 ### Virtual Machine
