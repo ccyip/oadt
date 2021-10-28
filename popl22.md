@@ -307,6 +307,18 @@ These files only appear in λOADT✚.
   the typing rules for brevity. These omitted side conditions can be found in
   the Coq formalization.
 
+### Notation differences
+
+We try to keep the notations used in Coq as consistent with the paper as
+possible, but there are still some differences. The major differences are:
+- In the paper, the oblivious constructs are decorated with `\hat`s to distinguish
+  from the public counterparts, while in the formalization, they are prefixed by `~`,
+  e.g., `~case` for oblivious sum elimination.
+- We also use `\hat` to decorate oblivious variables and oblivious values in the paper.
+  But in the formalization there is no visual "hint" for that. For example, `v` is used
+  for both values and oblivious values. It should be obvious from the context though.
+- Other minor differences should be self-explanatory.
+
 
 ## Review the Build Logs
 
