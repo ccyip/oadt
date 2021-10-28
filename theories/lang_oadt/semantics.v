@@ -38,9 +38,9 @@ Inductive woval : expr -> Prop :=
 This is essentially a subset of [typing], but we have it so that the dynamic
 semantics does not depend on typing. *)
 Inductive ovalty : expr -> expr -> Prop :=
-| OTUnitV : ovalty <{ () }> <{ 𝟙 }>
+| OTUnit : ovalty <{ () }> <{ 𝟙 }>
 | OTOBool b : ovalty <{ [b] }> <{ ~𝔹 }>
-| OTPair v1 v2 ω1 ω2 :
+| OTProd v1 v2 ω1 ω2 :
     ovalty v1 ω1 -> ovalty v2 ω2 ->
     ovalty <{ (v1, v2) }> <{ ω1 * ω2 }>
 | OTOSum b v ω1 ω2 :
