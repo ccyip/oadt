@@ -244,6 +244,7 @@ These files only appear in λOADT✚.
 | Lemma 3.8 | Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [indistinguishable_obliv_val](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#indistinguishable_obliv_val) |
 | Lemma 3.9 | Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [indistinguishable_val_obliv_type_equiv](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#indistinguishable_val_obliv_type_equiv) |
 | Lemma 3.10 | Section 3.4 | [theories/lang_oadt/obliviousness.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/obliviousness.v) | [pared_equiv_obliv_preservation](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.obliviousness.html#pared_equiv_obliv_preservation) |
+| Corollary 3.11 | Section 3.4 | [theories/lang_oadt/metatheories.v](https://github.com/ccyip/oadt/blob/pure/theories/lang_oadt/metatheories.v) | [obliviousness_open_obliv_val](https://ccyip.github.io/oadt/pure/oadt.lang_oadt.metatheories.html#obliviousness_open_obliv_val) |
 
 - Definitions and theorems of λOADT✚ in Section 4 (λOADT✚, formally): (in the tape branch)
 
@@ -261,7 +262,7 @@ These files only appear in λOADT✚.
 | Parallel reduction rules | Fig. 20 | [theories/lang_oadt/typing.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/typing.v) | [pared](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.typing.html#pared) |
 | Theorem 4.1 (Progress) | Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [progress](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#progress), [kinding_progress](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#kinding_progress) |
 | Lemma 4.2 | Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [progress_weak](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#progress_weak) |
-| Updated version of Lemma 3.10 mentioned | Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [pared_equiv_obliv_preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#pared_equiv_obliv_preservation) |
+| Updated version of Lemma 3.10 | Section 4.4 | [theories/lang_oadt/progress.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/progress.v) | [pared_equiv_obliv_preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.progress.html#pared_equiv_obliv_preservation) |
 | Theorem 4.3 (Preservation) | Section 4.4 | [theories/lang_oadt/preservation.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/preservation.v) | [preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.preservation.html#preservation), [kinding_preservation](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.preservation.html#kinding_preservation) |
 | Theorem 4.4 (Obliviousness) | Section 4.4 | [theories/lang_oadt/metatheories.v](https://github.com/ccyip/oadt/blob/tape/theories/lang_oadt/metatheories.v) | [obliviousness](https://ccyip.github.io/oadt/tape/oadt.lang_oadt.metatheories.html#obliviousness) |
 
