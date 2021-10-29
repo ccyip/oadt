@@ -108,10 +108,10 @@ Inductive step : expr -> expr -> Prop :=
 | SApp l τ e v :
     wval v ->
     <{ (\:{l}τ => e) v }> -->! <{ e^v }>
-| STApp X τ e v :
+| STApp X τ' τ v :
     wval v ->
-    Σ !! X = Some (DOADT τ e) ->
-    <{ X@v }> -->! <{ e^v }>
+    Σ !! X = Some (DOADT τ' τ) ->
+    <{ X@v }> -->! <{ τ^v }>
 | SFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> -->! <{ e }>
