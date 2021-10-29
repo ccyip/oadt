@@ -134,10 +134,10 @@ Inductive step : expr -> expr -> Prop :=
 | SFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> -->! <{ e }>
-| SOADT X τ e v :
+| SOADT X τ' τ v :
     wval v ->
-    Σ !! X = Some (DOADT τ e) ->
-    <{ (gvar X) v }> -->! <{ e^v }>
+    Σ !! X = Some (DOADT τ' τ) ->
+    <{ (gvar X) v }> -->! <{ τ^v }>
 | SSec b :
     <{ s𝔹 b }> -->! <{ [b] }>
 | SOInj b ω v :
