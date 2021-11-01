@@ -11,6 +11,7 @@ From oadt Require Import lang_oadt.obliviousness.
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
+Import equivalence.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -27,7 +28,7 @@ Qed.
 (** * Soundness *)
 
 Definition stuck (Σ : gctx) (e : expr) : Prop :=
-  nf (@step Σ) e /\ ¬val e.
+  nf (step Σ) e /\ ¬val e.
 
 (** If a program is well-typed, it will never get stuck. *)
 Corollary soundness e Σ τ e' :

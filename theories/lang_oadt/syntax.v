@@ -97,7 +97,15 @@ Variant gdef :=
 
 (** ** Global context (Σ) *)
 (** A store of global definitions. *)
-Notation gctx := (amap gdef).
+Definition gctx := amap gdef.
+
+(** This type class trick allows us to omit the global context parameter when it
+is available as section variables. *)
+Existing Class gctx.
+#[export]
+Hint Extern 1 (gctx) => assumption : typeclass_instances.
+#[export]
+Hint Unfold gctx : typeclass_instances.
 
 (** ** Programs (P) *)
 Notation program := (gctx * expr).

@@ -9,6 +9,7 @@ From oadt Require Import lang_oadt.equivalence.
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
+Import equivalence.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -18,7 +19,6 @@ Coercion EFVar : atom >-> expr.
 Section inversion.
 
 Context (Σ : gctx).
-Context (Hwf : gctx_wf Σ).
 
 #[local]
 Set Default Proof Using "Type".
@@ -26,7 +26,7 @@ Set Default Proof Using "Type".
 (** * Kind inversion  *)
 Tactic Notation "kind_inv_solver" "by" tactic3(tac) :=
   match goal with
-  | |- _; _ ⊢ ?τ :: _ -> _ => remember τ
+  | |- _ ⊢ ?τ :: _ -> _ => remember τ
   end;
   induction 1; subst; simp_hyps; simplify_eq;
   tac.
@@ -36,168 +36,168 @@ Ltac kind_inv_solver :=
                       lattice_naive_solver by eauto using top_inv, join_ub_r).
 
 Lemma kind_inv_pi Γ l τ1 τ2 κ :
-  Σ; Γ ⊢ Π:{l}τ1, τ2 :: κ ->
+  Γ ⊢ Π:{l}τ1, τ2 :: κ ->
   κ = <{ *@M }> /\
   exists L κ1 κ2,
-    (∀ x, x ∉ L → Σ; (<[x:=(l, τ1)]> Γ) ⊢ τ2^x :: κ2) /\
-    Σ; Γ ⊢ τ1 :: κ1.
+    (∀ x, x ∉ L → (<[x:=(l, τ1)]> Γ) ⊢ τ2^x :: κ2) /\
+    Γ ⊢ τ1 :: κ1.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_bool Γ κ :
-  Σ; Γ ⊢ 𝔹 :: κ -> <{ *@P }> ⊑ κ.
+  Γ ⊢ 𝔹 :: κ -> <{ *@P }> ⊑ κ.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_prod Γ τ1 τ2 κ :
-  Σ; Γ ⊢ τ1 * τ2 :: κ ->
+  Γ ⊢ τ1 * τ2 :: κ ->
   exists κ',
-    Σ; Γ ⊢ τ1 :: κ' /\
-    Σ; Γ ⊢ τ2 :: κ' /\
+    Γ ⊢ τ1 :: κ' /\
+    Γ ⊢ τ2 :: κ' /\
     <{ κ' }> ⊑ κ.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_sum Γ τ1 τ2 κ :
-  Σ; Γ ⊢ τ1 + τ2 :: κ ->
+  Γ ⊢ τ1 + τ2 :: κ ->
   <{ *@P }> ⊑ κ /\
   exists κ',
-    Σ; Γ ⊢ τ1 :: κ' /\
-    Σ; Γ ⊢ τ2 :: κ'.
+    Γ ⊢ τ1 :: κ' /\
+    Γ ⊢ τ2 :: κ'.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_osum Γ τ1 τ2 κ :
-  Σ; Γ ⊢ τ1 ~+ τ2 :: κ ->
+  Γ ⊢ τ1 ~+ τ2 :: κ ->
   <{ *@O }> ⊑ κ /\
-  Σ; Γ ⊢ τ1 :: *@O /\
-  Σ; Γ ⊢ τ2 :: *@O.
+  Γ ⊢ τ1 :: *@O /\
+  Γ ⊢ τ2 :: *@O.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_gvar Γ X κ :
-  Σ; Γ ⊢ gvar X :: κ ->
+  Γ ⊢ gvar X :: κ ->
   <{ *@P }> ⊑ κ /\ exists τ, Σ !! X = Some (DADT τ).
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_tapp Γ X e κ :
-  Σ; Γ ⊢ X@e :: κ ->
+  Γ ⊢ X@e :: κ ->
   <{ *@O }> ⊑ κ /\
   exists τ e',
     Σ !! X = Some (DOADT τ e') /\
-    Σ; Γ ⊢ e :{⊥} τ.
+    Γ ⊢ e :{⊥} τ.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_ite Γ l e0 τ1 τ2 κ :
-  Σ; Γ ⊢ if{l} e0 then τ1 else τ2 :: κ ->
+  Γ ⊢ if{l} e0 then τ1 else τ2 :: κ ->
   <{ *@O }> ⊑ κ /\
   l = LPub /\
-  Σ; Γ ⊢ e0 :{⊥} 𝔹 /\
-  Σ; Γ ⊢ τ1 :: *@O /\
-  Σ; Γ ⊢ τ2 :: *@O.
+  Γ ⊢ e0 :{⊥} 𝔹 /\
+  Γ ⊢ τ1 :: *@O /\
+  Γ ⊢ τ2 :: *@O.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_let Γ e τ κ :
-  Σ; Γ ⊢ let e in τ :: κ ->
+  Γ ⊢ let e in τ :: κ ->
   <{ *@O }> ⊑ κ /\
   exists τ' L,
-    Σ; Γ ⊢ e :{⊥} τ' /\
-    (forall x, x ∉ L -> Σ; (<[x:=(⊥, τ')]> Γ) ⊢ τ^x :: *@O).
+    Γ ⊢ e :{⊥} τ' /\
+    (forall x, x ∉ L -> <[x:=(⊥, τ')]> Γ ⊢ τ^x :: *@O).
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_case Γ l e0 τ1 τ2 κ :
-  Σ; Γ ⊢ case{l} e0 of τ1 | τ2 :: κ ->
+  Γ ⊢ case{l} e0 of τ1 | τ2 :: κ ->
   <{ *@O }> ⊑ κ /\
   l = LPub /\
   exists τ1' τ2' L1 L2,
-    Σ; Γ ⊢ e0 :{⊥} τ1' + τ2' /\
-    (forall x, x ∉ L1 -> Σ; (<[x:=(⊥, τ1')]> Γ) ⊢ τ1^x :: *@O) /\
-    (forall x, x ∉ L2 -> Σ; (<[x:=(⊥, τ2')]> Γ) ⊢ τ2^x :: *@O).
+    Γ ⊢ e0 :{⊥} τ1' + τ2' /\
+    (forall x, x ∉ L1 -> <[x:=(⊥, τ1')]> Γ ⊢ τ1^x :: *@O) /\
+    (forall x, x ∉ L2 -> <[x:=(⊥, τ2')]> Γ ⊢ τ2^x :: *@O).
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_app Γ e1 e2 κ :
-  Σ; Γ ⊢ e1 e2 :: κ -> False.
+  Γ ⊢ e1 e2 :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_oite Γ e0 e1 e2 κ :
-  Σ; Γ ⊢ ~if e0 then e1 else e2 :: κ -> False.
+  Γ ⊢ ~if e0 then e1 else e2 :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_mux Γ e0 e1 e2 κ :
-  Σ; Γ ⊢ mux e0 e1 e2 :: κ -> False.
+  Γ ⊢ mux e0 e1 e2 :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_sec Γ e κ :
-  Σ; Γ ⊢ s𝔹 e :: κ -> False.
+  Γ ⊢ s𝔹 e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_pair Γ e1 e2 κ :
-  Σ; Γ ⊢ (e1, e2) :: κ -> False.
+  Γ ⊢ (e1, e2) :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_proj Γ b e κ :
-  Σ; Γ ⊢ π@b e :: κ -> False.
+  Γ ⊢ π@b e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_inj Γ l b τ e κ :
-  Σ; Γ ⊢ inj{l}@b<τ> e :: κ -> False.
+  Γ ⊢ inj{l}@b<τ> e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_ocase Γ e0 e1 e2 κ :
-  Σ; Γ ⊢ ~case e0 of e1 | e2 :: κ -> False.
+  Γ ⊢ ~case e0 of e1 | e2 :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_fold Γ X e κ :
-  Σ; Γ ⊢ fold<X> e :: κ -> False.
+  Γ ⊢ fold<X> e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_unfold Γ X e κ :
-  Σ; Γ ⊢ unfold<X> e :: κ -> False.
+  Γ ⊢ unfold<X> e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_abs Γ l τ e κ :
-  Σ; Γ ⊢ \:{l}τ => e :: κ -> False.
+  Γ ⊢ \:{l}τ => e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
 
 Lemma kind_inv_tape Γ e κ :
-  Σ; Γ ⊢ tape e :: κ -> False.
+  Γ ⊢ tape e :: κ -> False.
 Proof.
   kind_inv_solver.
 Qed.
@@ -205,147 +205,149 @@ Qed.
 (** * Type inversion *)
 Tactic Notation "type_inv_solver" "by" tactic3(tac) :=
   match goal with
-  | |- _; _ ⊢ ?e : _ -> _ => remember e
+  | |- _ ⊢ ?e : _ -> _ => remember e
   end;
   induction 1; subst; simp_hyps; simplify_eq;
   tac.
 
 Ltac type_inv_solver :=
   type_inv_solver by (repeat (eauto; esplit);
-                      try first [ goal_is (_ ⊢ _ ≡ _); equiv_naive_solver
+                      try first [ goal_is (_ ≡ _); equiv_naive_solver
                                 | try select kind (fun k => clear dependent k);
                                   lattice_naive_solver
                                     by eauto using (top_inv (A:=bool)) ]).
 
 Lemma type_inv_prod Γ l τ1 τ2 τ :
-  Σ; Γ ⊢ τ1 * τ2 :{l} τ -> False.
+  Γ ⊢ τ1 * τ2 :{l} τ -> False.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_sum Γ l l' τ1 τ2 τ :
-  Σ; Γ ⊢ τ1 +{l} τ2 :{l'} τ -> False.
+  Γ ⊢ τ1 +{l} τ2 :{l'} τ -> False.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_tapp Γ l X e τ :
-  Σ; Γ ⊢ X@e :{l} τ -> False.
+  Γ ⊢ X@e :{l} τ -> False.
 Proof.
   type_inv_solver.
 Qed.
 
 (** From now on the proofs rely on the well-formedness of global context. *)
+Context (Hwf : gctx_wf Σ).
+
 #[local]
 Set Default Proof Using "Hwf".
 
 Lemma type_inv_unit Γ l τ :
-  Σ; Γ ⊢ () :{l} τ ->
-  Σ ⊢ τ ≡ 𝟙.
+  Γ ⊢ () :{l} τ ->
+  τ ≡ <{ 𝟙 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_lit Γ l b τ :
-  Σ; Γ ⊢ lit b :{l} τ ->
-  Σ ⊢ τ ≡ 𝔹.
+  Γ ⊢ lit b :{l} τ ->
+  τ ≡ <{ 𝔹 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_abs Γ l1 l2 e τ2 τ :
-  Σ; Γ ⊢ \:{l2}τ2 => e :{l1} τ ->
+  Γ ⊢ \:{l2}τ2 => e :{l1} τ ->
   exists l1' τ1 κ L,
-    Σ; Γ ⊢ τ2 :: κ /\
-    (forall x, x ∉ L -> Σ; (<[x:=(l2, τ2)]> Γ) ⊢ e^x :{l1'} τ1^x) /\
+    Γ ⊢ τ2 :: κ /\
+    (forall x, x ∉ L -> <[x:=(l2, τ2)]> Γ ⊢ e^x :{l1'} τ1^x) /\
     l1' ⊑ l1 /\
-    Σ ⊢ τ ≡ Π:{l2}τ2, τ1.
+    τ ≡ <{ Π:{l2}τ2, τ1 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_gvar Γ l x τ :
-  Σ; Γ ⊢ gvar x :{l} τ ->
+  Γ ⊢ gvar x :{l} τ ->
   exists l' τ' e,
     Σ !! x = Some (DFun (l', τ') e) /\
     l' ⊑ l /\
-    Σ ⊢ τ ≡ τ'.
+    τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_pair Γ l e1 e2 τ :
-  Σ; Γ ⊢ (e1, e2) :{l} τ ->
+  Γ ⊢ (e1, e2) :{l} τ ->
   exists l1 l2 τ1 τ2,
-    Σ; Γ ⊢ e1 :{l1} τ1 /\
-    Σ; Γ ⊢ e2 :{l2} τ2 /\
+    Γ ⊢ e1 :{l1} τ1 /\
+    Γ ⊢ e2 :{l2} τ2 /\
     l1 ⊔ l2 ⊑ l /\
-    Σ ⊢ τ ≡ τ1 * τ2.
+    τ ≡ <{ τ1 * τ2 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_inj Γ l b e τ' τ :
-  Σ; Γ ⊢ inj@b<τ'> e :{l} τ ->
+  Γ ⊢ inj@b<τ'> e :{l} τ ->
   exists l' τ1 τ2 κ,
     τ' = <{ τ1 + τ2 }> /\
-    Σ; Γ ⊢ τ1 + τ2 :: κ /\
-    Σ; Γ ⊢ e :{l'} ite b τ1 τ2 /\
+    Γ ⊢ τ1 + τ2 :: κ /\
+    Γ ⊢ e :{l'} ite b τ1 τ2 /\
     l' ⊑ l /\
-    Σ ⊢ τ ≡ τ1 + τ2.
+    τ ≡ <{ τ1 + τ2 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_oinj Γ l b e τ' τ :
-  Σ; Γ ⊢ ~inj@b<τ'> e :{l} τ ->
+  Γ ⊢ ~inj@b<τ'> e :{l} τ ->
   exists τ1 τ2,
     τ' = <{ τ1 ~+ τ2 }> /\
-    Σ; Γ ⊢ τ1 ~+ τ2 :: *@O /\
-    Σ; Γ ⊢ e :{⊥} ite b τ1 τ2 /\
-    Σ ⊢ τ ≡ τ1 ~+ τ2.
+    Γ ⊢ τ1 ~+ τ2 :: *@O /\
+    Γ ⊢ e :{⊥} ite b τ1 τ2 /\
+    τ ≡ <{ τ1 ~+ τ2 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_fold Γ l X e τ :
-  Σ; Γ ⊢ fold<X> e :{l} τ ->
+  Γ ⊢ fold<X> e :{l} τ ->
   exists l' τ',
-    Σ; Γ ⊢ e :{l'} τ' /\
+    Γ ⊢ e :{l'} τ' /\
     Σ !! X = Some (DADT τ') /\
     l' ⊑ l /\
-    Σ ⊢ τ ≡ gvar X.
+    τ ≡ <{ gvar X }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_boxedlit Γ l b τ :
-  Σ; Γ ⊢ [b] :{l} τ ->
-  Σ ⊢ τ ≡ ~𝔹.
+  Γ ⊢ [b] :{l} τ ->
+  τ ≡ <{ ~𝔹 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_boxedinj Γ l b v ω τ :
-  Σ; Γ ⊢ [inj@b<ω> v] :{l} τ ->
+  Γ ⊢ [inj@b<ω> v] :{l} τ ->
   exists ω1 ω2,
     ω = <{ ω1 ~+ ω2 }> /\
     ovalty <{ [inj@b<ω> v] }> ω /\
-    Σ ⊢ τ ≡ ω1 ~+ ω2.
+    τ ≡ <{ ω1 ~+ ω2 }>.
 Proof.
   type_inv_solver by hauto lq: on ctrs: ovalty inv: ovalty
                            solve: equiv_naive_solver.
 Qed.
 
 Lemma type_inv_case Γ l e0 e1 e2 τ :
-  Σ; Γ ⊢ case e0 of e1 | e2 :{l} τ ->
+  Γ ⊢ case e0 of e1 | e2 :{l} τ ->
   exists l0 l1 l2 τ1 τ2 τ' κ L1 L2,
-    Σ; Γ ⊢ τ'^e0 :: κ /\
-    Σ; Γ ⊢ e0 :{l0} τ1 + τ2 /\
-    (forall x, x ∉ L1 -> Σ; (<[x:=(l0, τ1)]> Γ) ⊢ e1^x :{l1} τ'^(inl<τ1 + τ2> x)) /\
-    (forall x, x ∉ L2 -> Σ; (<[x:=(l0, τ2)]> Γ) ⊢ e2^x :{l2} τ'^(inr<τ1 + τ2> x)) /\
+    Γ ⊢ τ'^e0 :: κ /\
+    Γ ⊢ e0 :{l0} τ1 + τ2 /\
+    (forall x, x ∉ L1 -> <[x:=(l0, τ1)]> Γ ⊢ e1^x :{l1} τ'^(inl<τ1 + τ2> x)) /\
+    (forall x, x ∉ L2 -> <[x:=(l0, τ2)]> Γ ⊢ e2^x :{l2} τ'^(inr<τ1 + τ2> x)) /\
     l0 ⊔ l1 ⊔ l2 ⊑ l /\
-    Σ ⊢ τ ≡ τ'^e0.
+    τ ≡ <{ τ'^e0 }>.
 Proof.
   type_inv_solver.
 
@@ -357,69 +359,69 @@ Proof.
 Qed.
 
 Lemma type_inv_ocase Γ l e0 e1 e2 τ :
-  Σ; Γ ⊢ ~case e0 of e1 | e2 :{l} τ ->
+  Γ ⊢ ~case e0 of e1 | e2 :{l} τ ->
   exists l1 l2 τ1 τ2 τ' κ L1 L2,
-    Σ; Γ ⊢ τ' :: κ /\
-    Σ; Γ ⊢ e0 :{⊥} τ1 ~+ τ2 /\
-    (forall x, x ∉ L1 -> Σ; (<[x:=(⊥, τ1)]> Γ) ⊢ e1^x :{l1} τ') /\
-    (forall x, x ∉ L2 -> Σ; (<[x:=(⊥, τ2)]> Γ) ⊢ e2^x :{l2} τ') /\
-    Σ ⊢ τ ≡ τ'.
+    Γ ⊢ τ' :: κ /\
+    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 /\
+    (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]> Γ ⊢ e1^x :{l1} τ') /\
+    (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]> Γ ⊢ e2^x :{l2} τ') /\
+    τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_case_ Γ l l' e0 e1 e2 τ :
-  Σ; Γ ⊢ case{l} e0 of e1 | e2 :{l'} τ ->
+  Γ ⊢ case{l} e0 of e1 | e2 :{l'} τ ->
   exists l0 l1 l2 τ1 τ2 τ' κ L1 L2,
-    Σ; Γ ⊢ τ' :: κ /\
-    Σ; Γ ⊢ e0 :{l0} τ1 +{l} τ2 /\
-    (forall x, x ∉ L1 -> exists τ', Σ; (<[x:=(l0, τ1)]> Γ) ⊢ e1^x :{l1} τ') /\
-    (forall x, x ∉ L2 -> exists τ', Σ; (<[x:=(l0, τ2)]> Γ) ⊢ e2^x :{l2} τ') /\
-    Σ ⊢ τ ≡ τ'.
+    Γ ⊢ τ' :: κ /\
+    Γ ⊢ e0 :{l0} τ1 +{l} τ2 /\
+    (forall x, x ∉ L1 -> exists τ', <[x:=(l0, τ1)]> Γ ⊢ e1^x :{l1} τ') /\
+    (forall x, x ∉ L2 -> exists τ', <[x:=(l0, τ2)]> Γ ⊢ e2^x :{l2} τ') /\
+    τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_app Γ l1 e1 e2 τ :
-  Σ; Γ ⊢ e1 e2 :{l1} τ ->
+  Γ ⊢ e1 e2 :{l1} τ ->
   exists l1' l2 τ1 τ2,
-    Σ; Γ ⊢ e1 :{l1'} Π:{l2}τ2, τ1 /\
-    Σ; Γ ⊢ e2 :{l2} τ2 /\
+    Γ ⊢ e1 :{l1'} Π:{l2}τ2, τ1 /\
+    Γ ⊢ e2 :{l2} τ2 /\
     l1' ⊑ l1 /\
-    Σ ⊢ τ ≡ τ1^e2.
+    τ ≡ <{ τ1^e2 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_let Γ l e1 e2 τ :
-  Σ; Γ ⊢ let e1 in e2 :{l} τ ->
+  Γ ⊢ let e1 in e2 :{l} τ ->
   exists l1 l2 τ1 τ2 L,
-    Σ; Γ ⊢ e1 :{l1} τ1 /\
-    (forall x, x ∉ L -> Σ; (<[x:=(l1, τ1)]> Γ) ⊢ e2^x :{l2} τ2^x) /\
+    Γ ⊢ e1 :{l1} τ1 /\
+    (forall x, x ∉ L -> <[x:=(l1, τ1)]> Γ ⊢ e2^x :{l2} τ2^x) /\
     l1 ⊔ l2 ⊑ l /\
-    Σ ⊢ τ ≡ τ2^e1.
+    τ ≡ <{ τ2^e1 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_sec Γ l e τ :
-  Σ; Γ ⊢ s𝔹 e :{l} τ ->
+  Γ ⊢ s𝔹 e :{l} τ ->
   exists l',
-    Σ; Γ ⊢ e :{l'} 𝔹 /\
+    Γ ⊢ e :{l'} 𝔹 /\
     l' ⊑ l /\
-    Σ ⊢ τ ≡ ~𝔹.
+    τ ≡ <{ ~𝔹 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_ite Γ l e0 e1 e2 τ :
-  Σ; Γ ⊢ if e0 then e1 else e2 :{l} τ ->
+  Γ ⊢ if e0 then e1 else e2 :{l} τ ->
   exists l0 l1 l2 τ',
-    Σ; Γ ⊢ e0 :{l0} 𝔹 /\
-    Σ; Γ ⊢ e1 :{l1} τ'^(lit true) /\
-    Σ; Γ ⊢ e2 :{l2} τ'^(lit false) /\
+    Γ ⊢ e0 :{l0} 𝔹 /\
+    Γ ⊢ e1 :{l1} τ'^(lit true) /\
+    Γ ⊢ e2 :{l2} τ'^(lit false) /\
     l0 ⊔ l1 ⊔ l2 ⊑ l /\
-    Σ ⊢ τ ≡ τ'^e0.
+    τ ≡ <{ τ'^e0 }>.
 Proof.
   type_inv_solver.
 
@@ -431,57 +433,57 @@ Proof.
 Qed.
 
 Lemma type_inv_oite Γ l e0 e1 e2 τ :
-  Σ; Γ ⊢ ~if e0 then e1 else e2 :{l} τ ->
+  Γ ⊢ ~if e0 then e1 else e2 :{l} τ ->
   exists l1 l2 τ' κ,
-    Σ; Γ ⊢ e0 :{⊥} ~𝔹 /\
-    Σ; Γ ⊢ e1 :{l1} τ' /\
-    Σ; Γ ⊢ e2 :{l2} τ' /\
-    Σ; Γ ⊢ τ' :: κ /\
+    Γ ⊢ e0 :{⊥} ~𝔹 /\
+    Γ ⊢ e1 :{l1} τ' /\
+    Γ ⊢ e2 :{l2} τ' /\
+    Γ ⊢ τ' :: κ /\
     l = ⊤ /\
-    Σ ⊢ τ ≡ τ'.
+    τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_mux Γ l e0 e1 e2 τ :
-  Σ; Γ ⊢ mux e0 e1 e2 :{l} τ ->
+  Γ ⊢ mux e0 e1 e2 :{l} τ ->
   exists τ',
-    Σ; Γ ⊢ e0 :{⊥} ~𝔹 /\
-    Σ; Γ ⊢ e1 :{⊥} τ' /\
-    Σ; Γ ⊢ e2 :{⊥} τ' /\
-    Σ; Γ ⊢ τ' :: *@O /\
-    Σ ⊢ τ ≡ τ'.
+    Γ ⊢ e0 :{⊥} ~𝔹 /\
+    Γ ⊢ e1 :{⊥} τ' /\
+    Γ ⊢ e2 :{⊥} τ' /\
+    Γ ⊢ τ' :: *@O /\
+    τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_proj Γ l b e τ :
-  Σ; Γ ⊢ π@b e :{l} τ ->
+  Γ ⊢ π@b e :{l} τ ->
   exists l' τ1 τ2,
-    Σ; Γ ⊢ e :{l'} τ1 * τ2 /\
+    Γ ⊢ e :{l'} τ1 * τ2 /\
     l' ⊑ l /\
-    Σ ⊢ τ ≡ ite b τ1 τ2.
+    τ ≡ <{ ite b τ1 τ2 }>.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_unfold Γ l X e τ :
-  Σ; Γ ⊢ unfold<X> e :{l} τ ->
+  Γ ⊢ unfold<X> e :{l} τ ->
   exists l' τ',
     Σ !! X = Some (DADT τ') /\
-    Σ; Γ ⊢ e :{l'} gvar X /\
+    Γ ⊢ e :{l'} gvar X /\
     l' ⊑ l /\
-    Σ ⊢ τ ≡ τ'.
+    τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.
 
 Lemma type_inv_tape Γ l e τ :
-  Σ; Γ ⊢ tape e :{l} τ ->
+  Γ ⊢ tape e :{l} τ ->
   exists l' τ',
-    Σ; Γ ⊢ e :{l'} τ' /\
-    Σ; Γ ⊢ τ' :: *@O /\
-    Σ ⊢ τ ≡ τ'.
+    Γ ⊢ e :{l'} τ' /\
+    Γ ⊢ τ' :: *@O /\
+    τ ≡ τ'.
 Proof.
   type_inv_solver.
 Qed.

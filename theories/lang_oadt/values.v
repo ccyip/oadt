@@ -10,6 +10,7 @@ From oadt Require Import lang_oadt.equivalence.
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
+Import equivalence.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -66,7 +67,7 @@ Proof.
 
   (* Case [inj@_<_> _] *)
   repeat match goal with
-         | H : _ ⊢ ?ω1 ≡ ?ω2 |- _ =>
+         | H : ?ω1 ≡ ?ω2 |- _ =>
            apply otval_uniq in H; try qauto l: on use: ovalty_elim inv: otval
          end.
 Qed.
@@ -131,11 +132,11 @@ Proof.
     try woval_inv; simp_hyps;
       try solve [ repeat esplit; eauto;
                   try lazymatch goal with
-                      | |- _; _ ⊢ _ : _ =>
+                      | |- _ ⊢ _ : _ =>
                         repeat (econstructor;
                                 eauto using otval_well_kinded;
                                 try equiv_naive_solver)
-                      | |- _ ⊢ _ ≡ _ => equiv_naive_solver
+                      | |- _ ≡ _ => equiv_naive_solver
                       | |- otval _ => eauto using otval
                       end ].
 

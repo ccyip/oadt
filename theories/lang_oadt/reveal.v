@@ -7,6 +7,7 @@ From oadt Require Import lang_oadt.head.
 From oadt Require Import lang_oadt.dec.
 
 Import syntax.notations.
+Import semantics.notations.
 
 Implicit Types (b : bool).
 
@@ -163,10 +164,6 @@ where "e '↓' v" := (reval e v).
 
 
 (** * Theorems *)
-
-Notation "e '-->!' e'" := (step Σ e e') (at level 40).
-
-Notation "e '-->*' e'" := (rtc (step Σ) e e') (at level 40).
 
 #[local]
 Set Default Proof Using "Type".

@@ -12,13 +12,14 @@ From oadt Require Import lang_oadt.preservation.
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
+Import equivalence.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
 
-Section progress.
+Section fix_gctx.
 
 Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
@@ -29,10 +30,10 @@ Set Default Proof Using "Hwf".
 (** * Lemmas about obliviousness *)
 
 Lemma pared_obliv_preservation_inv Γ τ τ' κ :
-  Σ ⊢ τ ⇛ τ' ->
-  Σ; Γ ⊢ τ :: κ ->
-  Σ; Γ ⊢ τ' :: *@O ->
-  Σ; Γ ⊢ τ :: *@O.
+  τ ⇛ τ' ->
+  Γ ⊢ τ :: κ ->
+  Γ ⊢ τ' :: *@O ->
+  Γ ⊢ τ :: *@O.
 Proof.
   induction 1; intros; try case_label;
     kind_inv;
@@ -49,18 +50,18 @@ Proof.
 Qed.
 
 Lemma pared_equiv_obliv_preservation Γ τ τ' κ :
-  Σ ⊢ τ ≡ τ' ->
-  Σ; Γ ⊢ τ :: *@O ->
-  Σ; Γ ⊢ τ' :: κ ->
-  Σ; Γ ⊢ τ' :: *@O.
+  τ ≡ τ' ->
+  Γ ⊢ τ :: *@O ->
+  Γ ⊢ τ' :: κ ->
+  Γ ⊢ τ' :: *@O.
 Proof.
   induction 1; intros;
     eauto using pared_obliv_preservation_inv, pared_kinding_preservation.
 Qed.
 
 Lemma wval_woval Γ v l τ :
-  Σ; Γ ⊢ v :{l} τ ->
-  Σ; Γ ⊢ τ :: *@O ->
+  Γ ⊢ v :{l} τ ->
+  Γ ⊢ τ :: *@O ->
   wval v ->
   woval v.
 Proof.
@@ -87,7 +88,7 @@ Ltac canonical_form_solver :=
 
 Lemma canonical_form_unit Γ l e :
   val e ->
-  Σ; Γ ⊢ e :{l} 𝟙 ->
+  Γ ⊢ e :{l} 𝟙 ->
   e = <{ () }>.
 Proof.
   canonical_form_solver.
@@ -95,7 +96,7 @@ Qed.
 
 Lemma canonical_form_abs Γ l1 l2 e τ2 τ1 :
   val e ->
-  Σ; Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
+  Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
   exists e' τ, e = <{ \:{l2}τ => e' }>.
 Proof.
   canonical_form_solver.
@@ -103,7 +104,7 @@ Qed.
 
 Lemma canonical_form_bool Γ l e :
   val e ->
-  Σ; Γ ⊢ e :{l} 𝔹 ->
+  Γ ⊢ e :{l} 𝔹 ->
   exists b, e = <{ b }>.
 Proof.
   canonical_form_solver.
@@ -111,7 +112,7 @@ Qed.
 
 Lemma canonical_form_obool Γ l e :
   val e ->
-  Σ; Γ ⊢ e :{l} ~𝔹 ->
+  Γ ⊢ e :{l} ~𝔹 ->
   exists b, e = <{ [b] }>.
 Proof.
   canonical_form_solver.
@@ -119,7 +120,7 @@ Qed.
 
 Lemma canonical_form_prod Γ l e τ1 τ2 :
   val e ->
-  Σ; Γ ⊢ e :{l} τ1 * τ2 ->
+  Γ ⊢ e :{l} τ1 * τ2 ->
   exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
 Proof.
   canonical_form_solver.
@@ -127,7 +128,7 @@ Qed.
 
 Lemma canonical_form_sum Γ l e τ1 τ2 :
   val e ->
-  Σ; Γ ⊢ e :{l} τ1 + τ2 ->
+  Γ ⊢ e :{l} τ1 + τ2 ->
   exists b v τ, val v /\ e = <{ inj@b<τ> v }>.
 Proof.
   canonical_form_solver.
@@ -135,7 +136,7 @@ Qed.
 
 Lemma canonical_form_osum Γ l e τ1 τ2 :
   val e ->
-  Σ; Γ ⊢ e :{l} τ1 ~+ τ2 ->
+  Γ ⊢ e :{l} τ1 ~+ τ2 ->
   exists b v ω1 ω2, oval v /\ otval ω1 /\ otval ω2 /\
                e = <{ [inj@b<ω1 ~+ ω2> v] }>.
 Proof.
@@ -150,7 +151,7 @@ Qed.
 condition is not needed since it is implied by the typing judgment. *)
 Lemma canonical_form_fold Γ l e X :
   val e ->
-  Σ; Γ ⊢ e :{l} gvar X ->
+  Γ ⊢ e :{l} gvar X ->
   exists v X', val v /\ e = <{ fold<X'> v }>.
 Proof.
   inversion 1; canonical_form_solver.
@@ -160,7 +161,7 @@ Qed.
 
 Lemma canonical_form_weak_unit Γ l e :
   wval e ->
-  Σ; Γ ⊢ e :{l} 𝟙 ->
+  Γ ⊢ e :{l} 𝟙 ->
   e = <{ () }> \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
@@ -169,7 +170,7 @@ Qed.
 
 Lemma canonical_form_weak_abs Γ l1 l2 e τ2 τ1 :
   wval e ->
-  Σ; Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
+  Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
   (exists e' τ, e = <{ \:{l2}τ => e' }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
@@ -178,7 +179,7 @@ Qed.
 
 Lemma canonical_form_weak_bool Γ l e :
   wval e ->
-  Σ; Γ ⊢ e :{l} 𝔹 ->
+  Γ ⊢ e :{l} 𝔹 ->
   (exists b, e = <{ b }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
@@ -187,7 +188,7 @@ Qed.
 
 Lemma canonical_form_weak_obool Γ e :
   wval e ->
-  Σ; Γ ⊢ e :{⊥} ~𝔹 ->
+  Γ ⊢ e :{⊥} ~𝔹 ->
   exists b, e = <{ [b] }>.
 Proof.
   canonical_form_solver.
@@ -195,7 +196,7 @@ Qed.
 
 Lemma canonical_form_weak_prod Γ l e τ1 τ2 :
   wval e ->
-  Σ; Γ ⊢ e :{l} τ1 * τ2 ->
+  Γ ⊢ e :{l} τ1 * τ2 ->
   (exists v1 v2, wval v1 /\ wval v2 /\ e = <{ (v1, v2) }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
@@ -204,7 +205,7 @@ Qed.
 
 Lemma canonical_form_weak_sum Γ l e τ1 τ2 :
   wval e ->
-  Σ; Γ ⊢ e :{l} τ1 + τ2 ->
+  Γ ⊢ e :{l} τ1 + τ2 ->
   (exists b v τ, wval v /\ e = <{ inj@b<τ> v }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
@@ -213,7 +214,7 @@ Qed.
 
 Lemma canonical_form_weak_fold Γ l e X :
   wval e ->
-  Σ; Γ ⊢ e :{l} gvar X ->
+  Γ ⊢ e :{l} gvar X ->
   (exists v X', wval v /\ e = <{ fold<X'> v }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
@@ -231,14 +232,14 @@ Ltac ctx_solver :=
 (** The combined progress theorems for expressions and types. *)
 Theorem progress_ :
   (forall Γ e l τ,
-      Σ; Γ ⊢ e :{l} τ ->
+      Γ ⊢ e :{l} τ ->
       Γ = ∅ ->
-      wval e \/ exists e', Σ ⊨ e -->! e') /\
+      wval e \/ exists e', e -->! e') /\
   (forall Γ τ κ,
-     Σ; Γ ⊢ τ :: κ ->
+     Γ ⊢ τ :: κ ->
      Γ = ∅ ->
      κ = <{ *@O }> ->
-     otval τ \/ exists τ', Σ ⊨ τ -->! τ').
+     otval τ \/ exists τ', τ -->! τ').
 Proof.
   eapply typing_kinding_mutind; intros; subst;
     (* If a type is not used in the conclusion, the mutual inductive hypothesis
@@ -274,7 +275,7 @@ Proof.
   (* [~case _ of _ | _] *)
   - right. intuition.
     (* Discriminee is value. *)
-    + select (_; _ ⊢ _ : _) (fun H => apply canonical_form_osum in H);
+    + select (_ ⊢ _ : _) (fun H => apply canonical_form_osum in H);
         eauto using wval_val.
       simp_hyps.
       select! (otval _) (fun H => use (ovalty_inhabited _ H)).
@@ -301,24 +302,24 @@ Proof.
 Qed.
 
 Theorem progress_weak l τ e :
-  Σ; ∅ ⊢ e :{l} τ ->
-  wval e \/ exists e', Σ ⊨ e -->! e'.
+  ∅ ⊢ e :{l} τ ->
+  wval e \/ exists e', e -->! e'.
 Proof.
   hauto use: progress_.
 Qed.
 
 Theorem progress τ e :
-  Σ; ∅ ⊢ e :{⊥} τ ->
-  val e \/ exists e', Σ ⊨ e -->! e'.
+  ∅ ⊢ e :{⊥} τ ->
+  val e \/ exists e', e -->! e'.
 Proof.
   hauto use: progress_, wval_val.
 Qed.
 
 Theorem kinding_progress τ :
-  Σ; ∅ ⊢ τ :: *@O ->
-  otval τ \/ exists τ', Σ ⊨ τ -->! τ'.
+  ∅ ⊢ τ :: *@O ->
+  otval τ \/ exists τ', τ -->! τ'.
 Proof.
   hauto use: progress_.
 Qed.
 
-End progress.
+End fix_gctx.

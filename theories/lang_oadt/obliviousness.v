@@ -13,6 +13,7 @@ From oadt Require Import lang_oadt.preservation.
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
+Import equivalence.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -132,19 +133,26 @@ Proof.
     simplify_eq; eauto; sfirstorder.
 Qed.
 
-Lemma indistinguishable_wval_step Σ v v' e :
+Section fix_gctx.
+
+Context (Σ : gctx).
+
+#[local]
+Set Default Proof Using "Type".
+
+Lemma indistinguishable_wval_step v v' e :
   wval v ->
   v ≈ v' ->
-  Σ ⊨ v' -->! e ->
+  v' -->! e ->
   False.
 Proof.
   sfirstorder use: indistinguishable_wval_is_nf.
 Qed.
 
-Lemma indistinguishable_otval_step Σ ω ω' e :
+Lemma indistinguishable_otval_step ω ω' e :
   otval ω ->
   ω ≈ ω' ->
-  Σ ⊨ ω' -->! e ->
+  ω' -->! e ->
   False.
 Proof.
   sfirstorder use: indistinguishable_otval_is_nf.
@@ -152,30 +160,30 @@ Qed.
 
 (** The next few lemmas can be proved independently, but they can simply reduce
 to the indistinguishable counterparts. *)
-Lemma wval_is_nf Σ v :
+Lemma wval_is_nf v :
   wval v ->
-  nf (@step Σ) v.
+  nf (step Σ) v.
 Proof.
   qauto use: indistinguishable_wval_is_nf solve: reflexivity.
 Qed.
 
-Lemma otval_is_nf Σ ω :
+Lemma otval_is_nf ω :
   otval ω ->
-  nf (@step Σ) ω.
+  nf (step Σ) ω.
 Proof.
   qauto use: indistinguishable_otval_is_nf solve: reflexivity.
 Qed.
 
-Lemma wval_step Σ v e :
-  Σ ⊨ v -->! e ->
+Lemma wval_step v e :
+  v -->! e ->
   wval v ->
   False.
 Proof.
   sfirstorder use: wval_is_nf.
 Qed.
 
-Lemma otval_step Σ ω e :
-  Σ ⊨ ω -->! e ->
+Lemma otval_step ω e :
+  ω -->! e ->
   otval ω ->
   False.
 Proof.
@@ -194,23 +202,28 @@ Ltac apply_canonical_form_ H τ :=
 (* This tactic is destructive. *)
 Ltac apply_canonical_form :=
   match goal with
-  | H : val ?e, H' : _; _ ⊢ ?e : ?τ |- _ =>
+  | H : val ?e, H' : _ ⊢ ?e : ?τ |- _ =>
     apply_canonical_form_ H τ; eauto; try simp_hyp H
   end; subst.
+
+
+Context (Hwf : gctx_wf Σ).
+
+#[local]
+Set Default Proof Using "Hwf".
 
 (** [indistinguishable_obliv_val] and [indistinguishable_val_type] are two of
 the most important lemmas. *)
 
-Lemma indistinguishable_obliv_val Σ Γ v v' l l' τ :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ v :{l} τ ->
-  Σ; Γ ⊢ v' :{l'} τ ->
+Lemma indistinguishable_obliv_val Γ v v' l l' τ :
+  Γ ⊢ v :{l} τ ->
+  Γ ⊢ v' :{l'} τ ->
   val v ->
   val v' ->
-  Σ; Γ ⊢ τ :: *@O ->
+  Γ ⊢ τ :: *@O ->
   v ≈ v'.
 Proof.
-  intros Hwf H. revert v' l'.
+  intros H. revert v' l'.
   induction H; intros;
     repeat val_inv;
     try apply_regularity;
@@ -228,7 +241,7 @@ Proof.
     apply_canonical_form.
     type_inv.
     kind_inv.
-    select (_ ⊢ _ ≡ _) (fun H => eapply otval_uniq in H;
+    select (_ ≡ _) (fun H => eapply otval_uniq in H;
                                eauto using otval; rewrite H).
     econstructor.
 
@@ -238,16 +251,15 @@ Proof.
     eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
-Lemma indistinguishable_val_obliv_type_equiv Σ Γ v v' l l' τ τ' :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ v :{l} τ ->
-  Σ; Γ ⊢ v' :{l'} τ' ->
-  Σ; Γ ⊢ τ :: *@O ->
+Lemma indistinguishable_val_obliv_type_equiv Γ v v' l l' τ τ' :
+  Γ ⊢ v :{l} τ ->
+  Γ ⊢ v' :{l'} τ' ->
+  Γ ⊢ τ :: *@O ->
   val v ->
   v ≈ v' ->
-  Σ ⊢ τ ≡ τ'.
+  τ ≡ τ'.
 Proof.
-  intros Hwf H. revert v' l' τ'.
+  intros H. revert v' l' τ'.
   induction H; intros;
     try indistinguishable_inv;
     repeat val_inv;
@@ -258,7 +270,7 @@ Proof.
     try easy.
 
   (* Product *)
-  - select (_ ⊢ _ ≡ _ * _) (fun H => rewrite H).
+  - select (_ ≡ <{ _ * _ }>) (fun H => rewrite H).
     apply_pared_equiv_congr; eauto using kinding_lc, typing_type_lc;
       auto_eapply; eauto using kinding.
 
@@ -271,14 +283,13 @@ Qed.
 (* This lemma can be strengthened so that we drop the typing assumption for
 [v']. In order for that, we have to prove [v'] can be typed which should be
 provable. But this version is good enough for the main theorem. *)
-Lemma indistinguishable_val_type Σ Γ v v' l l' τ τ' :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ v :{l} τ ->
-  Σ; Γ ⊢ v' :{l'} τ' ->
-  Σ; Γ ⊢ τ :: *@O ->
+Lemma indistinguishable_val_type Γ v v' l l' τ τ' :
+  Γ ⊢ v :{l} τ ->
+  Γ ⊢ v' :{l'} τ' ->
+  Γ ⊢ τ :: *@O ->
   val v ->
   v ≈ v' ->
-  Σ; Γ ⊢ v' :{l'} τ.
+  Γ ⊢ v' :{l'} τ.
 Proof.
   intros.
   eapply TConv; eauto.
@@ -288,14 +299,14 @@ Qed.
 
 Ltac val_step_absurd :=
   match goal with
-  | H : _ ⊨ _ -->! _ |- _ =>
+  | H : _ -->! _ |- _ =>
     exfalso; eapply otval_step;
     [ apply H
     | solve [ eauto
             | eapply indistinguishable_otval;
               [ solve [ eassumption | symmetry; eassumption ]
               | eauto using otval ] ] ]
-  | H : _ ⊨ _ -->! _ |- _ =>
+  | H : _ -->! _ |- _ =>
     exfalso; eapply wval_step;
     [ apply H
     | solve [ eauto using wval
@@ -307,27 +318,25 @@ Ltac val_step_absurd :=
 
 (** * Obliviousness theorem *)
 
-Lemma indistinguishable_step Σ e1 e1' e2 l1 l2 τ1 τ2 :
-  gctx_wf Σ ->
-  Σ ⊨ e1 -->! e1' ->
+Lemma indistinguishable_step e1 e1' e2 l1 l2 τ1 τ2 :
+  e1 -->! e1' ->
   e1 ≈ e2 ->
-  Σ; ∅ ⊢ e1 :{l1} τ1 ->
-  Σ; ∅ ⊢ e2 :{l2} τ2 ->
-  exists e2', Σ ⊨ e2 -->! e2'.
+  ∅ ⊢ e1 :{l1} τ1 ->
+  ∅ ⊢ e2 :{l2} τ2 ->
+  exists e2', e2 -->! e2'.
 Proof.
   qauto use: progress_weak solve: val_step_absurd.
 Qed.
 
-Lemma indistinguishable_deterministic Σ e1 e1' e2 e2' :
-  gctx_wf Σ ->
-  Σ ⊨ e1 -->! e1' ->
-  Σ ⊨ e2 -->! e2' ->
+Lemma indistinguishable_deterministic e1 e1' e2 e2' :
+  e1 -->! e1' ->
+  e2 -->! e2' ->
   e1 ≈ e2 ->
-  ((exists τ1 τ2 l1 l2, Σ; ∅ ⊢ e1 :{l1} τ1 /\ Σ; ∅ ⊢ e2 :{l2} τ2) \/
-   (exists κ1 κ2, Σ; ∅ ⊢ e1 :: κ1 /\ Σ; ∅ ⊢ e2 :: κ2)) ->
+  ((exists τ1 τ2 l1 l2, ∅ ⊢ e1 :{l1} τ1 /\ ∅ ⊢ e2 :{l2} τ2) \/
+   (exists κ1 κ2, ∅ ⊢ e1 :: κ1 /\ ∅ ⊢ e2 :: κ2)) ->
   e1' ≈ e2'.
 Proof.
-  intros Hwf H. revert e2 e2'.
+  intros H. revert e2 e2'.
   induction H; intros;
     repeat ectx_inv; simplify_eq;
       repeat
@@ -372,14 +381,15 @@ theorem. Two indistinguishable well-typed expressions always step to
 indistinguishable new expressions, or they both can not take any more step. It
 is important that if one of them takes step, another one also takes step.
 Otherwise the adversaries can distinguish them by this mismatched behavior. *)
-Corollary obliviousness_step Σ e1 e1' e2 l1 l2 τ1 τ2 :
-  gctx_wf Σ ->
-  Σ ⊨ e1 -->! e1' ->
+Corollary obliviousness_step e1 e1' e2 l1 l2 τ1 τ2 :
+  e1 -->! e1' ->
   e1 ≈ e2 ->
-  Σ; ∅ ⊢ e1 :{l1} τ1 ->
-  Σ; ∅ ⊢ e2 :{l2} τ2 ->
-  (exists e2', Σ ⊨ e2 -->! e2') /\
-  (forall e2', Σ ⊨ e2 -->! e2' -> e1' ≈ e2').
+  ∅ ⊢ e1 :{l1} τ1 ->
+  ∅ ⊢ e2 :{l2} τ2 ->
+  (exists e2', e2 -->! e2') /\
+  (forall e2', e2 -->! e2' -> e1' ≈ e2').
 Proof.
   hauto use: indistinguishable_step, indistinguishable_deterministic.
 Qed.
+
+End fix_gctx.

@@ -7,130 +7,49 @@ From oadt Require Import lang_oadt.values.
 From oadt Require Import lang_oadt.admissible.
 From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.equivalence.
+From oadt Require Import lang_oadt.weakening.
 
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
+Import equivalence.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
 
-
-(** * Weakening lemmas  *)
-Lemma pared_weakening Σ e e' :
-  Σ ⊢ e ⇛ e' ->
-  forall Σ', Σ ⊆ Σ' ->
-        Σ' ⊢ e ⇛ e'.
-Proof.
-  induction 1; intros;
-    econstructor; eauto using lookup_weaken.
-Qed.
-
-Lemma pared_equiv_weakening Σ e e' :
-  Σ ⊢ e ≡ e' ->
-  forall Σ', Σ ⊆ Σ' ->
-        Σ' ⊢ e ≡ e'.
-Proof.
-  induction 1; intros; eauto using pared_equiv, pared_weakening.
-Qed.
-
-Lemma weakening_ Σ :
-  (forall Γ e l τ,
-    Σ; Γ ⊢ e :{l} τ ->
-    forall Σ' Γ',
-      Σ ⊆ Σ' ->
-      Γ ⊆ Γ' ->
-      Σ'; Γ' ⊢ e :{l} τ) /\
-  (forall Γ τ κ,
-    Σ; Γ ⊢ τ :: κ ->
-    forall Σ' Γ',
-      Σ ⊆ Σ' ->
-      Γ ⊆ Γ' ->
-      Σ'; Γ' ⊢ τ :: κ).
-Proof.
-  apply typing_kinding_mutind; intros; subst;
-    try qauto l: on ctrs: typing, kinding;
-    try qauto l: on use: lookup_weaken ctrs: typing, kinding;
-    try qauto l: on use: insert_mono ctrs: typing, kinding;
-    (* For the [case]/[~case] cases and the [TConv] case. *)
-    econstructor; eauto using insert_mono, pared_equiv_weakening.
-Qed.
-
-Lemma weakening Σ Γ Σ' Γ' e l τ :
-  Σ; Γ ⊢ e :{l} τ ->
-  Σ ⊆ Σ' ->
-  Γ ⊆ Γ' ->
-  Σ'; Γ' ⊢ e :{l} τ.
-Proof.
-  hauto use: weakening_.
-Qed.
-
-Lemma kinding_weakening Σ Γ Σ' Γ' τ κ :
-  Σ; Γ ⊢ τ :: κ ->
-  Σ ⊆ Σ' ->
-  Γ ⊆ Γ' ->
-  Σ'; Γ' ⊢ τ :: κ.
-Proof.
-  hauto use: weakening_.
-Qed.
-
-Lemma weakening_empty Σ Γ e l τ :
-  Σ; ∅ ⊢ e :{l} τ ->
-  Σ; Γ ⊢ e :{l} τ.
-Proof.
-  eauto using weakening, map_empty_subseteq.
-Qed.
-
-Lemma kinding_weakening_empty Σ Γ τ κ :
-  Σ; ∅ ⊢ τ :: κ ->
-  Σ; Γ ⊢ τ :: κ.
-Proof.
-  eauto using kinding_weakening, map_empty_subseteq.
-Qed.
-
-Lemma weakening_insert Σ Γ e l τ τ' x :
-  Σ; Γ ⊢ e :{l} τ ->
-  x ∉ dom aset Γ ->
-  Σ; (<[x:=τ']>Γ) ⊢ e :{l} τ.
-Proof.
-  eauto using weakening, insert_fresh_subseteq.
-Qed.
-
-Lemma kinding_weakening_insert Σ Γ τ τ' κ x :
-  Σ; Γ ⊢ τ :: κ ->
-  x ∉ dom aset Γ ->
-  Σ; (<[x:=τ']>Γ) ⊢ τ :: κ.
-Proof.
-  eauto using kinding_weakening, insert_fresh_subseteq.
-Qed.
-
 (** * Substitution lemmas *)
 
-Lemma subst_tctx_typing_kinding_ Σ x s :
-  gctx_wf Σ ->
+Section fix_gctx.
+
+Context (Σ : gctx).
+Context (Hwf : gctx_wf Σ).
+
+#[local]
+Set Default Proof Using "Hwf".
+
+Lemma subst_tctx_typing_kinding_ x s :
   (forall Γ e l τ,
-      Σ; Γ ⊢ e :{l} τ ->
+      Γ ⊢ e :{l} τ ->
       x ∉ fv τ ∪ dom aset Γ ->
-      Σ; ({x↦s} <$> Γ) ⊢ e :{l} τ) /\
+      ({x↦s} <$> Γ) ⊢ e :{l} τ) /\
   (forall Γ τ κ,
-      Σ; Γ ⊢ τ :: κ ->
+      Γ ⊢ τ :: κ ->
       x ∉ dom aset Γ ->
-      Σ; ({x↦s} <$> Γ) ⊢ τ :: κ).
+      ({x↦s} <$> Γ) ⊢ τ :: κ).
 Proof.
-  intros Hwf.
   apply typing_kinding_mutind; intros; subst; simpl in *;
     econstructor; eauto;
       simpl_cofin?;
       (* Try to apply induction hypotheses. *)
       lazymatch goal with
-      | |- _; ?Γ ⊢ ?e : _ =>
+      | |- ?Γ ⊢ ?e : _ =>
         auto_apply || lazymatch goal with
                       | H : _ -> _; ?Γ' ⊢ e : _ |- _ =>
                         replace Γ with Γ'; [auto_apply |]
                       end
-      | |- _; ?Γ ⊢ ?τ :: _ =>
+      | |- ?Γ ⊢ ?τ :: _ =>
         auto_apply || lazymatch goal with
                       | H : _ -> _; ?Γ' ⊢ τ :: _ |- _ =>
                         replace Γ with Γ'; [auto_apply |]
@@ -159,43 +78,41 @@ Proof.
   all : try fast_set_solver!!; simpl_fv; fast_set_solver!!.
 Qed.
 
-Lemma subst_tctx_typing Σ Γ e l τ x s :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ e :{l} τ ->
+Lemma subst_tctx_typing Γ e l τ x s :
+  Γ ⊢ e :{l} τ ->
   x ∉ fv τ ∪ dom aset Γ ->
-  Σ; ({x↦s} <$> Γ) ⊢ e :{l} τ.
+  ({x↦s} <$> Γ) ⊢ e :{l} τ.
 Proof.
   qauto use: subst_tctx_typing_kinding_.
 Qed.
 
 (* Note that [lc s] is not needed, and it is here only for convenience. I will
 drop it in the actual lemma. *)
-Lemma subst_preservation_ Σ x s l' τ' :
-  gctx_wf Σ ->
+Lemma subst_preservation_ x s l' τ' :
   lc s ->
   (forall Γ' e l τ,
-      Σ; Γ' ⊢ e :{l} τ ->
+      Γ' ⊢ e :{l} τ ->
       forall Γ,
         Γ' = <[x:=(l', τ')]>Γ ->
         x ∉ fv τ' ∪ dom aset Γ ->
-        Σ; Γ ⊢ s :{l'} τ' ->
-        Σ; ({x↦s} <$> Γ) ⊢ {x↦s}e :{l} {x↦s}τ) /\
+        Γ ⊢ s :{l'} τ' ->
+        ({x↦s} <$> Γ) ⊢ {x↦s}e :{l} {x↦s}τ) /\
   (forall Γ' τ κ,
-      Σ; Γ' ⊢ τ :: κ ->
+      Γ' ⊢ τ :: κ ->
       forall Γ,
         Γ' = <[x:=(l', τ')]>Γ ->
         x ∉ fv τ' ∪ dom aset Γ ->
-        Σ; Γ ⊢ s :{l'} τ' ->
-        Σ; ({x↦s} <$> Γ) ⊢ {x↦s}τ :: κ).
+        Γ ⊢ s :{l'} τ' ->
+        ({x↦s} <$> Γ) ⊢ {x↦s}τ :: κ).
 Proof.
-  intros Hwf Hlc.
+  intros Hlc.
   apply typing_kinding_mutind; intros; subst; simpl in *;
     (* First we normalize the typing and kinding judgments so they are ready
     for applying typing and kinding rules to. *)
     rewrite ?subst_open_distr by assumption;
     rewrite ?subst_ite_distr;
     try lazymatch goal with
-        | |- _; _ ⊢ [inj@_< ?ω > _] : {_↦_}?ω =>
+        | |- _ ⊢ [inj@_< ?ω > _] : {_↦_}?ω =>
           rewrite subst_fresh by shelve
         | |- context [decide (_ = _)] =>
           (* The case of [fvar x] is the trickier one. Let's handle it later. *)
@@ -225,8 +142,8 @@ Proof.
       Otherwise some existential variables may have undesirable
       instantiation. *)
       lazymatch goal with
-      | |- _; ?Γ ⊢ _ : _ => go Γ
-      | |- _; ?Γ ⊢ _ :: _ => go Γ
+      | |- ?Γ ⊢ _ : _ => go Γ
+      | |- ?Γ ⊢ _ :: _ => go Γ
       | _ => idtac
       end;
         (* Try to solve other side conditions. *)
@@ -238,11 +155,11 @@ Proof.
                  shelve
                | |- <[_:=_]>(<[_:=_]>_) = <[_:=_]>(<[_:=_]>_) =>
                  apply insert_commute
-               | |- _ ⊢ _ ≡ _ =>
+               | |- _ ≡ _ =>
                  apply pared_equiv_subst2
                | |- (_ <$> _) !! _ = Some _ =>
                  simplify_map_eq
-               | |- _; (<[_:=_]>_) ⊢ _ : _ =>
+               | |- <[_:=_]>_ ⊢ _ : _ =>
                  apply weakening_insert
                | |- Some _ = Some _ =>
                  try reflexivity; repeat f_equal
@@ -269,12 +186,11 @@ Proof.
 Qed.
 
 (** The actual substitution lemma *)
-Lemma subst_preservation Σ x s l' τ' Γ e l τ :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l', τ')]>Γ) ⊢ e :{l} τ ->
-  Σ; Γ ⊢ s :{l'} τ' ->
+Lemma subst_preservation x s l' τ' Γ e l τ :
+  <[x:=(l', τ')]>Γ ⊢ e :{l} τ ->
+  Γ ⊢ s :{l'} τ' ->
   x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Σ; Γ ⊢ {x↦s}e :{l} {x↦s}τ.
+  Γ ⊢ {x↦s}e :{l} {x↦s}τ.
 Proof.
   intros.
   rewrite <- (subst_tctx_fresh Γ x s) by fast_set_solver!!.
@@ -282,12 +198,11 @@ Proof.
   fast_set_solver!!.
 Qed.
 
-Lemma kinding_subst_preservation Σ x s l' τ' Γ τ κ :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l', τ')]>Γ) ⊢ τ :: κ ->
-  Σ; Γ ⊢ s :{l'} τ' ->
+Lemma kinding_subst_preservation x s l' τ' Γ τ κ :
+  <[x:=(l', τ')]>Γ ⊢ τ :: κ ->
+  Γ ⊢ s :{l'} τ' ->
   x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Σ; Γ ⊢ {x↦s}τ :: κ.
+  Γ ⊢ {x↦s}τ :: κ.
 Proof.
   intros.
   rewrite <- (subst_tctx_fresh Γ x s) by fast_set_solver!!.
@@ -295,12 +210,11 @@ Proof.
   fast_set_solver!!.
 Qed.
 
-Lemma open_preservation_alt Σ x s l' τ' Γ e l τ :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l', τ')]>Γ) ⊢ e^x :{l} τ ->
-  Σ; Γ ⊢ s :{l'} τ' ->
+Lemma open_preservation_alt x s l' τ' Γ e l τ :
+  <[x:=(l', τ')]>Γ ⊢ e^x :{l} τ ->
+  Γ ⊢ s :{l'} τ' ->
   x ∉ fv τ' ∪ fv e ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Σ; Γ ⊢ e^s :{l} {x↦s}τ.
+  Γ ⊢ e^s :{l} {x↦s}τ.
 Proof.
   intros.
   rewrite (subst_intro e s x) by fast_set_solver!!.
@@ -308,12 +222,11 @@ Proof.
   fast_set_solver!!.
 Qed.
 
-Lemma open_preservation Σ x s l' τ' Γ e l τ :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l', τ')]>Γ) ⊢ e^x :{l} τ^x ->
-  Σ; Γ ⊢ s :{l'} τ' ->
+Lemma open_preservation x s l' τ' Γ e l τ :
+  <[x:=(l', τ')]>Γ ⊢ e^x :{l} τ^x ->
+  Γ ⊢ s :{l'} τ' ->
   x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Σ; Γ ⊢ e^s :{l} τ^s.
+  Γ ⊢ e^s :{l} τ^s.
 Proof.
   intros.
   rewrite (subst_intro e s x) by fast_set_solver!!.
@@ -322,12 +235,11 @@ Proof.
   fast_set_solver!!.
 Qed.
 
-Lemma kinding_open_preservation Σ x s l' τ' Γ τ κ :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l', τ')]>Γ) ⊢ τ^x :: κ ->
-  Σ; Γ ⊢ s :{l'} τ' ->
+Lemma kinding_open_preservation x s l' τ' Γ τ κ :
+  <[x:=(l', τ')]>Γ ⊢ τ^x :: κ ->
+  Γ ⊢ s :{l'} τ' ->
   x ∉ fv τ' ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Σ; Γ ⊢ τ^s :: κ.
+  Γ ⊢ τ^s :: κ.
 Proof.
   intros.
   rewrite (subst_intro τ s x) by fast_set_solver!!.
@@ -335,14 +247,13 @@ Proof.
   fast_set_solver!!.
 Qed.
 
-Lemma open_preservation_lc Σ x s l' τ' Γ e l τ :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l', τ')]>Γ) ⊢ e^x :{l} τ ->
-  Σ; Γ ⊢ s :{l'} τ' ->
+Lemma open_preservation_lc x s l' τ' Γ e l τ :
+  <[x:=(l', τ')]>Γ ⊢ e^x :{l} τ ->
+  Γ ⊢ s :{l'} τ' ->
   x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Σ; Γ ⊢ e^s :{l} τ.
+  Γ ⊢ e^s :{l} τ.
 Proof.
-  intros Hwf H. intros.
+  intros H. intros.
   erewrite <- (open_lc_intro τ s) by eauto using typing_type_lc.
   erewrite <- (open_lc_intro τ x) in H by eauto using typing_type_lc.
   eapply open_preservation; eauto.
@@ -351,12 +262,10 @@ Qed.
 (** * Other lemmas *)
 
 (** Types of well-typed expressions are well-kinded *)
-Lemma regularity Σ Γ e l τ :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ e :{l} τ ->
-  exists κ, Σ; Γ ⊢ τ :: κ.
+Lemma regularity Γ e l τ :
+  Γ ⊢ e :{l} τ ->
+  exists κ, Γ ⊢ τ :: κ.
 Proof.
-  intros Hwf.
   induction 1; simp_hyps; eauto using kinding;
     try (apply_gctx_wf; eauto using kinding_weakening_empty);
     kind_inv; simpl_cofin?; simp_hyps;
@@ -369,37 +278,35 @@ Proof.
 Qed.
 
 Ltac apply_regularity :=
-  select! (_; _ ⊢ _ : _)
-        (fun H => dup_hyp H (fun H => eapply regularity in H;
-                                  [ simp_hyp H | eauto ])).
+  select! (_ ⊢ _ : _)
+        (fun H => dup_hyp H (fun H => eapply regularity in H; simp_hyp H)).
 
 (** We can substitute with an equivalent type and a more permissive label in the
 typing contexts. *)
-Lemma subst_conv_ Σ x l1 l2 τ1 τ2 :
-  gctx_wf Σ ->
-  Σ ⊢ τ1 ≡ τ2 ->
+Lemma subst_conv_ x l1 l2 τ1 τ2 :
+  τ1 ≡ τ2 ->
   (forall Γ' e l τ,
-      Σ; Γ' ⊢ e :{l} τ ->
+      Γ' ⊢ e :{l} τ ->
       forall Γ κ',
         Γ' = <[x:=(l1, τ1)]>Γ ->
         x ∉ dom aset Γ ->
-        Σ; Γ ⊢ τ2 :: κ' ->
+        Γ ⊢ τ2 :: κ' ->
         l2 ⊑ l1 ->
-        Σ; (<[x:=(l2, τ2)]>Γ) ⊢ e :{l} τ) /\
+        <[x:=(l2, τ2)]>Γ ⊢ e :{l} τ) /\
   (forall Γ' τ κ,
-      Σ; Γ' ⊢ τ :: κ ->
+      Γ' ⊢ τ :: κ ->
       forall Γ κ',
         Γ' = <[x:=(l1, τ1)]>Γ ->
         x ∉ dom aset Γ ->
-        Σ; Γ ⊢ τ2 :: κ' ->
+        Γ ⊢ τ2 :: κ' ->
         l2 ⊑ l1 ->
-        Σ; (<[x:=(l2, τ2)]>Γ) ⊢ τ :: κ).
+        <[x:=(l2, τ2)]>Γ ⊢ τ :: κ).
 Proof.
-  intros Hwf Heq.
+  intros Heq.
   apply typing_kinding_mutind; intros; subst;
     (* [TFVar] is the key base case. Prove it later *)
     try lazymatch goal with
-        | |- _; _ ⊢ fvar _ : _ =>
+        | |- _ ⊢ fvar _ : _ =>
           shelve
         end;
     try solve [ econstructor; eauto ];
@@ -415,18 +322,19 @@ Proof.
           | .. ];
           try rewrite insert_commute in H by shelve
       end;
+
     try apply_regularity;
     try eapply TConv;
       repeat
         (eauto;
          lazymatch goal with
-         | |- _; _ ⊢ _ : _ =>
+         | |- _ ⊢ _ : _ =>
            typing_intro
-         | |- _; _ ⊢ _^_ :: _ =>
+         | |- _ ⊢ _^_ :: _ =>
            eapply kinding_open_preservation
-         | |- _; _ ⊢ _ :: _ =>
+         | |- _ ⊢ _ :: _ =>
            kinding_intro
-         | |- _ ⊢ _ ≡ _ =>
+         | |- _ ≡ _ =>
            equiv_naive_solver
          | |- _ ∉ _ =>
            shelve
@@ -436,7 +344,7 @@ Proof.
 
   (* [TFVar] *)
   match goal with
-  | |- _; _ ⊢ fvar ?x' : _ => destruct (decide (x' = x))
+  | |- _ ⊢ fvar ?x' : _ => destruct (decide (x' = x))
   end; subst;
     try solve [ econstructor; simplify_map_eq; eauto ].
   simplify_map_eq.
@@ -448,26 +356,24 @@ Proof.
   all : try fast_set_solver!!; simpl_fv; fast_set_solver!!.
 Qed.
 
-Lemma subst_conv Σ Γ e l τ κ' x l1 l2 τ1 τ2 :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l1, τ1)]>Γ) ⊢ e :{l} τ ->
-  Σ; Γ ⊢ τ2 :: κ' ->
-  Σ ⊢ τ1 ≡ τ2 ->
+Lemma subst_conv Γ e l τ κ' x l1 l2 τ1 τ2 :
+  <[x:=(l1, τ1)]>Γ ⊢ e :{l} τ ->
+  Γ ⊢ τ2 :: κ' ->
+  τ1 ≡ τ2 ->
   l2 ⊑ l1 ->
   x ∉ dom aset Γ ->
-  Σ; (<[x:=(l2, τ2)]>Γ) ⊢ e :{l} τ.
+  <[x:=(l2, τ2)]>Γ ⊢ e :{l} τ.
 Proof.
   hauto use: subst_conv_.
 Qed.
 
-Lemma kinding_subst_conv Σ Γ τ κ κ' x l1 l2 τ1 τ2 :
-  gctx_wf Σ ->
-  Σ; (<[x:=(l1, τ1)]>Γ) ⊢ τ :: κ ->
-  Σ; Γ ⊢ τ2 :: κ' ->
-  Σ ⊢ τ1 ≡ τ2 ->
+Lemma kinding_subst_conv Γ τ κ κ' x l1 l2 τ1 τ2 :
+  <[x:=(l1, τ1)]>Γ ⊢ τ :: κ ->
+  Γ ⊢ τ2 :: κ' ->
+  τ1 ≡ τ2 ->
   l2 ⊑ l1 ->
   x ∉ dom aset Γ ->
-  Σ; (<[x:=(l2, τ2)]>Γ) ⊢ τ :: κ.
+  <[x:=(l2, τ2)]>Γ ⊢ τ :: κ.
 Proof.
   hauto use: subst_conv_.
 Qed.
@@ -475,18 +381,16 @@ Qed.
 (** * Preservation *)
 
 (** The combined preservation theorems for parallel reduction. *)
-Lemma pared_preservation_ Σ :
-  gctx_wf Σ ->
+Lemma pared_preservation_ :
   (forall Γ e l τ,
-      Σ; Γ ⊢ e :{l} τ ->
-      forall e', Σ ⊢ e ⇛ e' ->
-            Σ; Γ ⊢ e' :{l} τ) /\
+      Γ ⊢ e :{l} τ ->
+      forall e', e ⇛ e' ->
+            Γ ⊢ e' :{l} τ) /\
   (forall Γ τ κ,
-      Σ; Γ ⊢ τ :: κ ->
-      forall τ', Σ ⊢ τ ⇛ τ' ->
-            Σ; Γ ⊢ τ' :: κ).
+      Γ ⊢ τ :: κ ->
+      forall τ', τ ⇛ τ' ->
+            Γ ⊢ τ' :: κ).
 Proof.
-  intros Hwf.
   apply typing_kinding_mutind; intros; subst;
     (* Inversion on parallel reduction. *)
     repeat pared_inv;
@@ -503,14 +407,14 @@ Proof.
                 repeat
                   (eauto;
                    lazymatch goal with
-                   | |- _; _ ⊢ _ : ?τ =>
+                   | |- _ ⊢ _ : ?τ =>
                      first [ is_evar τ | econstructor ]
-                   | |- _; _ ⊢ _ :: ?κ =>
+                   | |- _ ⊢ _ :: ?κ =>
                      first [ is_evar κ | econstructor ]
                    end)];
     (* Now turn to the more interesting cases. *)
     (* Derive some equivalence for later convenience. *)
-    try select! (_ ⊢ _ ⇛ _)
+    try select! (_ ⇛ _)
         (fun H => dup_hyp H (fun H => apply pared_equiv_pared in H));
     (* Derive well-kindedness from typing. *)
     try apply_regularity;
@@ -520,12 +424,12 @@ Proof.
     (* Instantiate induction hypotheses. *)
     repeat
       match goal with
-      | H : forall _, _ ⊢ _ ⇛ _ -> _ |- _ =>
+      | H : forall _, _ ⇛ _ -> _ |- _ =>
         efeed specialize H; [
           solve [ repeat
                     (eauto;
                      lazymatch goal with
-                     | |- _ ⊢ ?e ⇛ _ =>
+                     | |- ?e ⇛ _ =>
                        first [ lazymatch e with
                                | <{ ~if _ then _ else _ }> =>
                                  eapply RCgrIte
@@ -553,38 +457,38 @@ Proof.
                eauto;
                match goal with
                (* Replace the types in context with an equivalent ones. *)
-               | H : _; (<[_:=_]>_) ⊢ _ :{?l} _ |- _; (<[_:=_]>_) ⊢ _ :{?l} _ =>
+               | H : <[_:=_]>_ ⊢ _ :{?l} _ |- _; (<[_:=_]>_) ⊢ _ :{?l} _ =>
                  eapply subst_conv
-               | |- _; (<[_:=_]>_) ⊢ _ :{?l} _ =>
+               | |- <[_:=_]>_ ⊢ _ :{?l} _ =>
                  is_evar l; eapply subst_conv
-               | |- _; (<[_:=_]>_) ⊢ _ :: _ =>
+               | |- <[_:=_]>_ ⊢ _ :: _ =>
                  eapply kinding_subst_conv
                (* Apply substitution/open lemmas. *)
-               | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) : ?τ |- _; ?Γ ⊢ ?e^_ : ?τ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : ?τ |- _; ?Γ ⊢ ?e^_ : ?τ =>
                  eapply open_preservation_lc
-               | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) : _^(fvar _) |- _; ?Γ ⊢ ?e^_ : _ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^(fvar _) |- _; ?Γ ⊢ ?e^_ : _ =>
                  eapply open_preservation
                (* This is for the dependent case expression. *)
-               | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) : _^_ |- _; ?Γ ⊢ ?e^_ : _ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^_ |- _; ?Γ ⊢ ?e^_ : _ =>
                  eapply open_preservation_alt
-               | H : _; (<[_:=_]>?Γ) ⊢ ?e^(fvar _) :: _ |- _; ?Γ ⊢ ?e^_ :: _ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) :: _ |- _; ?Γ ⊢ ?e^_ :: _ =>
                  eapply kinding_open_preservation
                (* Apply typing rules. *)
-               | |- _; _ ⊢ _ : _ =>
+               | |- _ ⊢ _ : _ =>
                  typing_intro
-               | |- _; _ ⊢ _ : ?τ =>
+               | |- _ ⊢ _ : ?τ =>
                  assert_fails is_evar τ; eapply TConv
                (* Apply kinding rules. *)
-               | |- _; _ ⊢ _ :: ?κ =>
+               | |- _ ⊢ _ :: ?κ =>
                  eauto using kinding_weakening_empty; kinding_intro
                (* Solve equivalence. *)
-               | |- _ ⊢ _ ≡ _ =>
+               | |- _ ≡ _ =>
                  try case_split; equiv_naive_solver
-               | |- _ ⊢ _ ≡ _ =>
+               | |- _ ≡ _ =>
                  apply_pared_equiv_congr
-               | |- _ ⊢ _^_ ≡ _^_ =>
+               | |- <{ _^_ }> ≡ <{ _^_ }> =>
                  eapply pared_equiv_open1; simpl_cofin?
-               | |- _ ⊢ _^_ ≡ _^_ =>
+               | |- <{ _^_ }> ≡ <{ _^_ }> =>
                  eapply pared_equiv_open
                (* Solve other side conditions. *)
                | |- lc _ =>
@@ -625,9 +529,9 @@ Proof.
 
   (* The case when we tape a pair: [RTapePair] *)
   apply_regularity.
-  select! (_; _ ⊢ _ : _)
+  select! (_ ⊢ _ : _)
         (fun H => try lazymatch type of H with
-                    | _; _ ⊢ ?e : _ =>
+                    | _ ⊢ ?e : _ =>
                       lazymatch goal with
                       | |- context [e] =>
                         eapply woval_otval in H; eauto using pared_woval;
@@ -651,39 +555,42 @@ Proof.
   all : fast_set_solver!!.
 Qed.
 
-Lemma pared_preservation Σ Γ e l e' τ :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ e :{l} τ ->
-  Σ ⊢ e ⇛ e' ->
-  Σ; Γ ⊢ e' :{l} τ.
+Lemma pared_preservation Γ e l e' τ :
+  Γ ⊢ e :{l} τ ->
+  e ⇛ e' ->
+  Γ ⊢ e' :{l} τ.
 Proof.
   hauto use: pared_preservation_.
 Qed.
 
-Lemma pared_kinding_preservation Σ Γ τ τ' κ :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ τ :: κ ->
-  Σ ⊢ τ ⇛ τ' ->
-  Σ; Γ ⊢ τ' :: κ.
+Lemma pared_kinding_preservation Γ τ τ' κ :
+  Γ ⊢ τ :: κ ->
+  τ ⇛ τ' ->
+  Γ ⊢ τ' :: κ.
 Proof.
   hauto use: pared_preservation_.
 Qed.
 
 (** The preservation theorem for [step]. *)
-Theorem preservation Σ Γ e l e' τ :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ e :{l} τ ->
-  Σ ⊨ e -->! e' ->
-  Σ; Γ ⊢ e' :{l} τ.
+Theorem preservation Γ e l e' τ :
+  Γ ⊢ e :{l} τ ->
+  e -->! e' ->
+  Γ ⊢ e' :{l} τ.
 Proof.
   hauto use: pared_preservation, pared_step, typing_lc.
 Qed.
 
-Theorem kinding_preservation Σ Γ τ τ' κ :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ τ :: κ ->
-  Σ ⊨ τ -->! τ' ->
-  Σ; Γ ⊢ τ' :: κ.
+Theorem kinding_preservation Γ τ τ' κ :
+  Γ ⊢ τ :: κ ->
+  τ -->! τ' ->
+  Γ ⊢ τ' :: κ.
 Proof.
   hauto use: pared_kinding_preservation, pared_step, kinding_lc.
 Qed.
+
+End fix_gctx.
+
+Ltac apply_regularity :=
+  select! (_ ⊢ _ : _)
+        (fun H => dup_hyp H (fun H => eapply regularity in H;
+                                  [ simp_hyp H | assumption ])).

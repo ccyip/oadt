@@ -15,6 +15,7 @@ theories/lang_oadt/equivalence.v
 theories/lang_oadt/admissible.v
 theories/lang_oadt/inversion.v
 theories/lang_oadt/values.v
+theories/lang_oadt/weakening.v
 theories/lang_oadt/preservation.v
 theories/lang_oadt/progress.v
 theories/lang_oadt/obliviousness.v

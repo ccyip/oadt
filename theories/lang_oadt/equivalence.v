@@ -5,9 +5,19 @@ From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 
+Module notations.
+
+(** This may clash with the same notation defined in [stdpp] for [equiv].
+Alternatively, we may declare [pared_equiv] to be an instance of [Equiv].
+However, it turns out to add more wrinkles in the proofs. *)
+Notation "e '≡' e'" := (pared_equiv _ e e').
+
+End notations.
+
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
+Import notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -21,10 +31,6 @@ Context (Hwf : gctx_wf Σ).
 
 #[local]
 Set Default Proof Using "Type".
-
-Notation "e '⇛' e'" := (Σ ⊢ e ⇛ e')
-                            (at level 40,
-                             e' constr at level 0).
 
 (** * Lemmas about parallel reduction *)
 
@@ -326,7 +332,7 @@ Ltac pared_intro_ e :=
 
 Ltac pared_intro :=
   match goal with
-  | |- _ ⊢ ?e ⇛ _ => pared_intro_ e
+  | |- ?e ⇛ _ => pared_intro_ e
   end.
 
 Ltac pared_inv_ e H :=
@@ -340,7 +346,7 @@ Ltac pared_inv_ e H :=
 
 Ltac pared_inv :=
   match goal with
-  | H : _ ⊢ ?e ⇛ _ |- _ => pared_inv_ e H
+  | H : ?e ⇛ _ |- _ => pared_inv_ e H
   end; subst; eauto.
 
 Tactic Notation "lcrefl" "by" tactic3(tac) := eapply RRefl; tac.
@@ -355,14 +361,6 @@ Context (Hwf : gctx_wf Σ).
 
 #[local]
 Set Default Proof Using "Type".
-
-Notation "e '⇛' e'" := (Σ ⊢ e ⇛ e')
-                            (at level 40,
-                             e' constr at level 0).
-Notation "e '⇛*' e'" := (Σ ⊢ e ⇛* e')
-                            (at level 40,
-                             e' custom oadt at level 99).
-Notation "e ≡ e'" := (Σ ⊢ e ≡ e').
 
 Ltac relax_pared :=
   match goal with
@@ -558,7 +556,7 @@ Proof using Hwf.
   - induction 1. reflexivity.
     select (sc _ _ _) (fun H => destruct H);
       eauto using pared_equiv.
-    etrans; eauto.
+    etrans; try eassumption.
     eauto using pared_equiv.
 Qed.
 
@@ -663,7 +661,7 @@ Qed.
 
 (** [pared] refines [step]. *)
 Lemma pared_step e e' :
-  Σ ⊨ e -->! e' ->
+  e -->! e' ->
   lc e ->
   e ⇛ e'.
 Proof.
@@ -681,7 +679,7 @@ Qed.
 
 (** expressions always step to equivalent expressions. *)
 Lemma pared_equiv_step e e' :
-  Σ ⊨ e -->! e' ->
+  e -->! e' ->
   lc e ->
   e ≡ e'.
 Proof.
@@ -831,9 +829,8 @@ Qed.
 
 End equivalence.
 
-(* Is there a conventional way to achieve this? *)
 #[export]
-Hint Extern 0 (gctx_wf _) => eassumption : typeclass_instances.
+Hint Extern 1 (gctx_wf _) => eassumption : typeclass_instances.
 
 (** * Tactics *)
 

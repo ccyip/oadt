@@ -5,6 +5,7 @@ From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.admissible.
 From oadt Require Import lang_oadt.inversion.
+From oadt Require Import lang_oadt.weakening.
 From oadt Require Import lang_oadt.preservation.
 
 Import syntax.notations.
@@ -45,25 +46,6 @@ Context (Σ : gctx).
 Context (Hwf : gctx_wf Σ).
 Context (Δ : srctx).
 Context (Hsrwf : srctx_wf Σ Δ).
-
-Notation "e '-->!' e'" := (step Σ e e') (at level 40,
-                                         e' custom oadt at level 0).
-
-Notation "e '-->*' e'" := (rtc (step Σ) e e')
-                            (at level 40,
-                             e' custom oadt at level 0).
-
-Notation "Γ '⊢' e ':{' l '}' τ" := (typing Σ Γ e l τ)
-                                     (at level 40,
-                                      e custom oadt at level 99,
-                                      l constr at level 99,
-                                      τ custom oadt at level 99,
-                                      format "Γ  '⊢'  e  ':{' l '}'  τ").
-
-Notation "Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
-                               (at level 40,
-                                τ custom oadt at level 99,
-                                κ custom oadt at level 99).
 
 (** ** Generalized section *)
 (** Compute the section of [e] from public type [τ] to oblivious type [τ']. [e]

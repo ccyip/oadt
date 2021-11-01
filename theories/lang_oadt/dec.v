@@ -260,9 +260,6 @@ Fixpoint mstep_ (n : nat) (e : expr) : expr :=
 #[local]
 Set Default Proof Using "Type".
 
-Notation "e '-->!' e'" := (step Σ e e') (at level 40).
-Notation "e '-->*' e'" := (rtc (step Σ) e e') (at level 40).
-
 Lemma ovalty_sound ω : forall e,
   ovalty_ ω = Some e ->
   ovalty e ω.

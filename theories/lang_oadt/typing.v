@@ -82,8 +82,7 @@ Section fix_gctx.
 Context (Σ : gctx).
 
 (** ** Parallel reduction *)
-Reserved Notation "e '⇛' e'" (at level 40,
-                                 e' constr at level 0).
+Reserved Notation "e '⇛' e'" (at level 40).
 
 Inductive pared : expr -> expr -> Prop :=
 | RApp l τ e1 e2 e1' e2' L :
@@ -267,9 +266,7 @@ proof convenience. *)
 where "e1 '⇛' e2" := (pared e1 e2)
 .
 
-Notation "e '⇛*' e'" := (rtc pared e e')
-                            (at level 40,
-                             e' custom oadt at level 99).
+Notation "e '⇛*' e'" := (rtc pared e e') (at level 40).
 
 (** ** Expression equivalence *)
 (** We directly define equivalence in terms of parallel reduction. *)
@@ -288,7 +285,7 @@ Inductive pared_equiv : expr -> expr -> Prop :=
     e1 ≡ e2' ->
     e1 ≡ e2
 
-where "e ≡ e'" := (pared_equiv e e')
+where "e1 ≡ e2" := (pared_equiv e1 e2)
 .
 
 (** This is equivalent to [pared_equiv]. *)
@@ -482,19 +479,18 @@ Notation "Σ '⊢' e '≡' e'" := (pared_equiv Σ e e')
                                 e' custom oadt at level 99).
 Notation "Σ ; Γ '⊢' e ':{' l '}' τ" := (typing Σ Γ e l τ)
                                          (at level 40,
-                                          Γ constr at level 0,
-                                          e custom oadt at level 99,
-                                          τ custom oadt at level 99,
-                                          format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
+                                           Γ constr at next level,
+                                           e custom oadt at level 99,
+                                           τ custom oadt at level 99,
+                                           format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
 Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
                                    (at level 40,
-                                    Γ constr at level 0,
+                                    Γ constr at next level,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
 (** ** Global definitions typing *)
-Reserved Notation "Σ '⊢₁' D" (at level 40,
-                               D constr at level 0).
+Reserved Notation "Σ '⊢₁' D" (at level 40).
 
 Inductive gdef_typing : gctx -> gdef -> Prop :=
 | DTADT Σ τ :
@@ -547,43 +543,57 @@ Module notations.
 Export kind_notations.
 
 Notation "Σ '⊢' e '⇛' e'" := (pared Σ e e')
-                                  (at level 40,
-                                   e custom oadt at level 99,
-                                   e' custom oadt at level 99).
+                               (at level 40,
+                                 e custom oadt at level 99,
+                                 e' custom oadt at level 99).
 Notation "Σ '⊢' e '⇛*' e'" := (rtc (pared Σ) e e')
-                                  (at level 40,
-                                   e custom oadt at level 99,
-                                   e' custom oadt at level 99).
+                                (at level 40,
+                                  e custom oadt at level 99,
+                                  e' custom oadt at level 99).
 Notation "Σ '⊢' e '≡' e'" := (pared_equiv Σ e e')
                                (at level 40,
                                 e custom oadt at level 99,
                                 e' custom oadt at level 99).
-
 Notation "Σ ; Γ '⊢' e ':{' l '}' τ" := (typing Σ Γ e l τ)
                                          (at level 40,
-                                          Γ constr at level 0,
-                                          e custom oadt at level 99,
-                                          l constr at level 99,
-                                          τ custom oadt at level 99,
-                                          format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
+                                           Γ constr at next level,
+                                           e custom oadt at level 99,
+                                           τ custom oadt at level 99,
+                                           format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
 Notation "Σ ; Γ '⊢' e ':' τ" := (typing Σ Γ e _ τ)
                                          (at level 40,
-                                          Γ constr at level 0,
-                                          e custom oadt at level 99,
-                                          τ custom oadt at level 99,
-                                          only parsing).
+                                           Γ constr at next level,
+                                           e custom oadt at level 99,
+                                           τ custom oadt at level 99,
+                                           only parsing).
 Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
                                    (at level 40,
-                                    Γ constr at level 0,
+                                    Γ constr at next level,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
-Notation "Σ '⊢₁' D" := (gdef_typing Σ D) (at level 40,
-                                          D constr at level 0).
+Notation "Σ '⊢₁' D" := (gdef_typing Σ D) (at level 40).
 
 Notation "Σ ; e '▷' τ" := (program_typing Σ e τ)
                             (at level 40,
-                             e constr at level 0,
-                             τ constr at level 0).
+                              e at next level).
 
+Notation "e '⇛' e'" := (pared _ e e') (at level 40).
+Notation "e '⇛*' e'" := (rtc (pared _) e e') (at level 40).
+
+Notation "Γ '⊢' e ':{' l '}' τ" := (typing _ Γ e l τ)
+                                     (at level 40,
+                                       e custom oadt at level 99,
+                                       l constr at level 99,
+                                       τ custom oadt at level 99,
+                                       format "Γ  '⊢'  e  ':{' l '}'  τ").
+Notation "Γ '⊢' e ':' τ" := (typing _ Γ e _ τ)
+                              (at level 40,
+                                e custom oadt at level 99,
+                                τ custom oadt at level 99,
+                                only parsing).
+Notation "Γ '⊢' τ '::' κ" := (kinding _ Γ τ κ)
+                               (at level 40,
+                                 τ custom oadt at level 99,
+                                 κ custom oadt at level 99).
 End notations.

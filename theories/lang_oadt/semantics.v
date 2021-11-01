@@ -176,19 +176,25 @@ End step.
 Module notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,
-                                                e custom oadt at level 0,
-                                                e' custom oadt at level 0).
+                                                e custom oadt at level 99,
+                                                e' custom oadt at level 99).
 
 Notation "Σ '⊨' e '-->*' e'" := (rtc (step Σ) e e')
                                   (at level 40,
-                                   e custom oadt at level 0,
-                                   e' custom oadt at level 0).
+                                   e custom oadt at level 99,
+                                   e' custom oadt at level 99).
 
 Notation "Σ '⊨' e '-->{' n '}' e'" := (nsteps (step Σ) n e e')
                                         (at level 40,
-                                         e custom oadt at level 0,
-                                         n constr at level 0,
-                                         e' custom oadt at level 0,
+                                         e custom oadt at level 99,
+                                         n constr at level 99,
+                                         e' custom oadt at level 99,
                                          format "Σ  '⊨'  e  '-->{' n '}'  e'").
+
+Notation "e '-->!' e'" := (step _ e e') (at level 40).
+
+Notation "e '-->*' e'" := (rtc (step _) e e') (at level 40).
+
+Notation "e '-->{' n '}' e'" := (nsteps (step _) n e e') (at level 40).
 
 End notations.
