@@ -348,25 +348,19 @@ Tactic Notation "apply_eq" uconstr(H) "by" tactic3(tac) :=
   let rec go R p :=
       lazymatch R with
       | ?R ?a =>
-        tryif is_evar a
-        then
-          go R constr:((a, p))
-        else
           let e := fresh "e" in
           let f := constr:(fun e =>
                              ltac:(let g := curry_tac (R e) p in
-                                   exact g))
-          in
-          refine (eq_ind _ f _ _ _); [| block_goal ]
+                                   exact g)) in
+          let T := type of a in
+          (* May use [mk_evar] from [stdpp] in the future. *)
+          let a := open_constr:(_ : T) in
+          refine (eq_ind a f _ _ _); [ go R constr:((a, p)) | ]
+      | _ => idtac
       end in
-  repeat
     match goal with
-    | |- block _ => idtac
     | |- ?T => go T constr:(tt)
-    end; [ tac H | .. ];
-  try match goal with
-      | |- block _ => unblock_goal; try reflexivity
-      end.
+    end; [ tac H | .. ]; try reflexivity.
 
 Tactic Notation "apply_eq" uconstr(H) := apply_eq H by (fun H => apply H).
 Tactic Notation "eapply_eq" uconstr(H) := apply_eq H by (fun H => eapply H).
