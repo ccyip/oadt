@@ -43,11 +43,11 @@
 </div>
 
 <div class="doc">
-<a id="lab35"></a><h1 class="section">Definitions</h1>
+<a id="lab37"></a><h1 class="section">Definitions</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab36"></a><h2 class="section">Weak values</h2>
+<a id="lab38"></a><h2 class="section">Weak values</h2>
 
 </div>
 <div class="code">
@@ -69,7 +69,7 @@
 </div>
 
 <div class="doc">
-<a id="lab37"></a><h2 class="section">Weak oblivious values</h2>
+<a id="lab39"></a><h2 class="section">Weak oblivious values</h2>
 
 </div>
 <div class="code">
@@ -87,7 +87,7 @@
 </div>
 
 <div class="doc">
-<a id="lab38"></a><h2 class="section">OADT value typing</h2>
+<a id="lab40"></a><h2 class="section">OADT value typing</h2>
  <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a></span> <span class="inlinecode"><span class="id" title="var">v</span></span> <span class="inlinecode">ω</span> means <span class="inlinecode"><span class="id" title="var">v</span></span> is an oblivious value of oblivious type value <span class="inlinecode">ω</span>.
 This is essentially a subset of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.typing.html#typing"><span class="id" title="inductive">typing</span></a></span>, but we have it so that the dynamic
 semantics does not depend on typing. 
@@ -110,7 +110,7 @@ semantics does not depend on typing.
 </div>
 
 <div class="doc">
-<a id="lab39"></a><h2 class="section">Evaluation context (ℇ)</h2>
+<a id="lab41"></a><h2 class="section">Evaluation context (ℇ)</h2>
 
 </div>
 <div class="code">
@@ -174,14 +174,14 @@ The evaluation context enclosing possibly leaking expressions.
 </div>
 
 <div class="doc">
-<a id="lab40"></a><h2 class="section">Small-step relation</h2>
+<a id="lab42"></a><h2 class="section">Small-step relation</h2>
 
 </div>
 <div class="code">
 <span class="id" title="keyword">Section</span> <a id="step" class="idref" href="#step"><span class="id" title="section">step</span></a>.<br/>
 
 <br/>
-<span class="id" title="keyword">Context</span> (<a id="a5a0b10493a2c4ce9fd6f9cda880e118" class="idref" href="#a5a0b10493a2c4ce9fd6f9cda880e118"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="abbreviation">gctx</span></a>).<br/>
+<span class="id" title="keyword">Context</span> (<a id="a5a0b10493a2c4ce9fd6f9cda880e118" class="idref" href="#a5a0b10493a2c4ce9fd6f9cda880e118"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="class">gctx</span></a>).<br/>
 
 <br/>
 <span class="id" title="keyword">Reserved Notation</span> &quot;e '--&gt;!' e'" (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
@@ -260,7 +260,7 @@ out&nbsp;all&nbsp;the&nbsp;cases&nbsp;here&nbsp;for&nbsp;determinism&nbsp;and&nb
 </div>
 
 <div class="doc">
-<a id="lab41"></a><h1 class="section">Notations</h1>
+<a id="lab43"></a><h1 class="section">Notations</h1>
 
 </div>
 <div class="code">
@@ -268,22 +268,31 @@ out&nbsp;all&nbsp;the&nbsp;cases&nbsp;here&nbsp;for&nbsp;determinism&nbsp;and&nb
 
 <br/>
 <span class="id" title="keyword">Notation</span> <a id="b923e2787de76f0e5ca63673be2d015d" class="idref" href="#b923e2787de76f0e5ca63673be2d015d"><span class="id" title="notation">&quot;</span></a>Σ '⊨' e '--&gt;!' e'" := (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <span class="id" title="var">Σ</span> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e'</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e'</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99).<br/>
 
 <br/>
 <span class="id" title="keyword">Notation</span> <a id="6deb3f7c9fc50678d0e7f0957225deb8" class="idref" href="#6deb3f7c9fc50678d0e7f0957225deb8"><span class="id" title="notation">&quot;</span></a>Σ '⊨' e '--&gt;*' e'" := (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#rtc"><span class="id" title="inductive">rtc</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <span class="id" title="var">Σ</span>) <span class="id" title="var">e</span> <span class="id" title="var">e'</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e'</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e'</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99).<br/>
 
 <br/>
 <span class="id" title="keyword">Notation</span> <a id="8d63ce69fc1bc2d003d2ec963c0017d7" class="idref" href="#8d63ce69fc1bc2d003d2ec963c0017d7"><span class="id" title="notation">&quot;</span></a>Σ '⊨' e '--&gt;{' n '}' e'" := (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#nsteps"><span class="id" title="inductive">nsteps</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <span class="id" title="var">Σ</span>) <span class="id" title="var">n</span> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">n</span> <span class="id" title="keyword">constr</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0,<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e'</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 0,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">n</span> <span class="id" title="keyword">constr</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">e'</span> <span class="id" title="var">custom</span> <span class="id" title="var">oadt</span> <span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">format</span> "Σ  '⊨'  e  '--&gt;{' n '}'  e'").<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id="b0d633f35da965a294b26690a5b7356c" class="idref" href="#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">&quot;</span></a>e '--&gt;!' e'" := (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <span class="id" title="var">_</span> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id="6929e06a8091847021de2455b0153c67" class="idref" href="#6929e06a8091847021de2455b0153c67"><span class="id" title="notation">&quot;</span></a>e '--&gt;*' e'" := (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#rtc"><span class="id" title="inductive">rtc</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <span class="id" title="var">_</span>) <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id="8d6351768d29c168714c3b9d8f64142d" class="idref" href="#8d6351768d29c168714c3b9d8f64142d"><span class="id" title="notation">&quot;</span></a>e '--&gt;{' n '}' e'" := (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#nsteps"><span class="id" title="inductive">nsteps</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <span class="id" title="var">_</span>) <span class="id" title="var">n</span> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
 
 <br/>
 <span class="id" title="keyword">End</span> <a class="idref" href="oadt.lang_oadt.semantics.html#notations"><span class="id" title="module">notations</span></a>.<br/>

@@ -58,11 +58,11 @@ representation and free variables.
 </div>
 
 <div class="doc">
-<a id="lab52"></a><h1 class="section">Definitions</h1>
+<a id="lab57"></a><h1 class="section">Definitions</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab53"></a><h2 class="section">Body of local closure</h2>
+<a id="lab58"></a><h2 class="section">Body of local closure</h2>
 
 </div>
 <div class="code">
@@ -73,7 +73,7 @@ representation and free variables.
 </div>
 
 <div class="doc">
-<a id="lab54"></a><h2 class="section">Variable closing</h2>
+<a id="lab59"></a><h2 class="section">Variable closing</h2>
 
 </div>
 <div class="code">
@@ -119,7 +119,7 @@ representation and free variables.
 </div>
 
 <div class="doc">
-<a id="lab55"></a><h2 class="section">Free variables</h2>
+<a id="lab60"></a><h2 class="section">Free variables</h2>
 
 </div>
 <div class="code">
@@ -183,23 +183,7 @@ Free variables in the range of <span class="inlinecode"><a class="idref" href="o
 </div>
 
 <div class="doc">
-<a id="lab56"></a><h1 class="section">Instances</h1>
-
-<div class="paragraph"> </div>
-
- <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.typing.html#kind"><span class="id" title="inductive">kind</span></a></span> forms a <span class="inlinecode"><a class="idref" href="oadt.semilattice.html#SemiLattice"><span class="id" title="record">SemiLattice</span></a></span>.  
-</div>
-<div class="code">
-<span class="id" title="keyword">Instance</span> <a id="kind_semilattice" class="idref" href="#kind_semilattice"><span class="id" title="instance">kind_semilattice</span></a> : <a class="idref" href="oadt.semilattice.html#SemiLattice"><span class="id" title="class">SemiLattice</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#kind"><span class="id" title="inductive">kind</span></a>.<br/>
-<span class="id" title="keyword">Proof</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">reflexivity</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="tactic">intros</span> []; <span class="id" title="tactic">auto</span>.<br/>
-<span class="id" title="keyword">Qed</span>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-<a id="lab57"></a><h1 class="section">Tactics</h1>
+<a id="lab61"></a><h1 class="section">Tactics</h1>
 
 </div>
 <div class="code">
@@ -371,11 +355,11 @@ Dealing with evaluation context.
 </div>
 
 <div class="doc">
-<a id="lab58"></a><h1 class="section">Lemmas</h1>
+<a id="lab62"></a><h1 class="section">Lemmas</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab59"></a><h2 class="section">Properties of opening and closing</h2>
+<a id="lab63"></a><h2 class="section">Properties of opening and closing</h2>
 
 </div>
 <div class="code">
@@ -491,7 +475,7 @@ principle,&nbsp;similar&nbsp;to&nbsp;<span class="inlinecode"><span class="id" t
 </div>
 
 <div class="doc">
-<a id="lab60"></a><h2 class="section">Properties of substitution</h2>
+<a id="lab64"></a><h2 class="section">Properties of substitution</h2>
 
 </div>
 <div class="code">
@@ -591,7 +575,7 @@ constraint).
 </div>
 
 <div class="doc">
-<a id="lab61"></a><h2 class="section">Properties of values</h2>
+<a id="lab65"></a><h2 class="section">Properties of values</h2>
 
 </div>
 <div class="code">
@@ -608,7 +592,7 @@ constraint).
 </div>
 
 <div class="doc">
-<a id="lab62"></a><h2 class="section">Properties of local closure</h2>
+<a id="lab66"></a><h2 class="section">Properties of local closure</h2>
 
 </div>
 <div class="code">
@@ -696,7 +680,7 @@ Well-typed and well-kinded expressions are locally closed.
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="typing_body" class="idref" href="#typing_body"><span class="id" title="lemma">typing_body</span></a> <a id="7ad40d36cb1e314bda9bf8f0bc2340d1" class="idref" href="#7ad40d36cb1e314bda9bf8f0bc2340d1"><span class="id" title="binder">Σ</span></a> <a id="0c008a6713a52fb035051d000ccb99e7" class="idref" href="#0c008a6713a52fb035051d000ccb99e7"><span class="id" title="binder">Γ</span></a> <a id="e:111" class="idref" href="#e:111"><span class="id" title="binder">e</span></a> <a id="l:112" class="idref" href="#l:112"><span class="id" title="binder">l</span></a> <a id="d4e68f817c2830869bcf7be709e9913a" class="idref" href="#d4e68f817c2830869bcf7be709e9913a"><span class="id" title="binder">τ</span></a> <a id="T:114" class="idref" href="#T:114"><span class="id" title="binder">T</span></a> <a id="L:115" class="idref" href="#L:115"><span class="id" title="binder">L</span></a> :<br/>
-&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">(</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="x:116" class="idref" href="#x:116"><span class="id" title="binder">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#x:116"><span class="id" title="variable">x</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#4291a6e02d5eff431051107aaf15194c"><span class="id" title="notation">∉</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#L:115"><span class="id" title="variable">L</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#7ad40d36cb1e314bda9bf8f0bc2340d1"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">;</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">(</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">&lt;[</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:116"><span class="id" title="variable">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">:=</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#T:114"><span class="id" title="variable">T</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">]&gt;</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">Γ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">)</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#e:111"><span class="id" title="variable">e</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#1b928f46a0b846a8944e9dd5e3ebf683"><span class="id" title="notation">^</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:116"><span class="id" title="variable">x</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">:{</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#l:112"><span class="id" title="variable">l</span></a><a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">}</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#d4e68f817c2830869bcf7be709e9913a"><span class="id" title="variable">τ</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">(</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="x:116" class="idref" href="#x:116"><span class="id" title="binder">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#x:116"><span class="id" title="variable">x</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#4291a6e02d5eff431051107aaf15194c"><span class="id" title="notation">∉</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#L:115"><span class="id" title="variable">L</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#7ad40d36cb1e314bda9bf8f0bc2340d1"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">;</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">&lt;[</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:116"><span class="id" title="variable">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">:=</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#T:114"><span class="id" title="variable">T</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">]&gt;</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">Γ</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#e:111"><span class="id" title="variable">e</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#1b928f46a0b846a8944e9dd5e3ebf683"><span class="id" title="notation">^</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:116"><span class="id" title="variable">x</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">:{</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#l:112"><span class="id" title="variable">l</span></a><a class="idref" href="oadt.lang_oadt.typing.html#2db76f6480ff5f60bcd1c50507c2ffdb"><span class="id" title="notation">}</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#d4e68f817c2830869bcf7be709e9913a"><span class="id" title="variable">τ</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.infrastructure.html#body"><span class="id" title="definition">body</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#e:111"><span class="id" title="variable">e</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">eexists</span>. <span class="id" title="var">simpl_cofin</span>.<br/>
@@ -707,7 +691,7 @@ Well-typed and well-kinded expressions are locally closed.
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="kinding_body" class="idref" href="#kinding_body"><span class="id" title="lemma">kinding_body</span></a> <a id="388873efb4be7b6002f3f68ecd6fa136" class="idref" href="#388873efb4be7b6002f3f68ecd6fa136"><span class="id" title="binder">Σ</span></a> <a id="c614fd7f344488246e27443cc0ae1c43" class="idref" href="#c614fd7f344488246e27443cc0ae1c43"><span class="id" title="binder">Γ</span></a> <a id="15e287056d46315092afb80279707389" class="idref" href="#15e287056d46315092afb80279707389"><span class="id" title="binder">τ</span></a> <a id="1cd309ff0c262244cedc69f97f0f0b0e" class="idref" href="#1cd309ff0c262244cedc69f97f0f0b0e"><span class="id" title="binder">κ</span></a> <a id="T:121" class="idref" href="#T:121"><span class="id" title="binder">T</span></a> <a id="L:122" class="idref" href="#L:122"><span class="id" title="binder">L</span></a> :<br/>
-&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">(</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="x:123" class="idref" href="#x:123"><span class="id" title="binder">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#x:123"><span class="id" title="variable">x</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#4291a6e02d5eff431051107aaf15194c"><span class="id" title="notation">∉</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#L:122"><span class="id" title="variable">L</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#388873efb4be7b6002f3f68ecd6fa136"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">(</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">&lt;[</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:123"><span class="id" title="variable">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">:=</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#T:121"><span class="id" title="variable">T</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">]&gt;</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">Γ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">)</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#15e287056d46315092afb80279707389"><span class="id" title="variable">τ</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#1b928f46a0b846a8944e9dd5e3ebf683"><span class="id" title="notation">^</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:123"><span class="id" title="variable">x</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#1cd309ff0c262244cedc69f97f0f0b0e"><span class="id" title="variable">κ</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">(</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="x:123" class="idref" href="#x:123"><span class="id" title="binder">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#x:123"><span class="id" title="variable">x</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#4291a6e02d5eff431051107aaf15194c"><span class="id" title="notation">∉</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#L:122"><span class="id" title="variable">L</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#388873efb4be7b6002f3f68ecd6fa136"><span class="id" title="variable">Σ</span></a><a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">&lt;[</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:123"><span class="id" title="variable">x</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">:=</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#T:121"><span class="id" title="variable">T</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">]&gt;</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#37a2c892720a610d69547926e5ba502d"><span class="id" title="notation">Γ</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#15e287056d46315092afb80279707389"><span class="id" title="variable">τ</span></a><a class="idref" href="oadt.lang_oadt.syntax.html#1b928f46a0b846a8944e9dd5e3ebf683"><span class="id" title="notation">^</span></a><a class="idref" href="oadt.lang_oadt.infrastructure.html#x:123"><span class="id" title="variable">x</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#1cd309ff0c262244cedc69f97f0f0b0e"><span class="id" title="variable">κ</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.infrastructure.html#body"><span class="id" title="definition">body</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#15e287056d46315092afb80279707389"><span class="id" title="variable">τ</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">intros</span>. <span class="id" title="tactic">eexists</span>. <span class="id" title="var">simpl_cofin</span>.<br/>
@@ -809,7 +793,7 @@ The type of well-typed expression is also locally closed.
 </div>
 
 <div class="doc">
-<a id="lab63"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.infrastructure.html#body"><span class="id" title="definition">body</span></a></span></h2>
+<a id="lab67"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.infrastructure.html#body"><span class="id" title="definition">body</span></a></span></h2>
 
 </div>
 <div class="code">
@@ -846,7 +830,7 @@ The type of well-typed expression is also locally closed.
 </div>
 
 <div class="doc">
-<a id="lab64"></a><h2 class="section">Properties of free variables</h2>
+<a id="lab68"></a><h2 class="section">Properties of free variables</h2>
 
 </div>
 <div class="code">
@@ -1314,7 +1298,7 @@ context.
 </div>
 
 <div class="doc">
-<a id="lab65"></a><h2 class="section">Properties of parallel reduction and local closure</h2>
+<a id="lab69"></a><h2 class="section">Properties of parallel reduction and local closure</h2>
 
 </div>
 <div class="code">

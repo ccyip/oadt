@@ -40,6 +40,7 @@
 
 <br/>
 <span class="id" title="keyword">Import</span> <span class="id" title="var">syntax.notations</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">semantics.notations</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span> (<span class="id" title="var">b</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>).<br/>
@@ -52,11 +53,11 @@
 </div>
 
 <div class="doc">
-<a id="lab101"></a><h1 class="section">Definitions</h1>
+<a id="lab105"></a><h1 class="section">Definitions</h1>
 
 <div class="paragraph"> </div>
 
-<a id="lab102"></a><h2 class="section">Weak value erasure</h2>
+<a id="lab106"></a><h2 class="section">Weak value erasure</h2>
  This function erases all weak values in the expression <span class="inlinecode"><span class="id" title="var">e</span></span>, even if they are
 under binders. This erasure results in a canonical form that has no weak values
 in the form of <span class="inlinecode">~<span class="id" title="keyword">if</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="keyword">then</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="keyword">else</span></span> <span class="inlinecode">..</span> in it. 
@@ -113,13 +114,13 @@ in the form of <span class="inlinecode">~<span class="id" title="keyword">if</sp
 <span class="id" title="keyword">Section</span> <a id="reveal" class="idref" href="#reveal"><span class="id" title="section">reveal</span></a>.<br/>
 
 <br/>
-<span class="id" title="keyword">Context</span> (<a id="0f7fdea5e8c25e3e1a79edf27e9de540" class="idref" href="#0f7fdea5e8c25e3e1a79edf27e9de540"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="abbreviation">gctx</span></a>).<br/>
+<span class="id" title="keyword">Context</span> (<a id="0f7fdea5e8c25e3e1a79edf27e9de540" class="idref" href="#0f7fdea5e8c25e3e1a79edf27e9de540"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="class">gctx</span></a>).<br/>
 
 <br/>
 </div>
 
 <div class="doc">
-<a id="lab103"></a><h2 class="section">Reveal semantics</h2>
+<a id="lab107"></a><h2 class="section">Reveal semantics</h2>
  Reveal semantics is a big-step semantics in the reveal phase of an oblivious
 computation. It does not match the small-step semantics completely, e.g., it
 does not evaluate the "dead" branches unnecessarily. As a result, the reveal
@@ -217,16 +218,10 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab104"></a><h1 class="section">Theorems</h1>
+<a id="lab108"></a><h1 class="section">Theorems</h1>
 
 </div>
 <div class="code">
-
-<br/>
-<span class="id" title="keyword">Notation</span> <a id="c76869271840a4d6291e382e883716d1" class="idref" href="#c76869271840a4d6291e382e883716d1"><span class="id" title="notation">&quot;</span></a>e '--&gt;!' e'" := (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#eb559da3ab36d59d68188d3fc651ffba"><span class="id" title="variable">Σ</span></a> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
-
-<br/>
-<span class="id" title="keyword">Notation</span> <a id="a7a9df16fbee42460ee82aea6838491a" class="idref" href="#a7a9df16fbee42460ee82aea6838491a"><span class="id" title="notation">&quot;</span></a>e '--&gt;*' e'" := (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#rtc"><span class="id" title="inductive">rtc</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#eb559da3ab36d59d68188d3fc651ffba"><span class="id" title="variable">Σ</span></a>) <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
 
 <br/>
 #[<span class="id" title="var">local</span>]<br/>
@@ -257,7 +252,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab105"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#erase_wval"><span class="id" title="definition">erase_wval</span></a></span></h2>
+<a id="lab109"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#erase_wval"><span class="id" title="definition">erase_wval</span></a></span></h2>
 
 </div>
 <div class="code">
@@ -379,7 +374,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab106"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#reval"><span class="id" title="inductive">reval</span></a></span></h2>
+<a id="lab110"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#reval"><span class="id" title="inductive">reval</span></a></span></h2>
 
 </div>
 <div class="code">
@@ -632,7 +627,7 @@ This lemma is crucial.
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="step_reval" class="idref" href="#step_reval"><span class="id" title="lemma">step_reval</span></a> <a id="e:140" class="idref" href="#e:140"><span class="id" title="binder">e</span></a> <a id="e':141" class="idref" href="#e':141"><span class="id" title="binder">e'</span></a> <a id="v:142" class="idref" href="#v:142"><span class="id" title="binder">v</span></a> :<br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:140"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#c76869271840a4d6291e382e883716d1"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#e':141"><span class="id" title="variable">e'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:140"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#e':141"><span class="id" title="variable">e'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e':141"><span class="id" title="variable">e'</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#4b9ab0e538aa3a043816a048534262cd"><span class="id" title="notation">↓</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#v:142"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:140"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#4b9ab0e538aa3a043816a048534262cd"><span class="id" title="notation">↓</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#v:142"><span class="id" title="variable">v</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
@@ -678,7 +673,7 @@ This lemma is crucial.
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="multistep_reval" class="idref" href="#multistep_reval"><span class="id" title="lemma">multistep_reval</span></a> <a id="e:143" class="idref" href="#e:143"><span class="id" title="binder">e</span></a> <a id="e':144" class="idref" href="#e':144"><span class="id" title="binder">e'</span></a> <a id="v:145" class="idref" href="#v:145"><span class="id" title="binder">v</span></a> :<br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:143"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#a7a9df16fbee42460ee82aea6838491a"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#e':144"><span class="id" title="variable">e'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:143"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6929e06a8091847021de2455b0153c67"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#e':144"><span class="id" title="variable">e'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e':144"><span class="id" title="variable">e'</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#4b9ab0e538aa3a043816a048534262cd"><span class="id" title="notation">↓</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#v:145"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:143"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#4b9ab0e538aa3a043816a048534262cd"><span class="id" title="notation">↓</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#v:145"><span class="id" title="variable">v</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
@@ -687,7 +682,7 @@ This lemma is crucial.
 
 <br/>
 <span class="id" title="keyword">Theorem</span> <a id="multistep_wval_reval" class="idref" href="#multistep_wval_reval"><span class="id" title="lemma">multistep_wval_reval</span></a> <a id="e:146" class="idref" href="#e:146"><span class="id" title="binder">e</span></a> <a id="w:147" class="idref" href="#w:147"><span class="id" title="binder">w</span></a> :<br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:146"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#a7a9df16fbee42460ee82aea6838491a"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w:147"><span class="id" title="variable">w</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:146"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6929e06a8091847021de2455b0153c67"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w:147"><span class="id" title="variable">w</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.semantics.html#wval"><span class="id" title="inductive">wval</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w:147"><span class="id" title="variable">w</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:146"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#4b9ab0e538aa3a043816a048534262cd"><span class="id" title="notation">↓</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#a28bfd0a35de9a5c69829697b021d0f5"><span class="id" title="notation">⟦</span></a><a class="idref" href="oadt.lang_oadt.reveal.html#w:147"><span class="id" title="variable">w</span></a><a class="idref" href="oadt.lang_oadt.reveal.html#a28bfd0a35de9a5c69829697b021d0f5"><span class="id" title="notation">⟧</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
@@ -696,7 +691,7 @@ This lemma is crucial.
 
 <br/>
 <span class="id" title="keyword">Theorem</span> <a id="multistep_otval_reval" class="idref" href="#multistep_otval_reval"><span class="id" title="lemma">multistep_otval_reval</span></a> <a id="e:148" class="idref" href="#e:148"><span class="id" title="binder">e</span></a> <a id="fb5582624e3eb958bb8b040c42165314" class="idref" href="#fb5582624e3eb958bb8b040c42165314"><span class="id" title="binder">ω</span></a> :<br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:148"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#a7a9df16fbee42460ee82aea6838491a"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#fb5582624e3eb958bb8b040c42165314"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:148"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6929e06a8091847021de2455b0153c67"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#fb5582624e3eb958bb8b040c42165314"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#fb5582624e3eb958bb8b040c42165314"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:148"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#4b9ab0e538aa3a043816a048534262cd"><span class="id" title="notation">↓</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#fb5582624e3eb958bb8b040c42165314"><span class="id" title="variable">ω</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
@@ -705,9 +700,9 @@ This lemma is crucial.
 
 <br/>
 <span class="id" title="keyword">Theorem</span> <a id="multistep_weak_confluent" class="idref" href="#multistep_weak_confluent"><span class="id" title="lemma">multistep_weak_confluent</span></a> <a id="e:150" class="idref" href="#e:150"><span class="id" title="binder">e</span></a> <a id="w1:151" class="idref" href="#w1:151"><span class="id" title="binder">w1</span></a> <a id="w2:152" class="idref" href="#w2:152"><span class="id" title="binder">w2</span></a> :<br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:150"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#a7a9df16fbee42460ee82aea6838491a"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w1:151"><span class="id" title="variable">w1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:150"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6929e06a8091847021de2455b0153c67"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w1:151"><span class="id" title="variable">w1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.semantics.html#wval"><span class="id" title="inductive">wval</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w1:151"><span class="id" title="variable">w1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:150"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#a7a9df16fbee42460ee82aea6838491a"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w2:152"><span class="id" title="variable">w2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#e:150"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6929e06a8091847021de2455b0153c67"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w2:152"><span class="id" title="variable">w2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.semantics.html#wval"><span class="id" title="inductive">wval</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#w2:152"><span class="id" title="variable">w2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#a28bfd0a35de9a5c69829697b021d0f5"><span class="id" title="notation">⟦</span></a><a class="idref" href="oadt.lang_oadt.reveal.html#w1:151"><span class="id" title="variable">w1</span></a><a class="idref" href="oadt.lang_oadt.reveal.html#a28bfd0a35de9a5c69829697b021d0f5"><span class="id" title="notation">⟧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="oadt.lang_oadt.reveal.html#a28bfd0a35de9a5c69829697b021d0f5"><span class="id" title="notation">⟦</span></a><a class="idref" href="oadt.lang_oadt.reveal.html#w2:152"><span class="id" title="variable">w2</span></a><a class="idref" href="oadt.lang_oadt.reveal.html#a28bfd0a35de9a5c69829697b021d0f5"><span class="id" title="notation">⟧</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>

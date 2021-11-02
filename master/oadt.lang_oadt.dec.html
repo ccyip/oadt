@@ -50,7 +50,7 @@ Some decision procedures and implementations.
 </div>
 
 <div class="doc">
-<a id="lab97"></a><h1 class="section">Decision procedures</h1>
+<a id="lab101"></a><h1 class="section">Decision procedures</h1>
 
 </div>
 <div class="code">
@@ -149,7 +149,7 @@ within Coq.
 </div>
 
 <div class="doc">
-<a id="lab98"></a><h1 class="section">A naive implementation of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.dec.html#step"><span class="id" title="section">step</span></a></span></h1>
+<a id="lab102"></a><h1 class="section">A naive implementation of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.dec.html#step"><span class="id" title="section">step</span></a></span></h1>
 
 </div>
 <div class="code">
@@ -161,13 +161,13 @@ within Coq.
 </div>
 
 <div class="doc">
-<a id="lab99"></a><h2 class="section">Definitions</h2>
+<a id="lab103"></a><h2 class="section">Definitions</h2>
 
 </div>
 <div class="code">
 
 <br/>
-<span class="id" title="keyword">Context</span> (<a id="f525610baade8c1419220d275a93fff0" class="idref" href="#f525610baade8c1419220d275a93fff0"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="abbreviation">gctx</span></a>).<br/>
+<span class="id" title="keyword">Context</span> (<a id="f525610baade8c1419220d275a93fff0" class="idref" href="#f525610baade8c1419220d275a93fff0"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="class">gctx</span></a>).<br/>
 
 <br/>
 <span class="id" title="keyword">Fixpoint</span> <a id="ovalty_" class="idref" href="#ovalty_"><span class="id" title="definition">ovalty_</span></a> (<a id="dc4c44f2cc45d845942d1632a5e9a8bd" class="idref" href="#dc4c44f2cc45d845942d1632a5e9a8bd"><span class="id" title="binder">ω</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#expr"><span class="id" title="inductive">expr</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#option"><span class="id" title="inductive">option</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#expr"><span class="id" title="inductive">expr</span></a> :=<br/>
@@ -334,7 +334,7 @@ within Coq.
 </div>
 
 <div class="doc">
-<a id="lab100"></a><h2 class="section">Correctness</h2>
+<a id="lab104"></a><h2 class="section">Correctness</h2>
 
 </div>
 <div class="code">
@@ -342,10 +342,6 @@ within Coq.
 <br/>
 #[<span class="id" title="var">local</span>]<br/>
 <span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span> "Type".<br/>
-
-<br/>
-<span class="id" title="keyword">Notation</span> <a id="baefc6e6977a292daf3f20e064348a2c" class="idref" href="#baefc6e6977a292daf3f20e064348a2c"><span class="id" title="notation">&quot;</span></a>e '--&gt;!' e'" := (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#79abc634dcb72cebc3802e605e6b5edb"><span class="id" title="variable">Σ</span></a> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
-<span class="id" title="keyword">Notation</span> <a id="809cc4e56ba02644d76ff2844953128d" class="idref" href="#809cc4e56ba02644d76ff2844953128d"><span class="id" title="notation">&quot;</span></a>e '--&gt;*' e'" := (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#rtc"><span class="id" title="inductive">rtc</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#79abc634dcb72cebc3802e605e6b5edb"><span class="id" title="variable">Σ</span></a>) <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="ovalty_sound" class="idref" href="#ovalty_sound"><span class="id" title="lemma">ovalty_sound</span></a> <a id="4d7a1b0bb48e0b5eb3b54dbb94654245" class="idref" href="#4d7a1b0bb48e0b5eb3b54dbb94654245"><span class="id" title="binder">ω</span></a> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="e:59" class="idref" href="#e:59"><span class="id" title="binder">e</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a><br/>
@@ -359,7 +355,7 @@ within Coq.
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="step_sound" class="idref" href="#step_sound"><span class="id" title="lemma">step_sound</span></a> <a id="e:60" class="idref" href="#e:60"><span class="id" title="binder">e</span></a> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="e':61" class="idref" href="#e':61"><span class="id" title="binder">e'</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.dec.html#step_"><span class="id" title="definition">step_</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e:60"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#Some"><span class="id" title="constructor">Some</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e':61"><span class="id" title="variable">e'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.dec.html#e:60"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#baefc6e6977a292daf3f20e064348a2c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e':61"><span class="id" title="variable">e'</span></a>.<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.dec.html#e:60"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e':61"><span class="id" title="variable">e'</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">e</span>; <span class="id" title="tactic">intros</span> ? <span class="id" title="var">H</span>; <span class="id" title="var">simplify_eq</span>; <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">case_decide</span>;<br/>
@@ -372,7 +368,7 @@ within Coq.
 &nbsp;&nbsp;&nbsp;&nbsp;subgoals&nbsp;from&nbsp;<span class="inlinecode"><span class="id" title="var">simplify_option_eq</span></span>.&nbsp;*)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">IH</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <span class="id" title="var">_</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#step_"><span class="id" title="definition">step_</span></a> ?<span class="id" title="var">e</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.dec.html#baefc6e6977a292daf3f20e064348a2c"><span class="id" title="notation">--&gt;!</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">IH</span> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <span class="id" title="var">_</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#step_"><span class="id" title="definition">step_</span></a> ?<span class="id" title="var">e</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> <a class="idref" href="oadt.lang_oadt.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <span class="id" title="var">_</span> |- <span class="id" title="var">_</span> =&gt;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">assert_fails</span> <span class="id" title="var">is_var</span> <span class="id" title="var">e</span>; <span class="id" title="tactic">clear</span> <span class="id" title="var">IH</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simplify_option_eq</span>;<br/>
@@ -385,7 +381,7 @@ within Coq.
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="mstep_sound" class="idref" href="#mstep_sound"><span class="id" title="lemma">mstep_sound</span></a> <a id="n:62" class="idref" href="#n:62"><span class="id" title="binder">n</span></a> : <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="e:63" class="idref" href="#e:63"><span class="id" title="binder">e</span></a> <a id="e':64" class="idref" href="#e':64"><span class="id" title="binder">e'</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a><br/>
 &nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.dec.html#mstep_"><span class="id" title="definition">mstep_</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#n:62"><span class="id" title="variable">n</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e:63"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e':64"><span class="id" title="variable">e'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
-&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.dec.html#e:63"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#809cc4e56ba02644d76ff2844953128d"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e':64"><span class="id" title="variable">e'</span></a>.<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.dec.html#e:63"><span class="id" title="variable">e</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#6929e06a8091847021de2455b0153c67"><span class="id" title="notation">--&gt;*</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#e':64"><span class="id" title="variable">e'</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">n</span>; <span class="id" title="tactic">simpl</span>; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">reflexivity</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">case_split</span>; <span class="id" title="tactic">try</span> <span class="id" title="tactic">reflexivity</span>.<br/>
