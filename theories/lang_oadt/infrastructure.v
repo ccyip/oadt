@@ -493,7 +493,7 @@ Qed.
 Hint Resolve typing_lc kinding_lc : lc.
 
 Lemma typing_body Σ Γ e l τ T L :
-  (forall x, x ∉ L -> Σ; (<[x:=T]>Γ) ⊢ e^x :{l} τ) ->
+  (forall x, x ∉ L -> Σ; <[x:=T]>Γ ⊢ e^x :{l} τ) ->
   body e.
 Proof.
   intros. eexists. simpl_cofin.
@@ -503,7 +503,7 @@ Qed.
 Hint Resolve typing_body : lc.
 
 Lemma kinding_body Σ Γ τ κ T L :
-  (forall x, x ∉ L -> Σ; (<[x:=T]>Γ) ⊢ τ^x :: κ) ->
+  (forall x, x ∉ L -> Σ; <[x:=T]>Γ ⊢ τ^x :: κ) ->
   body τ.
 Proof.
   intros. eexists. simpl_cofin.

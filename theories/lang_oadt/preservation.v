@@ -46,12 +46,12 @@ Proof.
       lazymatch goal with
       | |- ?Γ ⊢ ?e : _ =>
         auto_apply || lazymatch goal with
-                      | H : _ -> _; ?Γ' ⊢ e : _ |- _ =>
+                      | H : _ -> ?Γ' ⊢ e : _ |- _ =>
                         replace Γ with Γ'; [auto_apply |]
                       end
       | |- ?Γ ⊢ ?τ :: _ =>
         auto_apply || lazymatch goal with
-                      | H : _ -> _; ?Γ' ⊢ τ :: _ |- _ =>
+                      | H : _ -> ?Γ' ⊢ τ :: _ |- _ =>
                         replace Γ with Γ'; [auto_apply |]
                       end
       | _ => idtac
@@ -457,21 +457,21 @@ Proof.
                eauto;
                match goal with
                (* Replace the types in context with an equivalent ones. *)
-               | H : <[_:=_]>_ ⊢ _ :{?l} _ |- _; (<[_:=_]>_) ⊢ _ :{?l} _ =>
+               | H : <[_:=_]>_ ⊢ _ :{?l} _ |- <[_:=_]>_ ⊢ _ :{?l} _ =>
                  eapply subst_conv
                | |- <[_:=_]>_ ⊢ _ :{?l} _ =>
                  is_evar l; eapply subst_conv
                | |- <[_:=_]>_ ⊢ _ :: _ =>
                  eapply kinding_subst_conv
                (* Apply substitution/open lemmas. *)
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : ?τ |- _; ?Γ ⊢ ?e^_ : ?τ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : ?τ |- ?Γ ⊢ ?e^_ : ?τ =>
                  eapply open_preservation_lc
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^(fvar _) |- _; ?Γ ⊢ ?e^_ : _ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^(fvar _) |- ?Γ ⊢ ?e^_ : _ =>
                  eapply open_preservation
                (* This is for the dependent case expression. *)
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^_ |- _; ?Γ ⊢ ?e^_ : _ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^_ |- ?Γ ⊢ ?e^_ : _ =>
                  eapply open_preservation_alt
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) :: _ |- _; ?Γ ⊢ ?e^_ :: _ =>
+               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) :: _ |- ?Γ ⊢ ?e^_ :: _ =>
                  eapply kinding_open_preservation
                (* Apply typing rules. *)
                | |- _ ⊢ _ : _ =>
