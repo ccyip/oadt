@@ -4,7 +4,7 @@ From Coq Require Import Int63.Int63.
 From oadt Require Import prelude.
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.typing.
+From oadt Require Import lang_oadt.kind.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -67,7 +67,13 @@ Variant gdef :=
 .
 
 (** ** Global context (Σ) *)
-Notation gctx := (amap gdef).
+Definition gctx := amap gdef.
+
+Existing Class gctx.
+#[export]
+Hint Extern 1 (gctx) => assumption : typeclass_instances.
+#[export]
+Hint Unfold gctx : typeclass_instances.
 
 (** ** Programs (P) *)
 Notation program := (gctx * expr).
@@ -623,24 +629,31 @@ End step.
 Module semantics_notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,
-                                                e custom oadt at level 0,
-                                                e' custom oadt at level 0).
+                                                e custom oadt at level 99,
+                                                e' custom oadt at level 99).
 
 Notation "Σ '⊨' e '-->*' e'" := (rtc (step Σ) e e')
                                   (at level 40,
-                                   e custom oadt at level 0,
-                                   e' custom oadt at level 0).
+                                   e custom oadt at level 99,
+                                   e' custom oadt at level 99).
 
 Notation "Σ '⊨' e '-->{' n '}' e'" := (nsteps (step Σ) n e e')
                                         (at level 40,
-                                         e custom oadt at level 0,
-                                         n constr at level 0,
-                                         e' custom oadt at level 0,
+                                         e custom oadt at level 99,
+                                         n constr at level 99,
+                                         e' custom oadt at level 99,
                                          format "Σ  '⊨'  e  '-->{' n '}'  e'").
+
+Notation "e '-->!' e'" := (step _ e e') (at level 40).
+
+Notation "e '-->*' e'" := (rtc (step _) e e') (at level 40).
+
+Notation "e '-->{' n '}' e'" := (nsteps (step _) n e e') (at level 40).
 
 End semantics_notations.
 
 Import semantics_notations.
+Import kind.notations.
 
 (** * Typing *)
 
@@ -649,15 +662,12 @@ Notation tctx := (amap lexpr).
 
 Section typing.
 
-Import kind_notations.
-
 Section fix_gctx.
 
 Context (Σ : gctx).
 
 (** ** Parallel reduction *)
-Reserved Notation "e '⇛' e'" (at level 40,
-                                 e' constr at level 0).
+Reserved Notation "e '⇛' e'" (at level 40).
 
 (** We do not extend the parallel reduction, which means primitive integers are
 not used in type level. While we can certainly do that, our demos currently do
@@ -1060,13 +1070,13 @@ Notation "Σ '⊢' e '≡' e'" := (pared_equiv Σ e e')
                                 e' custom oadt at level 99).
 Notation "Σ ; Γ '⊢' e ':{' l '}' τ" := (typing Σ Γ e l τ)
                                          (at level 40,
-                                          Γ constr at level 0,
-                                          e custom oadt at level 99,
-                                          τ custom oadt at level 99,
-                                          format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
+                                           Γ constr at next level,
+                                           e custom oadt at level 99,
+                                           τ custom oadt at level 99,
+                                           format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
 Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
                                    (at level 40,
-                                    Γ constr at level 0,
+                                    Γ constr at next level,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
@@ -1101,47 +1111,62 @@ End typing.
 
 Module typing_notations.
 
-Export kind_notations.
+Export kind.notations.
 
 Notation "Σ '⊢' e '⇛' e'" := (pared Σ e e')
-                                  (at level 40,
-                                   e custom oadt at level 99,
-                                   e' custom oadt at level 99).
+                               (at level 40,
+                                 e custom oadt at level 99,
+                                 e' custom oadt at level 99).
 Notation "Σ '⊢' e '⇛*' e'" := (rtc (pared Σ) e e')
-                                  (at level 40,
-                                   e custom oadt at level 99,
-                                   e' custom oadt at level 99).
+                                (at level 40,
+                                  e custom oadt at level 99,
+                                  e' custom oadt at level 99).
 Notation "Σ '⊢' e '≡' e'" := (pared_equiv Σ e e')
                                (at level 40,
                                 e custom oadt at level 99,
                                 e' custom oadt at level 99).
-
 Notation "Σ ; Γ '⊢' e ':{' l '}' τ" := (typing Σ Γ e l τ)
                                          (at level 40,
-                                          Γ constr at level 0,
-                                          e custom oadt at level 99,
-                                          l constr at level 99,
-                                          τ custom oadt at level 99,
-                                          format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
+                                           Γ constr at next level,
+                                           e custom oadt at level 99,
+                                           τ custom oadt at level 99,
+                                           format "Σ ;  Γ  '⊢'  e  ':{' l '}'  τ").
 Notation "Σ ; Γ '⊢' e ':' τ" := (typing Σ Γ e _ τ)
                                          (at level 40,
-                                          Γ constr at level 0,
-                                          e custom oadt at level 99,
-                                          τ custom oadt at level 99,
-                                          only parsing).
+                                           Γ constr at next level,
+                                           e custom oadt at level 99,
+                                           τ custom oadt at level 99,
+                                           only parsing).
 Notation "Σ ; Γ '⊢' τ '::' κ" := (kinding Σ Γ τ κ)
                                    (at level 40,
-                                    Γ constr at level 0,
+                                    Γ constr at next level,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
-Notation "Σ '⊢₁' D" := (gdef_typing Σ D) (at level 40,
-                                          D constr at level 0).
+Notation "Σ '⊢₁' D" := (gdef_typing Σ D) (at level 40).
 
 Notation "Σ ; e '▷' τ" := (program_typing Σ e τ)
                             (at level 40,
-                             e constr at level 0,
-                             τ constr at level 0).
+                              e at next level).
+
+Notation "e '⇛' e'" := (pared _ e e') (at level 40).
+Notation "e '⇛*' e'" := (rtc (pared _) e e') (at level 40).
+
+Notation "Γ '⊢' e ':{' l '}' τ" := (typing _ Γ e l τ)
+                                     (at level 40,
+                                       e custom oadt at level 99,
+                                       l constr at level 99,
+                                       τ custom oadt at level 99,
+                                       format "Γ  '⊢'  e  ':{' l '}'  τ").
+Notation "Γ '⊢' e ':' τ" := (typing _ Γ e _ τ)
+                              (at level 40,
+                                e custom oadt at level 99,
+                                τ custom oadt at level 99,
+                                only parsing).
+Notation "Γ '⊢' τ '::' κ" := (kinding _ Γ τ κ)
+                               (at level 40,
+                                 τ custom oadt at level 99,
+                                 κ custom oadt at level 99).
 
 End typing_notations.
 
@@ -1466,7 +1491,7 @@ Lemma pared_weakening Σ e e' :
         Σ' ⊢ e ⇛ e'.
 Proof.
   induction 1; intros;
-    econstructor; eauto using lookup_weaken.
+    econstructor; eauto; qauto use: lookup_weaken.
 Qed.
 
 Lemma pared_equiv_weakening Σ e e' :
@@ -1474,7 +1499,7 @@ Lemma pared_equiv_weakening Σ e e' :
   forall Σ', Σ ⊆ Σ' ->
         Σ' ⊢ e ≡ e'.
 Proof.
-  induction 1; intros; eauto using pared_equiv, pared_weakening.
+  induction 1; intros; qauto use: pared_equiv, pared_weakening.
 Qed.
 
 Lemma weakening_ Σ :
@@ -1495,7 +1520,7 @@ Proof.
     try qauto l: on ctrs: typing, kinding;
     try qauto l: on use: lookup_weaken ctrs: typing, kinding;
     try qauto l: on use: insert_mono ctrs: typing, kinding;
-    econstructor; eauto using insert_mono, pared_equiv_weakening.
+    econstructor; eauto using insert_mono; qauto use: pared_equiv_weakening.
 Qed.
 
 Lemma kinding_weakening Σ Γ Σ' Γ' τ κ :
@@ -1820,9 +1845,6 @@ Fixpoint mstep_ (n : nat) (e : expr) : expr :=
 
 #[local]
 Set Default Proof Using "Type".
-
-Notation "e '-->!' e'" := (step Σ e e') (at level 40).
-Notation "e '-->*' e'" := (rtc (step Σ) e e') (at level 40).
 
 Lemma ovalty_sound ω : forall e,
   ovalty_ ω = Some e ->

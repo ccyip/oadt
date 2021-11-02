@@ -4,7 +4,6 @@ From Coq Require Export Int63.Int63.
 From stdpp Require Export pretty.
 From oadt Require Import prelude.
 From oadt Require Export lang_oadt.base.
-From oadt Require Import lang_oadt.preservation.
 From oadt Require Export demo.int.
 
 #[local]
@@ -24,15 +23,6 @@ Implicit Types (x : atom) (L : aset).
 Coercion EFVar : atom >-> expr.
 
 Arguments open /.
-
-Notation "Γ '⊢' e ':{' l '}' τ" := (Σ; Γ ⊢ e :{l} τ)
-                                     (at level 40,
-                                      e custom oadt at level 99,
-                                      τ custom oadt at level 99).
-Notation "Γ '⊢' τ '::' κ" := (Σ; Γ ⊢ τ :: κ)
-                               (at level 40,
-                                τ custom oadt at level 99,
-                                κ custom oadt at level 99).
 
 Lemma KProd_alt Γ τ1 τ2 κ1 κ2 :
   Γ ⊢ τ1 :: κ1 ->
@@ -326,7 +316,7 @@ Lemma gdefs_typing Ds :
 Proof.
   intros. subst.
   unfold gctx_typing.
-  rewrite map_Forall_to_list.
+  setoid_rewrite map_Forall_to_list.
   rewrite map_to_list_to_map; eauto.
   apply Forall_iff.
   intros [].
