@@ -1,79 +1,21 @@
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
+From oadt Require Export lang_oadt.kind.
 
 Import syntax.notations.
 Import semantics.notations.
+Import kind.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 (** * Definitions *)
 
-(** ** Kinds (κ) *)
-(** Essentially a kind is a security label. We do not need kind abstraction. *)
-Variant kind :=
-| KAny
-| KPublic
-| KObliv
-| KMixed
-.
-
-(** [kind] has (semi-)lattice operators.
-
-We define the partial order [⊑] on [kind] directly as a computable function.
-Alternatively, we may define an "immediate" relation as the kernel, and then
-take its reflexive-transitive closure. But [kind] is simple enough, so let's do
-it in a simple way.
-
-[κ1 ⊑ κ2] means [κ2] is stricter than or as strict as [κ1]. The relation can be
-visualized as follow.
-
-<<
-    M
-   / \
-  P   O
-   \ /
-    A
->>
-*)
-Instance kind_eq : EqDecision kind.
-Proof.
-  solve_decision.
-Defined.
-
-Instance kind_join : Join kind :=
-  fun κ1 κ2 =>
-    match κ1, κ2 with
-    | KAny, κ | κ, KAny => κ
-    | KPublic, KObliv | KObliv, KPublic => KMixed
-    | KMixed, _ | _, KMixed => KMixed
-    | κ, _ => κ
-    end.
-
-Instance kind_le : SqSubsetEq kind :=
-  fun κ1 κ2 => κ2 = (κ1 ⊔ κ2).
-
-Instance kind_top : Top kind := KMixed.
-Instance kind_bot : Bottom kind := KAny.
-
 (** ** Typing context (Γ) *)
 Notation tctx := (amap lexpr).
 
-(** Notations for kinding *)
-Module kind_notations.
-
-Notation "*@A" := (KAny) (in custom oadt at level 0).
-Notation "*@P" := (KPublic) (in custom oadt at level 0).
-Notation "*@O" := (KObliv) (in custom oadt at level 0).
-Notation "*@M" := (KMixed) (in custom oadt at level 0).
-Infix "⊔" := (⊔) (in custom oadt at level 50).
-
-End kind_notations.
-
-
 Section typing.
 
-Import kind_notations.
 #[local]
 Coercion EFVar : atom >-> expr.
 
@@ -540,7 +482,7 @@ End typing.
 (* Unfortunately I have to copy-paste all notations here again. *)
 Module notations.
 
-Export kind_notations.
+Export kind.notations.
 
 Notation "Σ '⊢' e '⇛' e'" := (pared Σ e e')
                                (at level 40,

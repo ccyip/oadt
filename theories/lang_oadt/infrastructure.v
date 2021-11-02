@@ -99,13 +99,6 @@ Arguments tctx_stale /.
 
 Arguments stale /.
 
-(** * Instances *)
-
-(** [kind] forms a [SemiLattice].  *)
-Instance kind_semilattice : SemiLattice kind.
-Proof.
-  split; try reflexivity; repeat intros []; auto.
-Qed.
 
 (** * Tactics *)
 

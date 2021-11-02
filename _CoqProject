@@ -9,6 +9,7 @@ theories/prelude.v
 theories/lang_oadt/base.v
 theories/lang_oadt/syntax.v
 theories/lang_oadt/semantics.v
+theories/lang_oadt/kind.v
 theories/lang_oadt/typing.v
 theories/lang_oadt/infrastructure.v
 theories/lang_oadt/equivalence.v
