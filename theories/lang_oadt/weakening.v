@@ -14,7 +14,7 @@ Lemma pared_weakening Σ e e' :
         Σ' ⊢ e ⇛ e'.
 Proof.
   induction 1; intros;
-    econstructor; eauto using lookup_weaken.
+    econstructor; eauto; qauto use: lookup_weaken.
 Qed.
 
 Lemma pared_equiv_weakening Σ e e' :
