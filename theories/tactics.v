@@ -396,6 +396,9 @@ Tactic Notation "equiv_naive_solver" "by" tactic3(tac) :=
 Ltac equiv_naive_solver :=
   equiv_naive_solver by eauto.
 
+#[export]
+Hint Extern 1 (_ ≡ _) => equiv_naive_solver : equiv_naive_solver.
+
 (* These two tactics are taken from the development version of [stdpp]. Remove
 them when they release it. *)
 Tactic Notation "compute_done" :=

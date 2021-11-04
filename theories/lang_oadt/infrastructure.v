@@ -225,6 +225,8 @@ Ltac apply_SOIte :=
 Ltac solve_lctx := apply_SOIte; eauto using lectx.
 Ltac solve_ctx := solve [ solve_lctx | solve_ectx ].
 
+#[export]
+Hint Extern 1 (_ ⊢ _ ≡ _) => equiv_naive_solver : equiv_naive_solver.
 
 Create HintDb lc discriminated.
 #[export]

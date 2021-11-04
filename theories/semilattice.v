@@ -134,3 +134,6 @@ Tactic Notation "lattice_naive_solver" "by" tactic3(tac) :=
 
 Ltac lattice_naive_solver :=
   lattice_naive_solver by eauto.
+
+#[export]
+Hint Extern 1 (_ ⊑ _) => lattice_naive_solver : lattice_naive_solver.
