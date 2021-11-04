@@ -28,7 +28,7 @@ Lemma otval_well_kinded ω Σ Γ :
   otval ω ->
   Σ; Γ ⊢ ω :: *@O.
 Proof.
-  induction 1; hauto lq: on ctrs: kinding solve: lattice_naive_solver.
+  induction 1; eauto using kinding with lattice_naive_solver.
 Qed.
 
 Lemma otval_uniq Σ ω1 ω2 :
@@ -134,15 +134,14 @@ Proof.
                   try lazymatch goal with
                       | |- _ ⊢ _ : _ =>
                         repeat (econstructor;
-                                eauto using otval_well_kinded;
-                                try equiv_naive_solver)
+                                eauto using otval_well_kinded with equiv_naive_solver)
                       | |- _ ≡ _ => equiv_naive_solver
                       | |- otval _ => eauto using otval
                       end ].
 
   (* Product *)
   repeat esplit.
-  econstructor; eauto using otval_well_kinded; try equiv_naive_solver.
+  econstructor; eauto using otval_well_kinded with equiv_naive_solver.
   eauto using otval.
   apply_pared_equiv_congr; eauto with lc.
 Qed.

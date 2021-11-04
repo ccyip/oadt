@@ -234,7 +234,7 @@ Proof.
     simplify_eq;
     try solve [ easy
               | econstructor; auto_eapply; eauto;
-                econstructor; eauto; equiv_naive_solver ].
+                econstructor; eauto with equiv_naive_solver ].
 
   (* Boxed injection *)
   - select (ovalty _ _) (fun H => sinvert H).
@@ -247,7 +247,7 @@ Proof.
 
   (* Equivalence case *)
   - auto_eapply; eauto.
-    econstructor; eauto; equiv_naive_solver.
+    econstructor; eauto with equiv_naive_solver.
     eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
@@ -275,8 +275,7 @@ Proof.
       auto_eapply; eauto using kinding.
 
   (* Equivalence case *)
-  - etrans; try auto_eapply; eauto.
-    equiv_naive_solver.
+  - etrans; try auto_eapply; eauto with equiv_naive_solver.
     eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
