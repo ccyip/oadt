@@ -434,7 +434,17 @@ Proof.
                                | <{ ~if _ then _ else _ }> =>
                                  eapply RCgrIte
                                end
-                             | head_constructor e; pared_intro
+                             | match goal with
+                               | H : ?e1 ⇛ _ |- _ =>
+                                   let e1 := lazymatch e1 with
+                                             | <{ ?e1^_ }> => e1
+                                             | _ => e1
+                                             end in
+                                   lazymatch e with
+                                   | context [e1] =>
+                                       head_constructor e; pared_intro
+                                   end
+                               end
                              | eapply pared_open1
                              | lcrefl ]
                      | |- lc _ => eauto using lc, kinding_lc
@@ -499,6 +509,7 @@ Proof.
                          by eauto using (top_ub (A:=bool)),
                             (join_ub_l (A:=bool)), (join_ub_r (A:=bool))
                        | hauto use: (join_lub (A:=bool)) ]
+               | |- ovalty _ _ => eauto using ovalty
                | |- _ ∉ _ => shelve
                end) ].
 

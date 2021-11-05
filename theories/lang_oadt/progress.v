@@ -143,7 +143,7 @@ Proof.
   canonical_form_solver.
 
   (* The cases when [e] is boxed injection. *)
-  select (otval _) (fun H => sinvert H);
+  otval_inv.
   repeat esplit; auto.
 Qed.
 

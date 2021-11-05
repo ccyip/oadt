@@ -66,10 +66,8 @@ Proof.
               solve: equiv_naive_solver.
 
   (* Case [inj@_<_> _] *)
-  repeat match goal with
-         | H : ?ω1 ≡ ?ω2 |- _ =>
-           apply otval_uniq in H; try qauto l: on use: ovalty_elim inv: otval
-         end.
+  select! (_ ≡ _) (fun H => apply otval_uniq in H); subst; eauto using ovalty;
+    qauto l: on use: ovalty_elim inv: otval.
 Qed.
 
 Lemma ovalty_intro v ω l Σ Γ :
