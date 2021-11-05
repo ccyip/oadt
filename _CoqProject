@@ -19,6 +19,7 @@ theories/lang_oadt/inversion.v
 theories/lang_oadt/values.v
 theories/lang_oadt/weakening.v
 theories/lang_oadt/preservation.v
+theories/lang_oadt/step_alt.v
 theories/lang_oadt/progress.v
 theories/lang_oadt/obliviousness.v
 theories/lang_oadt/metatheories.v
