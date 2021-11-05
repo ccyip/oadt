@@ -9,11 +9,13 @@ From oadt Require Import lang_oadt.inversion.
 From oadt Require Import lang_oadt.equivalence.
 From oadt Require Import lang_oadt.progress.
 From oadt Require Import lang_oadt.preservation.
+From oadt Require Import lang_oadt.indistinguishable.
 
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 Import equivalence.notations.
+Import indistinguishable.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -21,6 +23,8 @@ Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 Coercion EFVar : atom >-> expr.
 
 (** * Properties of indistinguishability *)
+
+Ltac indistinguishable_inv := safe_inv2 indistinguishable.
 
 (** Indistinguishability is an equivalence. *)
 Instance indistinguishable_is_equiv : Equivalence indistinguishable.

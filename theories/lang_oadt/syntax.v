@@ -321,105 +321,6 @@ Import expr_notations.
 #[local]
 Coercion EFVar : atom >-> expr.
 
-(** ** Indistinguishability *)
-
-(** Instead of formalizing an observe function and considering two expressions
-indistinguishable if they are observed the same, we directly formalize the
-indistinguishability relation as the equivalence induced by the observe
-function.
-
-All rules but the rules for boxed expressions are just congruence rules. Some
-rules are not necessary if the expressions are well-typed, but we include them
-anyway. *)
-Reserved Notation "e '≈' e'" (at level 40).
-
-Inductive indistinguishable : expr -> expr -> Prop :=
-| IBVar k : <{ bvar k }> ≈ <{ bvar k }>
-| IFVar x : <{ fvar x }> ≈ <{ fvar x }>
-| IGVar x : <{ gvar x }> ≈ <{ gvar x }>
-| IPi l τ1 τ1' τ2 τ2' :
-    τ1 ≈ τ1' ->
-    τ2 ≈ τ2' ->
-    <{ Π:{l}τ1, τ2 }> ≈ <{ Π:{l}τ1', τ2' }>
-| IAbs l τ τ' e e' :
-    τ ≈ τ' ->
-    e ≈ e' ->
-    <{ \:{l}τ => e }> ≈ <{ \:{l}τ' => e' }>
-| IApp e1 e1' e2 e2' :
-    e1 ≈ e1' ->
-    e2 ≈ e2' ->
-    <{ e1 e2 }> ≈ <{ e1' e2' }>
-| ITApp X e e' :
-    e ≈ e' ->
-    <{ X@e }> ≈ <{ X@e' }>
-| ILet e1 e1' e2 e2' :
-    e1 ≈ e1' ->
-    e2 ≈ e2' ->
-    <{ let e1 in e2 }> ≈ <{ let e1' in e2' }>
-| IUnitT : <{ 𝟙 }> ≈ <{ 𝟙 }>
-| IUnitV : <{ () }> ≈ <{ () }>
-| IBool l : <{ 𝔹{l} }> ≈ <{ 𝔹{l} }>
-| ILit b : <{ lit b }> ≈ <{ lit b }>
-| ISec e e' :
-    e ≈ e' ->
-    <{ s𝔹 e }> ≈ <{ s𝔹 e' }>
-| IIte l e0 e0' e1 e1' e2 e2' :
-    e0 ≈ e0' ->
-    e1 ≈ e1' ->
-    e2 ≈ e2' ->
-    <{ if{l} e0 then e1 else e2 }> ≈ <{ if{l} e0' then e1' else e2' }>
-| IProd τ1 τ1' τ2 τ2' :
-    τ1 ≈ τ1' ->
-    τ2 ≈ τ2' ->
-    <{ τ1 * τ2 }> ≈ <{ τ1' * τ2' }>
-| IPair e1 e1' e2 e2' :
-    e1 ≈ e1' ->
-    e2 ≈ e2' ->
-    <{ (e1, e2) }> ≈ <{ (e1', e2') }>
-| IProj b e e' :
-    e ≈ e' ->
-    <{ π@b e }> ≈ <{ π@b e' }>
-| ISum l τ1 τ1' τ2 τ2' :
-    τ1 ≈ τ1' ->
-    τ2 ≈ τ2' ->
-    <{ τ1 +{l} τ2 }> ≈ <{ τ1' +{l} τ2' }>
-| IInj l b τ τ' e e' :
-    τ ≈ τ' ->
-    e ≈ e' ->
-    <{ inj{l}@b<τ> e }> ≈ <{ inj{l}@b<τ'> e' }>
-| ICase l e0 e0' e1 e1' e2 e2' :
-    e0 ≈ e0' ->
-    e1 ≈ e1' ->
-    e2 ≈ e2' ->
-    <{ case{l} e0 of e1 | e2 }> ≈ <{ case{l} e0' of e1' | e2' }>
-| IFold X e e' :
-    e ≈ e' ->
-    <{ fold<X> e }> ≈ <{ fold<X> e' }>
-| IUnfold X e e' :
-    e ≈ e' ->
-    <{ unfold<X> e }> ≈ <{ unfold<X> e' }>
-| ITape e e' :
-    e ≈ e' ->
-    <{ tape e }> ≈ <{ tape e' }>
-| IMux e0 e0' e1 e1' e2 e2' :
-    e0 ≈ e0' ->
-    e1 ≈ e1' ->
-    e2 ≈ e2' ->
-    <{ mux e0 e1 e2 }> ≈ <{ mux e0' e1' e2' }>
-(* The only interesting cases *)
-| IBoxedLit b b' :
-    (* We can not distinguish between two encrypted boolean values. *)
-    <{ [b] }> ≈ <{ [b'] }>
-| IBoxedInj b b' τ e e' :
-    (* We can not tell which branch an encrypted sum injects to nor what the
-    encrypted value is. But the type information is public so we need to make
-    sure nothing leaked from this type information. Technically we only need the
-    two types to be indistinguishable, but the stronger notion of equality also
-    works. *)
-    <{ [inj@b<τ> e] }> ≈ <{ [inj@b'<τ> e'] }>
-
-where "e '≈' e'" := (indistinguishable e e').
-
 (** ** Variable opening  *)
 Reserved Notation "'{' k '~>' s '}' e" (in custom oadt at level 20, k constr).
 
@@ -558,8 +459,6 @@ End definitions.
 Module notations.
 
 Export expr_notations.
-
-Notation "e '≈' e'" := (indistinguishable e e') (at level 40).
 
 Notation "'{' k '~>' s '}' e" := (open_ k s e)
                                    (in custom oadt at level 20, k constr).

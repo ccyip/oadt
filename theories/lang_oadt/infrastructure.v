@@ -154,8 +154,6 @@ Ltac woval_inv := safe_inv1 woval.
 
 Ltac ovalty_inv := safe_inv2 ovalty.
 
-Ltac indistinguishable_inv := safe_inv2 indistinguishable.
-
 Ltac ectx_inv :=
   lazymatch goal with
   | H : ectx _ |- _ => sinvert H

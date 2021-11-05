@@ -7,11 +7,13 @@ From oadt Require Import lang_oadt.values.
 From oadt Require Import lang_oadt.progress.
 From oadt Require Import lang_oadt.preservation.
 From oadt Require Import lang_oadt.obliviousness.
+From oadt Require Import lang_oadt.indistinguishable.
 
 Import syntax.notations.
 Import semantics.notations.
 Import typing.notations.
 Import equivalence.notations.
+Import indistinguishable.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
