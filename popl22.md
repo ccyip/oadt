@@ -14,6 +14,17 @@ the two calucli: λOADT is on the branch
 [tape](https://github.com/ccyip/oadt/tree/tape). The generated CoqDoc can be
 found [here](https://ccyip.github.io/oadt/).
 
+The final versions of the formalization and a virtual machine image are also
+available on [Zenodo](https://zenodo.org/record/5652106):
+- λOADT: [oadt-pure-popl22.zip](https://zenodo.org/record/5652106/files/oadt-pure-popl22.zip?download=1).
+  This is a snapshot of tag [pure-popl22](https://github.com/ccyip/oadt/releases/tag/pure-popl22)
+  (commit [b34546f](https://github.com/ccyip/oadt/commit/b34546f2f4a1930055e8f11175909519a20ece30)).
+- λOADT✚: [oadt-tape-popl22.zip](https://zenodo.org/record/5652106/files/oadt-tape-popl22.zip?download=1).
+  This is a snapshot of tag [tape-popl22](https://github.com/ccyip/oadt/releases/tag/tape-popl22)
+  (commit [32d8fc4](https://github.com/ccyip/oadt/commit/32d8fc4927f0f5781e3cf5b5e87748c9a587815d)).
+- The virtual machine image: [oadt-popl22.ova](https://zenodo.org/record/5652106/files/oadt-popl22.ova?download=1).
+  See instructions below.
+
 The next section (Review Instructions) contains instructions on how to review
 our Coq development and check the mechanized proofs.
 
@@ -60,10 +71,10 @@ This artifact can be reviewed fully online.
 
 ### Virtual Machine
 We also provide a virtual machine (based on Debian 11 with Gnome desktop),
-available on [Zenodo](https://zenodo.org/record/5553360), so one can inspect our
+available on [Zenodo](https://zenodo.org/record/5652106), so one can inspect our
 proofs interactively, with environment already set up. The virtual machine was
 tested in Oracle VirtualBox (6.1). To get started,
-1. Download the `oadt.ova` file from [Zenodo](https://zenodo.org/record/5553360).
+1. Download the `oadt-popl22.ova` file from [Zenodo](https://zenodo.org/record/5652106).
 2. Open VirtualBox and select menu `File` then `Import Appliance`.
 3. Choose the downloaded `ova` file to import.
 4. Adjust settings such as CPU cores and RAM. Note that compiling our Coq code
@@ -141,6 +152,12 @@ git clone -b tape https://github.com/ccyip/oadt.git oadt-tape
 cd oadt-tape
 opam install . --deps-only
 make DEMO=1
+```
+
+If Ocaml 4.11.1 is not available on your system (e.g. certain macs), you may install
+4.12.0 instead.
+```sh
+opam switch create oadt-popl22 --package=ocaml-variants.4.12.0+options,ocaml-option-flambda
 ```
 
 ## Dependencies
@@ -335,7 +352,7 @@ Github Action page (See Section (Review Instructions)). Then
 3. Expand the toggle `Run coq-community/docker-coq-action@v1`, and then the
    toggle `Build project`.
    
-When reviewing with the provided virtual machine, run `make clean` first and run
+When reviewing with the provided virtual machine, run `make clean` first and then run
 `make` (in the pure branch) or `make DEMO=1` (in the tape branch).
 
 
