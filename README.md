@@ -20,6 +20,7 @@ types.
 - [coq-stdpp](https://gitlab.mpi-sws.org/iris/stdpp) (>= 1.5.0)
 - [coq-smpl](https://github.com/uds-psl/smpl) (>= 8.12.0.1)
 - [coq-hammer-tactics](https://coqhammer.github.io) (>= 1.3.1+8.12)
+- [coq-metacoq-template](https://metacoq.github.io/) (>= 1.0~beta2+8.12)
 
 See [`coq-oadt.opam`](./coq-oadt.opam) for more details.
 
