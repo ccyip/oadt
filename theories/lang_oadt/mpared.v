@@ -10,21 +10,7 @@ From oadt Require Import lang_oadt.head.
 Import syntax.notations.
 Import typing.notations.
 
-(* We may remove the non-congruent cases. *)
 Ltac tsf_pared ctor R :=
-  (* try lazymatch ctor with *)
-  (*     | RRefl => tsf_skip *)
-  (*     end; *)
-  (* try (let T := type of ctor in *)
-  (*      unless T by (intros; *)
-  (*                   lazymatch goal with *)
-  (*                   | |- ?e ⇛ ?e' => *)
-  (*                       let h := eval hnf in (expr_hd e) in *)
-  (*                       let h' := eval hnf in (expr_hd e') in *)
-  (*                       lazymatch h with *)
-  (*                       | h' => contradiction *)
-  (*                       end *)
-  (*                   end); tsf_skip); *)
   let H := fresh in
   pose proof ctor as H;
   repeat
