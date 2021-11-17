@@ -32,6 +32,15 @@ Proof.
   rewrite map_subseteq_spec. intros ??. by rewrite lookup_empty.
 Qed.
 
+Lemma rtc_preserve `{R : relation A} (P : A -> Prop) (x y : A) :
+  (forall x y, P x -> R x y -> P y) ->
+  P x ->
+  rtc R x y ->
+  P y.
+Proof.
+  induction 3; eauto.
+Qed.
+
 (** * More setoid rewriting for sets *)
 
 Section set.
