@@ -26,12 +26,6 @@ Proof.
   intros. apply insert_subseteq. apply not_elem_of_dom. auto.
 Qed.
 
-Lemma map_empty_subseteq `{FinMap K M} {A} (m : M A) :
-  ∅ ⊆ m.
-Proof.
-  rewrite map_subseteq_spec. intros ??. by rewrite lookup_empty.
-Qed.
-
 Lemma rtc_preserve `{R : relation A} (P : A -> Prop) (x y : A) :
   (forall x y, P x -> R x y -> P y) ->
   P x ->

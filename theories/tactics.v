@@ -346,15 +346,14 @@ generates equality subgoals from the last argument to the first argument that
 can not be substituted, most likely due to dependent type. *)
 Tactic Notation "apply_eq" uconstr(H) "by" tactic3(tac) :=
   let rec go R p :=
-      lazymatch R with
+      match R with
       | ?R ?a =>
           let e := fresh "e" in
           let f := constr:(fun e =>
                              ltac:(let g := curry_tac (R e) p in
                                    exact g)) in
           let T := type of a in
-          (* May use [mk_evar] from [stdpp] in the future. *)
-          let a := open_constr:(_ : T) in
+          let a := mk_evar T in
           refine (eq_ind a f _ _ _); [ go R constr:((a, p)) | ]
       | _ => idtac
       end in
@@ -398,12 +397,3 @@ Ltac equiv_naive_solver :=
 
 #[export]
 Hint Extern 1 (_ ≡ _) => equiv_naive_solver : equiv_naive_solver.
-
-(* These two tactics are taken from the development version of [stdpp]. Remove
-them when they release it. *)
-Tactic Notation "compute_done" :=
-  try apply (bool_decide_unpack _);
-  vm_compute;
-  first [ exact I | exact eq_refl ].
-Tactic Notation "compute_by" tactic(tac) :=
-  tac; compute_done.
