@@ -21,9 +21,8 @@ Ltac tsf_pared ctor R :=
         | _ =>
             match eval pattern pared in T with
             | ?P _ =>
-                let P := constr:(P (fun Σ => rtc (pared Σ))) in
-                let P := eval simpl in P in
-                  refine (P -> _ : Prop); specialize_any H
+                let P := eval simpl in (P (fun Σ => rtc (pared Σ))) in
+                refine (P -> _ : Prop); specialize_any H
             end
         end
     | forall e : ?T, _ =>
