@@ -550,16 +550,6 @@ Qed.
 #[export]
 Hint Resolve open_respect_lc | 10 : lc.
 
-Lemma open_respect_lc_atom x e s :
-  lc <{ e^x }> ->
-  lc s ->
-  lc <{ e^s }>.
-Proof.
-  eauto with lc.
-Qed.
-#[export]
-Hint Resolve open_respect_lc_atom | 9 : lc.
-
 Lemma lc_rename e x y :
   lc <{ e^x }> ->
   lc <{ e^y }>.
@@ -602,6 +592,15 @@ Proof.
   simpl_cofin.
   erewrite (open_lc_ _ x _ 0); eauto.
   by rewrite open_lc by assumption.
+Qed.
+
+Lemma body_open_lc e s :
+  body e ->
+  lc s ->
+  lc <{ e^s }>.
+Proof.
+  unfold body. intros. simp_hyps. simpl_cofin.
+  eauto with lc.
 Qed.
 
 Lemma body_bvar :
