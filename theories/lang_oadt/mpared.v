@@ -5,6 +5,8 @@ From oadt Require Import lang_oadt.semantics.
 From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.equivalence.
+From oadt Require Import lang_oadt.values.
+From oadt Require Import lang_oadt.preservation.
 From oadt Require Import lang_oadt.head.
 
 Import syntax.notations.
@@ -55,6 +57,15 @@ Proof.
   eapply rtc_preserve; eauto using pared_lc2.
 Qed.
 
+Lemma mpared_preservation Γ e l e' τ :
+  Γ ⊢ e :{l} τ ->
+  e ⇛* e' ->
+  Γ ⊢ e' :{l} τ.
+Proof.
+  eapply rtc_preserve with (P := fun e => Γ ⊢ e :{l} τ).
+  eauto using pared_preservation.
+Qed.
+
 Lemma mpared_woval ω τ :
   woval ω ->
   ω ⇛* τ ->
@@ -63,12 +74,13 @@ Proof.
   eapply rtc_preserve; eauto using pared_woval.
 Qed.
 
-Lemma mpared_open_lc e e' L1 L2 :
-  (forall x, x ∉ L1 -> <{ e^x }> ⇛* <{ e'^x }>) ->
-  (forall x, x ∉ L2 -> lc <{ e^x }>) ->
-  exists L, forall x, x ∉ L -> lc <{ e'^x }>.
+Lemma mpared_body e e' L :
+  body e ->
+  (forall x, x ∉ L -> <{ e^x }> ⇛* <{ e'^x }>) ->
+  body e'.
 Proof.
-  intros. eexists. simpl_cofin. eauto using mpared_lc.
+  unfold body.
+  intros. simp_hyps. eexists. simpl_cofin. eauto using mpared_lc.
 Qed.
 
 Lemma mpared_subst1 e s s' x :
@@ -132,9 +144,9 @@ Proof.
                                     apply mpared_lc in H; [ | solve [ eauto ] ])
                    | forall _, _ -> _ ⇛* _ =>
                        dup_hyp H (fun H =>
-                                    eapply mpared_open_lc in H;
-                                    [ simp_hyp H
-                                    | solve [ eauto ] ])
+                                    eapply mpared_body in H;
+                                    [ destruct H
+                                    | solve [ eauto using body_intro ] ])
                    | woval _ =>
                        dup_hyp H (fun H =>
                                     eapply mpared_woval in H; [ | solve [ eauto ] ])
@@ -172,6 +184,39 @@ Proof.
       end in go.
 Qed.
 
+Lemma mpared_ocase b ω1 ω2 v e1 e2 e1' e2' L1 L2 :
+  oval v ->
+  otval ω1 -> otval ω2 ->
+  body e1 -> body e2 ->
+  (forall x, x ∉ L1 -> <{ e1^x }> ⇛* <{ e1'^x }>) ->
+  (forall x, x ∉ L2 -> <{ e2^x }> ⇛* <{ e2'^x }>) ->
+  <{ ~case [inj@b<(ω1 ~+ ω2)> v] of e1 | e2 }> ⇛* <{ ite b (e1'^v) (e2'^v) }>.
+Proof.
+  intros.
+  select! (otval _) (fun H => use (ovalty_inhabited _ H)).
+  select! (forall x, _ -> _ ⇛* _)
+        (fun H => dup_hyp H (fun H => apply mpared_body in H; eauto)).
+  select! (body _) (fun H => destruct H).
+  etrans.
+  - apply mpared_sound; eauto using lc, otval.
+    econstructor; eauto using mpared.
+  - case_split;
+      (etrans; [ apply mpared_sound; eauto 10 using body_open_lc with lc;
+                 econstructor; try reflexivity
+               | reflexivity ]).
+Qed.
+
+Lemma mpared_tape v :
+  oval v ->
+  <{ tape v }> ⇛* v.
+Proof.
+  induction 1; try solve [ eauto 10 using mpared_sound, mpared with lc ].
+  etrans.
+  - apply mpared_sound; eauto with lc.
+    econstructor; try reflexivity; eauto using oval_woval.
+  - eauto 10 using mpared_sound, mpared with lc.
+Qed.
+
 End fix_gctx.
 
 Create HintDb mpared discriminated.
@@ -179,3 +224,13 @@ Create HintDb mpared discriminated.
 Hint Resolve mpared_sound : mpared.
 #[export]
 Hint Constructors mpared : mpared.
+#[export]
+Hint Resolve mpared_ocase : mpared.
+#[export]
+Hint Resolve mpared_tape : mpared.
+
+Ltac relax_mpared :=
+  match goal with
+  | |- mpared ?Σ ?e _ =>
+    refine (eq_ind _ (fun e' => mpared Σ e e') _ _ _)
+  end.

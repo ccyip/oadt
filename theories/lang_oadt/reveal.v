@@ -1,15 +1,18 @@
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
 From oadt Require Import lang_oadt.semantics.
+From oadt Require Import lang_oadt.typing.
 From oadt Require Import lang_oadt.infrastructure.
 From oadt Require Import lang_oadt.values.
+From oadt Require Import lang_oadt.preservation.
 From oadt Require Import lang_oadt.head.
 From oadt Require Import lang_oadt.dec.
+From oadt Require Import lang_oadt.mpared.
 
 Import syntax.notations.
 Import semantics.notations.
 
-Implicit Types (b : bool).
+Implicit Types (b : bool) (x : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
@@ -125,8 +128,8 @@ Inductive reval : expr -> expr -> Prop :=
     e0 ↓ <{ inj@b<τ> v0 }> ->
     <{ ite b (e1^v0) (e2^v0) }> ↓ v ->
     <{ case e0 of e1 | e2 }> ↓ v
-| REOCase e0 e1 e2 b τ v0 v :
-    e0 ↓ <{ [inj@b<τ> v0] }> ->
+| REOCase e0 e1 e2 b ω1 ω2 v0 v :
+    e0 ↓ <{ [inj@b<ω1 ~+ ω2> v0] }> ->
     <{ ite b (e1^v0) (e2^v0) }> ↓ v ->
     <{ ~case e0 of e1 | e2 }> ↓ v
 | REInj b τ e v :
@@ -156,6 +159,7 @@ Inductive reval : expr -> expr -> Prop :=
     <{ s𝔹 e }> ↓ <{ [b] }>
 | RETape e v :
     e ↓ v ->
+    oval v ->
     <{ tape e }> ↓ v
 | REVal v : val v -> v ↓ ⟦v⟧
 | REOTVal ω : otval ω -> ω ↓ ω
@@ -285,6 +289,50 @@ Lemma erase_open e s :
   <{ ⟦e^s⟧ }> = <{ ⟦⟦e⟧^⟦s⟧⟧ }>.
 Proof.
   qauto use: erase_open1, erase_open2.
+Qed.
+
+Lemma wval_open_inv e k s :
+  ¬(wval s) ->
+  wval <{ {k~>s}e }> ->
+  wval e.
+Proof.
+  intro Hs.
+  revert k.
+  induction e; simpl; intros; try case_decide; try wval_inv;
+    intuition eauto using wval.
+
+  apply_open_hd; qauto ctrs: wval.
+Qed.
+
+Lemma erase_open_not_wval_ e s :
+  ¬(wval (⟦s⟧)) ->
+  <{ ⟦⟦e⟧^⟦s⟧⟧ }> = <{ ⟦e⟧^⟦s⟧ }>.
+Proof.
+  intros.
+  unfold open. generalize 0.
+  induction e; simpl; intros; eauto; try scongruence.
+  - qauto use: erase_idemp.
+  - case_split; try scongruence.
+    repeat (repeat case_decide; try scongruence; simpl);
+      (* The remaining cases are impossible. *)
+      exfalso; simp_hyps;
+      select! (forall n, _ = _) (fun H => srewrite H);
+      eauto using wval_open_inv;
+      apply_open_hd; qauto ctrs: wval.
+Qed.
+
+Lemma erase_open_not_wval e s :
+  ¬(wval (⟦s⟧)) ->
+  <{ ⟦e^s⟧ }> = <{ ⟦e⟧^⟦s⟧ }>.
+Proof.
+  hauto use: erase_open_not_wval_, erase_open.
+Qed.
+
+Lemma erase_open_atom e x :
+  <{ ⟦e^x⟧ }> = <{ ⟦e⟧^x }>.
+Proof.
+  rewrite erase_open_not_wval; eauto using wval.
+  qauto inv: wval.
 Qed.
 
 
@@ -528,12 +576,14 @@ Proof.
           reval_inv*; eauto using reval_wval, reval_erase, erase_open1, erase_open
         | |- val _ => eauto using val
         | |- ⟦_⟧ = _ => eauto using reval_deterministic, reval_wval
+        | |- oval _ => eauto using oval
         | |- _ => eauto
         end.
   - eauto using reval.
   - eauto using reval_oval.
   - select! (ovalty _ _) (fun H => apply ovalty_elim in H; try simp_hyp H);
       eauto using val, otval.
+  - case_split; reval_inv*; eauto.
 
   Unshelve.
 
@@ -582,6 +632,83 @@ Theorem multistep_weak_confluent e w1 w2 :
   ⟦w1⟧ = ⟦w2⟧.
 Proof.
   eauto using reval_deterministic, multistep_wval_reval.
+Qed.
+
+Context (Hwf : gctx_wf Σ).
+(** From now on, we need the well-formedness of global context. *)
+Set Default Proof Using "All".
+
+Import typing.notations.
+
+Lemma erase_mpared e :
+  lc e ->
+  e ⇛* ⟦e⟧.
+Proof.
+  induction 1; simpl; try reflexivity;
+    try case_split; eauto with mpared lc;
+    try solve [ apply mpared_sound; eauto using lc;
+                econstructor; eauto;
+                intros; rewrite <- erase_open_atom; eauto ].
+
+  (* [~if] case *)
+  repeat case_decide; simp_hyps; eauto with mpared lc;
+    select (⟦_⟧ = _) (fun H => srewrite H);
+    etrans;
+    solve [ eapply mpared_sound; eauto using lc, mpared_lc;
+            solve [ econstructor; eauto
+                  | relax_mpared; [ econstructor; reflexivity | eauto ] ] ].
+Qed.
+
+#[local]
+Hint Resolve body_open_lc : lc.
+
+Lemma reval_mpared e v :
+  e ↓ v ->
+  lc e ->
+  e ⇛* v.
+Proof.
+  induction 1; intros; try reflexivity;
+    (* Generate [lc] facts first. *)
+    repeat lc_inv; simp_hyps;
+    try select! (_ ⇛* _) (fun H => dup_hyp H (fun H => apply mpared_lc in H; eauto));
+    repeat lc_inv;
+    try apply_gctx_wf;
+    (* Solve simple cases. *)
+    eauto using erase_mpared with mpared lc;
+    (* Try apply induction hypotheses, then discharge the obligation. *)
+    try (etrans; [ | select (lc _ -> _ ⇛* _) (fun H => apply H) ];
+         eauto;
+         match goal with
+         | |- lc _ => try case_split; eauto with lc
+         | |- _ ⇛* _ => eauto 10 with mpared lc
+         end);
+    (* Discharge more obligations. *)
+    (etrans; [ apply mpared_sound; eauto using lc;
+               solve [ econstructor; eauto with mpared ]
+             | eauto 10 with mpared lc ]).
+
+  (* [REOCase] *)
+  otval_inv.
+  eauto 10 with mpared lc.
+
+  Unshelve.
+  all: exact ∅.
+Qed.
+
+Lemma reval_lc e e' :
+  lc e ->
+  e ↓ e' ->
+  lc e'.
+Proof.
+	eauto using mpared_lc, reval_mpared.
+Qed.
+
+Theorem reval_preservation Γ e l v τ :
+  Γ ⊢ e :{l} τ ->
+  e ↓ v ->
+  Γ ⊢ v :{l} τ.
+Proof.
+  eauto using mpared_preservation, reval_mpared with lc.
 Qed.
 
 End reveal.

@@ -1,6 +1,7 @@
 (** The notion of expression head can simplify and scale down certain proofs. *)
 From oadt Require Import lang_oadt.base.
 From oadt Require Import lang_oadt.syntax.
+Import syntax.notations.
 
 Variant expr_head :=
 | HBVar (k : nat)
@@ -100,3 +101,24 @@ Tactic Notation "expr_hd_inv" "in" hyp(H) :=
 
 Ltac expr_hd_inv :=
   select (expr_hd _ = _) (fun H => expr_hd_inv in H).
+
+Lemma open_hd e k s e' :
+  <{ {k~>s}e }> = e' ->
+  expr_hd e = expr_hd e' \/ (e = <{ bvar k }> /\ s = e').
+Proof.
+  edestruct e; intros; simplify_eq; simpl; eauto.
+  case_decide; simplify_eq; simpl; eauto.
+Qed.
+
+Ltac apply_open_hd :=
+  let go H :=
+    (apply open_hd in H; simpl in H;
+     let H' := fresh in
+     destruct H as [ H' | [??] ];
+     [ expr_hd_inv in H'
+     | subst ])
+  in
+  match goal with
+  | H : <{ {_~>_}_ }> = _ |- _ => go H
+  | H : _ = <{ {_~>_}_ }> |- _ => symmetry in H; go H
+  end.

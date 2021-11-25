@@ -575,6 +575,16 @@ Hint Resolve typing_type_lc : lc.
 
 (** ** Properties of [body]  *)
 
+(** Needed for automation performance. *)
+Lemma body_intro e L :
+  (forall x, x ∉ L -> lc <{ e^x }>) ->
+  body e.
+Proof.
+  unfold body. eauto.
+Qed.
+#[export]
+Hint Resolve body_intro : lc.
+
 Lemma lc_body e :
   lc e ->
   body e.
