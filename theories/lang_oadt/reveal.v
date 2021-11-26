@@ -20,31 +20,40 @@ Coercion EFVar : atom >-> expr.
 (** * Definitions *)
 
 (** ** Weak value erasure *)
-(** This function erases all weak values in the expression [e], even if they are
-under binders. This erasure results in a canonical form that has no weak values
-in the form of [~if .. then .. else ..] in it. *)
+
 Reserved Notation "'⟦' e '⟧'" (in custom oadt at level 20, format "'⟦' e '⟧'").
 Reserved Notation "'⟦' e '⟧'" (at level 20, format "'⟦' e '⟧'").
 
+(** This function checks if [<{ ~if e0 then e1 else e2 }>] is a weak value, and
+returns the boolean discriminee if it is. *)
+Definition is_oif_wval (e0 e1 e2 : expr) : option bool :=
+  match e0 with
+  | <{ [b] }> =>
+      if decide (wval e1 /\ wval e2)
+      then Some b
+      else None
+  | _ => None
+  end.
+
+(** This function erases all weak values in the expression [e], even if they are
+under binders. It results in a canonical form that contains no "proper" weak
+value, i.e., of the form [<{ ~if [b] then v1 else v2 }>]. The current version is
+perhaps the "minimal" erasure needed to connect small-step and reveal semantics.
+But it is also possible to erase a leaky conditional to its branches just if the
+discriminee is a boxed boolean, regardless of it being a weak value or not. In
+this case, reveal semantics may need some revision, and the crucial lemma
+[reval_erase] would be significantly harder: each case would require a nested
+induction. *)
 Fixpoint erase_wval (e : expr) : expr :=
   match e with
   | <{ ~if e0 then e1 else e2 }> =>
     let e0' := ⟦e0⟧ in
     let e1' := ⟦e1⟧ in
     let e2' := ⟦e2⟧ in
-    (* It is also possible to erase it regardless of [e1'] and [e2'] being weak
-    values or not if the reveal semantics does not evaluate all branches of
-    [~if] (which is the case right now). However, this is perhaps the "minimal"
-    erasure needed to connect small-step and reveal semantics. Moreover, the
-    crucial lemma [reval_erase] would be significantly harder that way: each
-    case requires a nested induction. *)
-    if decide (wval e1' /\ wval e2')
-    then if decide (e0' = <{ [true] }>)
-         then e1'
-         else if decide (e0' = <{ [false] }>)
-              then e2'
-              else <{ ~if e0' then e1' else e2' }>
-    else <{ ~if e0' then e1' else e2' }>
+    match is_oif_wval e0' e1' e2' with
+    | Some b => <{ ite b e1' e2' }>
+    | None => <{ ~if e0' then e1' else e2' }>
+    end
   (* Congruence *)
   | <{ Π:{l}τ1, τ2 }> => <{ Π:{l}⟦τ1⟧, ⟦τ2⟧ }>
   | <{ \:{l}τ => e }> => <{ \:{l}⟦τ⟧ => ⟦e⟧ }>
@@ -189,6 +198,50 @@ Ltac relax_reval :=
 Ltac reval_intro :=
   relax_reval; [ econstructor | ].
 
+(** ** Properties of [is_oif_wval] *)
+
+Lemma is_oif_wval_inv_some e0 e1 e2 b :
+  is_oif_wval e0 e1 e2 = Some b ->
+  e0 = <{ [b] }> /\ wval e1 /\ wval e2.
+Proof.
+  destruct e0; simpl; intros; simplify_eq.
+  case_decide; simplify_eq.
+  eauto.
+Qed.
+
+Lemma is_oif_wval_inv_none e0 e1 e2 :
+  is_oif_wval e0 e1 e2 = None ->
+  ¬(wval e1 /\ wval e2) \/ expr_hd e0 <> HBoxedLit.
+Proof.
+  destruct e0; simpl; intros; simplify_eq; qauto.
+Qed.
+
+Ltac is_oif_wval_inv :=
+  match goal with
+  | H : is_oif_wval _ _ _ = Some _ |- _ =>
+      apply is_oif_wval_inv_some in H; simpl in H;
+      let H' := fresh in
+      destruct H as [H' [??]]; try srewrite H'
+  | H : is_oif_wval _ _ _ = None |- _ =>
+      apply is_oif_wval_inv_none in H; simpl in H;
+      try match type of H with
+          | _ \/ HBoxedLit <> HBoxedLit =>
+              destruct H; [ | simplify_eq ]
+          end
+  end.
+
+Ltac case_is_oif_wval :=
+  match goal with
+  | |- context [ match is_oif_wval ?e0 ?e1 ?e2 with _ => _ end ] =>
+      sdestruct (is_oif_wval e0 e1 e2)
+  | H : context [ match is_oif_wval ?e0 ?e1 ?e2 with _ => _ end ] |- _ =>
+      sdestruct (is_oif_wval e0 e1 e2)
+  end.
+
+Ltac simpl_is_oif_wval :=
+  case_is_oif_wval; try is_oif_wval_inv.
+
+Arguments is_oif_wval : simpl never.
 
 (** ** Properties of [erase_wval] *)
 
@@ -198,9 +251,7 @@ Lemma erase_wval_val w :
 Proof.
   induction 1; eauto using val.
 
-  simpl. repeat case_decide; eauto.
-  destruct (_ : bool); contradiction.
-  qauto use: val_wval.
+  simpl. simpl_is_oif_wval; qauto use: val_wval.
 Qed.
 
 Lemma erase_val_val v :
@@ -236,7 +287,7 @@ Lemma erase_idemp e :
 Proof.
   induction e; try scongruence.
   case_label; try scongruence.
-  repeat (simpl; repeat case_decide; eauto; try scongruence).
+  repeat (simpl; simpl_is_oif_wval); try scongruence; qauto.
 Qed.
 
 Lemma erase_wval_erase_val e :
@@ -271,17 +322,9 @@ Proof.
   induction e; simpl; intros; eauto; try congruence.
   case_split; try scongruence.
 
-  repeat destruct (decide (wval _ /\ wval _));
-    try match goal with
-        | H : wval _ /\ wval _, H' : ¬ (wval (⟦<{ {_~>_}_ }>⟧) /\ wval _) |- _ =>
-          contradict H'
-        end;
-    repeat (repeat case_decide; try scongruence; simpl); try qauto q: on.
-
-  simp_hyps.
-  repeat match goal with
-         | H : forall _, _ |- _ => rewrite H
-         end.
+  repeat (simpl; simpl_is_oif_wval); try scongruence;
+    select! (forall n, _ = _) (fun H => srewrite H; clear H);
+    try qauto.
   hauto l: on use: erase_wval_wval, wval_open.
 Qed.
 
@@ -313,11 +356,11 @@ Proof.
   induction e; simpl; intros; eauto; try scongruence.
   - qauto use: erase_idemp.
   - case_split; try scongruence.
-    repeat (repeat case_decide; try scongruence; simpl);
-      (* The remaining cases are impossible. *)
-      exfalso; simp_hyps;
-      select! (forall n, _ = _) (fun H => srewrite H);
-      eauto using wval_open_inv;
+    repeat (simpl; simpl_is_oif_wval); try scongruence.
+    + qauto.
+    + exfalso.
+      select! (forall n, _ = _) (fun H => srewrite H; clear H).
+      intuition eauto using wval_open_inv.
       apply_open_hd; qauto ctrs: wval.
 Qed.
 
@@ -386,14 +429,9 @@ Proof.
     first [ goal_contains <{ ~if _ then _ else _ }>
           | hauto l: on ctrs: reval, val ].
 
-  simpl.
-  repeat case_decide; simp_hyps.
-
-  1-2: repeat (eauto using val; reval_intro); reflexivity.
-
-  destruct (_ : bool); contradiction.
-
-  exfalso. eauto using erase_wval_wval.
+  simpl. simpl_is_oif_wval.
+  - case_split; repeat (eauto using val; reval_intro).
+  - exfalso. eauto using erase_wval_wval.
 Qed.
 
 Lemma reval_oval v :
@@ -409,16 +447,9 @@ Lemma reval_erase_val e :
 Proof.
   induction e; simpl; intros; repeat val_inv;
     try solve [ reval_intro; eauto using val ].
+  case_label; try simpl_is_oif_wval; repeat val_inv.
 
-  case_label; repeat case_decide;
-    simplify_eq; simp_hyps; repeat val_inv;
-      reval_intro;
-      (* Apply induction hypotheses. *)
-      try (goal_is (_ ↓ _); first [ auto_apply | relax_reval; auto_apply ]);
-      eauto;
-      try (match goal with
-           | H : ?e = _ |- val ?e => rewrite H
-           end; econstructor).
+  case_split; econstructor; eauto using val.
 Qed.
 
 Lemma reval_erase_boxedlit e b :
@@ -439,10 +470,8 @@ Proof.
   induction e; simpl; intros; repeat otval_inv;
     eauto using reval, otval.
 
-  case_label; repeat case_decide;
-    simplify_eq; simp_hyps; repeat otval_inv;
-      econstructor;
-      eauto using reval_erase_boxedlit.
+  case_label; try simpl_is_oif_wval; repeat otval_inv.
+  case_split; econstructor; eauto using reval_erase_boxedlit.
 Qed.
 
 Lemma reval_erase_wval e :
@@ -466,8 +495,9 @@ Proof.
   destruct e; intros; subst; simpl; try solve [ left; reflexivity ].
   case_label; try solve [ left; reflexivity ].
 
-  repeat case_decide; simp_hyps; eauto;
-    right; repeat esplit; eauto using reval_erase_wval, reval_erase_boxedlit.
+  simpl_is_oif_wval; eauto.
+  right. repeat esplit; eauto using reval_erase_wval, reval_erase_boxedlit.
+  qauto.
 Qed.
 
 (** This lemma is crucial. *)
@@ -489,7 +519,8 @@ Proof.
                 dup_hyp H (fun H => apply erase_inv in H; destruct H as [| [? ?]];
                                   [ expr_hd_inv in H
                                   | try wval_inv ]);
-                simpl in H; try simp_hyp H ]
+                simpl in H; simplify_eq
+          ]
       end;
     try solve [ econstructor; eauto; try case_split; eauto;
                 (* Handle binders. *)
@@ -511,48 +542,34 @@ Proof.
                 reval_erase_val,
                 reval_deterministic ].
 
-  (* [Reval] *)
+  (* [REVal] *)
   - qauto l: on use: reval_erase_val, erase_val_val.
 
-  (* [UEOTVal] *)
+  (* [REOTVal] *)
   - hauto l: on use: erase_otval, reval_erase_otval.
 
   Unshelve.
 
   (* The most tricky [~if] case. *)
-  match goal with
-  | H : ?e = ⟦?e'⟧, H' : ?e0 ↓ <{ [?b] }> |- _ =>
-    match e with
-    | context [ <{ ~if ⟦e0⟧ then ⟦?e1⟧ else ⟦?e2⟧ }> ] =>
-      (* A cut that reduces the number of cases. *)
-      let L := fresh in
-      assert ((⟦e0⟧ = <{ [b] }> /\ ⟦e'⟧ = <{ ite b ⟦e1⟧ ⟦e2⟧ }>) \/
-              <{ ~if ⟦e0⟧ then ⟦e1⟧ else ⟦e2⟧ }> = ⟦e'⟧) as L;
-        [ | clear H; destruct L ]
-    end
-  end. {
-    repeat case_decide; simplify_eq; simp_hyps; eauto; left;
-      match goal with
-      | H : ?e = <{ [?b'] }> |- ?e = <{ [?b] }> /\ _ =>
-        let L := fresh in
-        assert (<{ [b] }> = <{ [b'] }>) as L
-            by eauto using reval_deterministic, reval_erase_boxedlit;
-          sinvert L; subst; eauto
-      end.
-  }
+  simpl_is_oif_wval.
 
-  qauto.
+  + match goal with
+    | H : ?e ↓ <{ [?b] }>, H' : ⟦?e⟧ = <{ [?b'] }> |- _ =>
+        assert (<{ [b] }> = <{ [b'] }>)
+          by eauto using reval_deterministic, reval_erase_boxedlit
+    end.
+    qauto.
 
   (* This part requires a nested induction: the current induction hypotheses
   are still needed. *)
-  match goal with
-  | |- ?e ↓ _ => induction e
-  end; simplify_eq; case_label; simplify_eq.
-  simpl in *.
-  repeat case_decide; simplify_eq; simp_hyps;
-    reval_intro;
-    eauto using reval_erase_boxedlit, reval_erase_wval;
-    case_split; eauto.
+  + match goal with
+    | |- ?e ↓ _ => induction e
+    end; simplify_eq; case_label; simplify_eq.
+    simpl in *.
+    simpl_is_oif_wval; simplify_eq; simp_hyps;
+      reval_intro;
+      eauto using reval_erase_boxedlit, reval_erase_wval;
+      case_split; eauto.
 Qed.
 
 Lemma step_reval e e' v :
@@ -600,7 +617,7 @@ Proof.
       eauto using reval_erase_boxedlit.
 Qed.
 
-Lemma multistep_reval e e' v :
+Lemma mstep_reval e e' v :
   e -->* e' ->
   e' ↓ v ->
   e ↓ v.
@@ -608,30 +625,30 @@ Proof.
   induction 1; intros; eauto using step_reval.
 Qed.
 
-Theorem multistep_wval_reval e w :
+Theorem mstep_wval_reval e w :
   e -->* w ->
   wval w ->
   e ↓ ⟦w⟧.
 Proof.
-  eauto using multistep_reval, reval_wval.
+  eauto using mstep_reval, reval_wval.
 Qed.
 
-Theorem multistep_otval_reval e ω :
+Theorem mstep_otval_reval e ω :
   e -->* ω ->
   otval ω ->
   e ↓ ω.
 Proof.
-  eauto using multistep_reval, reval.
+  eauto using mstep_reval, reval.
 Qed.
 
-Theorem multistep_weak_confluent e w1 w2 :
+Theorem mstep_weak_confluent e w1 w2 :
   e -->* w1 ->
   wval w1 ->
   e -->* w2 ->
   wval w2 ->
   ⟦w1⟧ = ⟦w2⟧.
 Proof.
-  eauto using reval_deterministic, multistep_wval_reval.
+  eauto using reval_deterministic, mstep_wval_reval.
 Qed.
 
 Context (Hwf : gctx_wf Σ).
@@ -651,8 +668,7 @@ Proof.
                 intros; rewrite <- erase_open_atom; eauto ].
 
   (* [~if] case *)
-  repeat case_decide; simp_hyps; eauto with mpared lc;
-    select (⟦_⟧ = _) (fun H => srewrite H);
+  simpl_is_oif_wval;
     etrans;
     solve [ eapply mpared_sound; eauto using lc, mpared_lc;
             solve [ econstructor; eauto
