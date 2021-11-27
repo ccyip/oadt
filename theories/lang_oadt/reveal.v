@@ -716,7 +716,7 @@ Lemma reval_lc e e' :
   e ↓ e' ->
   lc e'.
 Proof.
-	eauto using mpared_lc, reval_mpared.
+  eauto using mpared_lc, reval_mpared.
 Qed.
 
 Theorem reval_preservation Γ e l v τ :
