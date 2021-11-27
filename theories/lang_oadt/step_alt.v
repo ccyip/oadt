@@ -1,16 +1,11 @@
 (** This file defines an alternative [step] relation. It "expands" the
 evaluation context rules, resulting in a "flat" definition that is equivalent to
-[step] but much convenient to use in proofs. However, it is not used at the
+[step] but much more convenient to use in proofs. However, it is not used at the
 moment, because I have already developed enough custom tactics to deal with the
 original [step] relation. *)
 From oadt Require Import idt.
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.infrastructure.
-
-Import syntax.notations.
-Import semantics.notations.
+From oadt.lang_oadt Require Import base syntax semantics infrastructure.
+Import syntax.notations semantics.notations.
 
 Ltac tsf_step ctor R :=
   lazymatch ctor with

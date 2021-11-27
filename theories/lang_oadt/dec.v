@@ -1,12 +1,6 @@
 (** Some decision procedures and implementations. *)
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.admissible.
-
-Import syntax.notations.
-Import semantics.notations.
+From oadt.lang_oadt Require Import base syntax semantics infrastructure admissible.
+Import syntax.notations semantics.notations.
 
 (** * Decision procedures *)
 Section dec.

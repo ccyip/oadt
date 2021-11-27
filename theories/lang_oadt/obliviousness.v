@@ -1,21 +1,8 @@
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.values.
-From oadt Require Import lang_oadt.admissible.
-From oadt Require Import lang_oadt.inversion.
-From oadt Require Import lang_oadt.equivalence.
-From oadt Require Import lang_oadt.progress.
-From oadt Require Import lang_oadt.preservation.
-From oadt Require Import lang_oadt.indistinguishable.
-
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
-Import equivalence.notations.
-Import indistinguishable.notations.
+From oadt.lang_oadt Require Import
+     base syntax semantics typing indistinguishable infrastructure
+     equivalence admissible inversion values preservation progress.
+Import syntax.notations semantics.notations typing.notations
+       equivalence.notations indistinguishable.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 

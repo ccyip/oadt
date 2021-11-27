@@ -1,16 +1,8 @@
 From oadt Require Import idt.
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.equivalence.
-From oadt Require Import lang_oadt.values.
-From oadt Require Import lang_oadt.preservation.
-From oadt Require Import lang_oadt.head.
-
-Import syntax.notations.
-Import typing.notations.
+From oadt.lang_oadt Require Import
+     base syntax semantics typing infrastructure
+     equivalence values head preservation.
+Import syntax.notations typing.notations.
 
 Ltac tsf_pared ctor R :=
   let H := fresh in

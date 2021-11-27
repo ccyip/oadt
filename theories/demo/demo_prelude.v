@@ -2,22 +2,13 @@
 and tactics to ease the encoding of examples. *)
 From stdpp Require Export pretty.
 From oadt Require Import prelude.
-From oadt Require Export lang_oadt.base.
-From oadt Require Export lang_oadt.syntax.
-From oadt Require Export lang_oadt.semantics.
-From oadt Require Export lang_oadt.typing.
-From oadt Require Export lang_oadt.dec.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.equivalence.
-From oadt Require Import lang_oadt.weakening.
-From oadt Require Import lang_oadt.preservation.
+From oadt.lang_oadt Require Export
+     base syntax semantics typing infrastructure
+     equivalence weakening dec preservation.
+Import syntax.notations semantics.notations typing.notations.
 
 #[local]
 Set Default Proof Using "Type".
-
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
 
 (** * Alternative typing and kinding rules *)
 

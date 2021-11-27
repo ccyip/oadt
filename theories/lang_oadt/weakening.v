@@ -1,10 +1,5 @@
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
-
-Import syntax.notations.
-Import typing.notations.
+From oadt.lang_oadt Require Import base syntax semantics typing.
+Import syntax.notations typing.notations.
 
 (** * Weakening lemmas  *)
 

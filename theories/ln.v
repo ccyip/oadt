@@ -1,5 +1,4 @@
-From oadt Require Import base.
-From oadt Require Import tactics.
+From oadt Require Import base tactics.
 From stdpp Require Import stringmap mapset.
 
 (** This file contains common definitions for locally nameless representation

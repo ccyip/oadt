@@ -1,23 +1,15 @@
 (** Lemmas about parallel reduction and equivalence. *)
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
-From oadt Require Import lang_oadt.infrastructure.
+From oadt.lang_oadt Require Import base syntax semantics typing infrastructure.
+Import syntax.notations semantics.notations typing.notations.
 
-Module notations.
+Module Import notations.
 
 (** This may clash with the same notation defined in [stdpp] for [equiv].
 Alternatively, we may declare [pared_equiv] to be an instance of [Equiv].
-However, it turns out to add more wrinkles in the proofs. *)
+However, it turns out to add more wrinkles to the proofs. *)
 Notation "e '≡' e'" := (pared_equiv _ e e').
 
 End notations.
-
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
-Import notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 

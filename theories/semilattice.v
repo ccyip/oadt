@@ -1,5 +1,4 @@
-From oadt Require Import base.
-From oadt Require Import tactics.
+From oadt Require Import base tactics.
 
 (** * Semi-lattice *)
 

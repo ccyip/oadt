@@ -1,16 +1,7 @@
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
-From oadt Require Import lang_oadt.infrastructure.
-From oadt Require Import lang_oadt.values.
-From oadt Require Import lang_oadt.preservation.
-From oadt Require Import lang_oadt.head.
-From oadt Require Import lang_oadt.dec.
-From oadt Require Import lang_oadt.mpared.
-
-Import syntax.notations.
-Import semantics.notations.
+From oadt.lang_oadt Require Import
+     base syntax semantics typing infrastructure
+     values head dec mpared preservation.
+Import syntax.notations semantics.notations.
 
 Implicit Types (b : bool) (x : atom) (L : aset).
 

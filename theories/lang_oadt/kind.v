@@ -1,4 +1,4 @@
-From oadt Require Import lang_oadt.base.
+From oadt.lang_oadt Require Import base.
 
 (** * Definitions *)
 

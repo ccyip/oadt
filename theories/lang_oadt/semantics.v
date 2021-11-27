@@ -1,6 +1,4 @@
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-
+From oadt.lang_oadt Require Import base syntax.
 Import syntax.notations.
 
 Implicit Types (b : bool).

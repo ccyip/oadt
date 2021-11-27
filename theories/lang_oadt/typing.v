@@ -1,11 +1,6 @@
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Export lang_oadt.kind.
-
-Import syntax.notations.
-Import semantics.notations.
-Import kind.notations.
+From oadt.lang_oadt Require Import base syntax semantics.
+From oadt.lang_oadt Require Export kind.
+Import syntax.notations semantics.notations kind.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 

@@ -2,13 +2,10 @@
 not prove the metatheories for this extension. *)
 From Coq Require Import Int63.Int63.
 From oadt Require Import prelude.
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.kind.
+From oadt.lang_oadt Require Import base syntax kind.
+Import Int63.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
-
-Import Int63.
 
 (** We reuse the same names as in the core calculus. Many definitions and lemmas
 are redefined against the extensions. *)
@@ -79,7 +76,7 @@ Hint Unfold gctx : typeclass_instances.
 Notation program := (gctx * expr).
 
 (** ** Notations *)
-Module int_notations.
+Module Import int_notations.
 
 Coercion ELit : bool >-> expr.
 Coercion lexpr_expr : lexpr >-> expr.
@@ -305,7 +302,6 @@ Notation "'i[' a ']'" := (EBoxedIntLit a) (in custom oadt at level 0,
 
 End int_notations.
 
-Import int_notations.
 #[local]
 Coercion EFVar : atom >-> expr.
 
@@ -431,7 +427,7 @@ Inductive lc : expr -> Prop :=
 
 End definitions.
 
-Module syntax_notations.
+Module Import syntax_notations.
 
 Export int_notations.
 
@@ -442,8 +438,6 @@ Notation "e ^ s" := (open s e) (in custom oadt at level 20).
 Notation "x # s" := (x ∉ stale s) (at level 40).
 
 End syntax_notations.
-
-Import syntax_notations.
 
 (** * Semantics *)
 
@@ -626,7 +620,7 @@ where "e '-->!' e'" := (step e e').
 
 End step.
 
-Module semantics_notations.
+Module Import semantics_notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,
                                                 e custom oadt at level 99,
@@ -652,7 +646,6 @@ Notation "e '-->{' n '}' e'" := (nsteps (step _) n e e') (at level 40).
 
 End semantics_notations.
 
-Import semantics_notations.
 Import kind.notations.
 
 (** * Typing *)
@@ -1109,7 +1102,7 @@ Definition program_typing (Σ : gctx) (e : expr) (τ : expr) :=
 
 End typing.
 
-Module typing_notations.
+Module Import typing_notations.
 
 Export kind.notations.
 
@@ -1169,8 +1162,6 @@ Notation "Γ '⊢' τ '::' κ" := (kinding _ Γ τ κ)
                                  κ custom oadt at level 99).
 
 End typing_notations.
-
-Import typing_notations.
 
 #[local]
 Set Default Proof Using "Type".
@@ -1637,8 +1628,6 @@ End dec.
 
 
 Section step.
-
-Import Int63.
 
 Context (Σ : gctx).
 

@@ -1,6 +1,5 @@
 (** The notion of expression head can simplify and scale down certain proofs. *)
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
+From oadt.lang_oadt Require Import base syntax.
 Import syntax.notations.
 
 (* TODO: automate this with [idt] module. *)

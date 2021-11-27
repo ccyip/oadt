@@ -1,13 +1,7 @@
 (** Common tactics and lemmas, and definitions related to locally nameless
 representation and free variables. *)
-From oadt Require Import lang_oadt.base.
-From oadt Require Import lang_oadt.syntax.
-From oadt Require Import lang_oadt.semantics.
-From oadt Require Import lang_oadt.typing.
-
-Import syntax.notations.
-Import semantics.notations.
-Import typing.notations.
+From oadt.lang_oadt Require Import base syntax semantics typing.
+Import syntax.notations semantics.notations typing.notations.
 
 Implicit Types (b : bool) (x X y Y z : atom) (L : aset) (T : lexpr).
 
