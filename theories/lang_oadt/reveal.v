@@ -1,7 +1,8 @@
+From oadt Require Import idt.
 From oadt.lang_oadt Require Import
      base syntax semantics typing infrastructure
-     values head dec mpared preservation.
-Import syntax.notations semantics.notations.
+     values head dec mpared preservation progress.
+Import syntax.notations semantics.notations typing.notations.
 
 Implicit Types (b : bool) (x : atom) (L : aset).
 
@@ -10,8 +11,9 @@ Coercion EFVar : atom >-> expr.
 
 (** * Definitions *)
 
-(** ** Weak value erasure *)
+Section definitions.
 
+(** ** Weak value erasure *)
 Reserved Notation "'⟦' e '⟧'" (in custom oadt at level 20, format "'⟦' e '⟧'").
 Reserved Notation "'⟦' e '⟧'" (at level 20, format "'⟦' e '⟧'").
 
@@ -69,8 +71,6 @@ Fixpoint erase_wval (e : expr) : expr :=
 where "'⟦' e '⟧'" := (erase_wval e) (in custom oadt)
   and "'⟦' e '⟧'" := (erase_wval e).
 
-
-Section reveal.
 
 Context (Σ : gctx).
 
@@ -166,11 +166,22 @@ Inductive reval : expr -> expr -> Prop :=
 
 where "e '↓' v" := (reval e v).
 
+End definitions.
 
-(** * Theorems *)
+(** * Notations *)
 
-#[local]
-Set Default Proof Using "Type".
+Module Import notations.
+
+Notation "'⟦' e '⟧'" := (erase_wval e) (in custom oadt at level 20,
+                                           format "'⟦' e '⟧'").
+Notation "'⟦' e '⟧'" := (erase_wval e) (at level 20, format "'⟦' e '⟧'").
+
+Notation "Σ ⊨ e '↓' v" := (reval Σ e v) (at level 40).
+Notation "e '↓' v" := (reval _ e v) (at level 40).
+
+End notations.
+
+(** * Tactics *)
 
 Ltac reval_inv :=
   match goal with
@@ -188,6 +199,15 @@ Ltac relax_reval :=
 
 Ltac reval_intro :=
   relax_reval; [ econstructor | ].
+
+(** * Theorems *)
+
+Section theorems.
+
+Context (Σ : gctx).
+
+#[local]
+Set Default Proof Using "Type".
 
 (** ** Properties of [is_oif_wval] *)
 
@@ -646,8 +666,6 @@ Context (Hwf : gctx_wf Σ).
 (** From now on, we need the well-formedness of global context. *)
 Set Default Proof Using "All".
 
-Import typing.notations.
-
 Lemma erase_mpared e :
   lc e ->
   e ⇛* ⟦e⟧.
@@ -718,4 +736,145 @@ Proof.
   eauto using mpared_preservation, reval_mpared with lc.
 Qed.
 
-End reveal.
+End theorems.
+
+(** ** Alternative Definition *)
+
+(** This equivalent definition of reveal semantics adds some side-conditions so
+that the induction principle is stronger. It is useful in proving soundness. *)
+
+Module kernel.
+
+Reserved Notation "e '⇓' v" (at level 40).
+
+(** We add side-conditions [v ⇓ v] for each sub-expression of the negatively
+defined expressions, i.e., projection and unfold. *)
+Inductive reval (Σ : gctx) : expr -> expr -> Prop :=
+| REProj b e v1 v2 :
+    e ⇓ <{ (v1, v2) }> ->
+    v1 ⇓ v1 -> v2 ⇓ v2 ->
+    <{ π@b e }> ⇓ <{ ite b v1 v2 }>
+| REUnfold X X' e v :
+    e ⇓ <{ fold <X'> v }> ->
+    v ⇓ v ->
+    <{ unfold<X> e }> ⇓ v
+
+where "e '⇓' v" := (reval _ e v).
+
+End kernel.
+
+Ltac tsf_reval ctor R :=
+  lazymatch ctor with
+  | REProj => tsf_ctor_id kernel.REProj R
+  | REUnfold => tsf_ctor_id kernel.REUnfold R
+  | _ => tsf_ctor_id ctor R
+  end.
+
+MetaCoq Run (tsf_ind_gen_from
+               reval "reval_alt"
+               ltac:(tsf_ctors reval (append "A") tsf_reval)).
+
+Module Import alt_notations.
+
+Notation "e '⇓' v" := (reval_alt _ e v) (at level 40).
+
+End alt_notations.
+
+Ltac reval_alt_inv :=
+  match goal with
+  | H : ?e ⇓ _ |- _ => safe_inv e H
+  end.
+
+Tactic Notation "reval_alt_inv" "*" :=
+  repeat (reval_alt_inv; repeat val_inv; repeat otval_inv).
+
+Ltac relax_reval_alt :=
+  match goal with
+  | |- ?e ⇓ _ =>
+    refine (eq_ind _ (fun v => e ⇓ v) _ _ _)
+  end.
+
+Ltac reval_alt_intro :=
+  relax_reval_alt; [ econstructor | ].
+
+Section theorems.
+
+Context (Σ : gctx).
+Context (Hwf : gctx_wf Σ).
+Set Default Proof Using "All".
+
+Lemma reval_alt_idemp e v :
+  e ⇓ v ->
+  v ⇓ v.
+Proof.
+  induction 1; try hauto ctrs: reval_alt, val;
+    reval_alt_inv*;
+    try case_split; eauto;
+    reval_alt_intro; eauto; try congruence.
+  - rewrite erase_idemp. reflexivity.
+  - eauto using erase_val_val.
+  - eauto using erase_idemp.
+Qed.
+
+Lemma reval_alt_complete e v :
+  e ↓ v ->
+  e ⇓ v.
+Proof.
+  induction 1; eauto using reval_alt;
+    match goal with
+    | H : _ ⇓ ?e |- _ =>
+        head_constructor e; dup_hyp H (fun H => apply reval_alt_idemp in H)
+    end;
+    reval_alt_inv*; eauto using reval_alt;
+    select! (⟦_⟧ = _) (fun H => srewrite H);
+    econstructor; eauto;
+    reval_alt_intro; eauto.
+Qed.
+
+Lemma reval_alt_sound e v :
+  e ⇓ v ->
+  e ↓ v.
+Proof.
+  induction 1; eauto using reval.
+Qed.
+
+Lemma reval_alt_consistent e v :
+  e ↓ v <-> e ⇓ v.
+Proof.
+  qauto use: reval_alt_complete, reval_alt_sound.
+Qed.
+
+(** ** Soundness *)
+
+Lemma reval_step e v v' :
+  e ↓ v ->
+  v -->! v' ->
+  False.
+Proof.
+  intros H. revert dependent v'.
+  apply reval_alt_complete in H.
+  induction H; intros; try step_inv; eauto; try case_split; eauto.
+  - eauto using wval_step, val_wval, erase_val_val.
+  - eauto using otval_step.
+Qed.
+
+Lemma reval_nf e v :
+  e ↓ v ->
+  nf (step Σ) v.
+Proof.
+  sfirstorder use: reval_step.
+Qed.
+
+Theorem reval_soundness e v τ :
+  ∅ ⊢ e :{⊥} τ ->
+  e ↓ v ->
+  val v.
+Proof.
+  intros.
+  assert (∅ ⊢ v :{⊥} τ) as L by eauto using reval_preservation.
+  apply progress in L; eauto.
+  destruct L; simp_hyps; eauto.
+  exfalso. eauto using reval_step.
+Qed.
+
+End theorems.

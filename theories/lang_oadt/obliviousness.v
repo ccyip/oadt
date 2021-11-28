@@ -149,38 +149,6 @@ Proof.
   sfirstorder use: indistinguishable_otval_is_nf.
 Qed.
 
-(** The next few lemmas can be proved independently, but they can simply reduce
-to the indistinguishable counterparts. *)
-Lemma wval_is_nf v :
-  wval v ->
-  nf (step Σ) v.
-Proof.
-  qauto use: indistinguishable_wval_is_nf solve: reflexivity.
-Qed.
-
-Lemma otval_is_nf ω :
-  otval ω ->
-  nf (step Σ) ω.
-Proof.
-  qauto use: indistinguishable_otval_is_nf solve: reflexivity.
-Qed.
-
-Lemma wval_step v e :
-  v -->! e ->
-  wval v ->
-  False.
-Proof.
-  sfirstorder use: wval_is_nf.
-Qed.
-
-Lemma otval_step ω e :
-  ω -->! e ->
-  otval ω ->
-  False.
-Proof.
-  sfirstorder use: otval_is_nf.
-Qed.
-
 
 Ltac apply_canonical_form_ H τ :=
   lazymatch τ with

@@ -165,3 +165,55 @@ Lemma val_otval v :
 Proof.
   eauto using wval_otval, val_wval.
 Qed.
+
+Section fix_gctx.
+
+Context (Σ : gctx).
+Set Default Proof Using "Type".
+
+Lemma wval_step v e :
+  v -->! e ->
+  wval v ->
+  False.
+Proof.
+  induction 1; intros; repeat ectx_inv; repeat wval_inv; try step_inv; eauto.
+Qed.
+
+Lemma otval_step ω e :
+  ω -->! e ->
+  otval ω ->
+  False.
+Proof.
+  induction 1; intros; repeat ectx_inv; repeat otval_inv; try step_inv; eauto.
+Qed.
+
+Lemma val_step v e :
+  v -->! e ->
+  val v ->
+  False.
+Proof.
+  eauto using wval_step, val_wval.
+Qed.
+
+Lemma wval_is_nf v :
+  wval v ->
+  nf (step Σ) v.
+Proof.
+  sfirstorder use: wval_step.
+Qed.
+
+Lemma otval_is_nf ω :
+  otval ω ->
+  nf (step Σ) ω.
+Proof.
+  sfirstorder use: otval_step.
+Qed.
+
+Lemma val_is_nf v :
+  val v ->
+  nf (step Σ) v.
+Proof.
+  sfirstorder use: val_step.
+Qed.
+
+End fix_gctx.
