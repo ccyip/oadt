@@ -226,6 +226,67 @@ We can always find an inhabitant for any oblivious type value.
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.values.html#wval_otval"><span class="id" title="lemma">wval_otval</span></a>, <a class="idref" href="oadt.lang_oadt.values.html#val_wval"><span class="id" title="lemma">val_wval</span></a>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a id="fix_gctx" class="idref" href="#fix_gctx"><span class="id" title="section">fix_gctx</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Context</span> (<a id="9cdd3744fef7e647d555c1b5b5ffd982" class="idref" href="#9cdd3744fef7e647d555c1b5b5ffd982"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="oadt.lang_oadt.syntax.html#gctx"><span class="id" title="class">gctx</span></a>).<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span> "Type".<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="wval_step" class="idref" href="#wval_step"><span class="id" title="lemma">wval_step</span></a> <a id="v:43" class="idref" href="#v:43"><span class="id" title="binder">v</span></a> <a id="e:44" class="idref" href="#e:44"><span class="id" title="binder">e</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.values.html#v:43"><span class="id" title="variable">v</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.values.html#e:44"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.semantics.html#wval"><span class="id" title="inductive">wval</span></a> <a class="idref" href="oadt.lang_oadt.values.html#v:43"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">ectx_inv</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">wval_inv</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">step_inv</span>; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="otval_step" class="idref" href="#otval_step"><span class="id" title="lemma">otval_step</span></a> <a id="2dcf3d67f7d406f8685b95be4f29ce63" class="idref" href="#2dcf3d67f7d406f8685b95be4f29ce63"><span class="id" title="binder">ω</span></a> <a id="e:46" class="idref" href="#e:46"><span class="id" title="binder">e</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.values.html#2dcf3d67f7d406f8685b95be4f29ce63"><span class="id" title="variable">ω</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.values.html#e:46"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="oadt.lang_oadt.values.html#2dcf3d67f7d406f8685b95be4f29ce63"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">ectx_inv</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">otval_inv</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">step_inv</span>; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="val_step" class="idref" href="#val_step"><span class="id" title="lemma">val_step</span></a> <a id="v:47" class="idref" href="#v:47"><span class="id" title="binder">v</span></a> <a id="e:48" class="idref" href="#e:48"><span class="id" title="binder">e</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.values.html#v:47"><span class="id" title="variable">v</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="oadt.lang_oadt.values.html#e:48"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="oadt.lang_oadt.values.html#v:47"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="oadt.lang_oadt.values.html#wval_step"><span class="id" title="lemma">wval_step</span></a>, <a class="idref" href="oadt.lang_oadt.values.html#val_wval"><span class="id" title="lemma">val_wval</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="wval_is_nf" class="idref" href="#wval_is_nf"><span class="id" title="lemma">wval_is_nf</span></a> <a id="v:49" class="idref" href="#v:49"><span class="id" title="binder">v</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.semantics.html#wval"><span class="id" title="inductive">wval</span></a> <a class="idref" href="oadt.lang_oadt.values.html#v:49"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#nf"><span class="id" title="definition">nf</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.values.html#fdb50c6d1a0896d31bbd0e5c9028ba49"><span class="id" title="variable">Σ</span></a>) <a class="idref" href="oadt.lang_oadt.values.html#v:49"><span class="id" title="variable">v</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">sfirstorder</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.values.html#wval_step"><span class="id" title="lemma">wval_step</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="otval_is_nf" class="idref" href="#otval_is_nf"><span class="id" title="lemma">otval_is_nf</span></a> <a id="2a02e79b47e68b268c2113f4e7326b96" class="idref" href="#2a02e79b47e68b268c2113f4e7326b96"><span class="id" title="binder">ω</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="oadt.lang_oadt.values.html#2a02e79b47e68b268c2113f4e7326b96"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#nf"><span class="id" title="definition">nf</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.values.html#fdb50c6d1a0896d31bbd0e5c9028ba49"><span class="id" title="variable">Σ</span></a>) <a class="idref" href="oadt.lang_oadt.values.html#2a02e79b47e68b268c2113f4e7326b96"><span class="id" title="variable">ω</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">sfirstorder</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.values.html#otval_step"><span class="id" title="lemma">otval_step</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="val_is_nf" class="idref" href="#val_is_nf"><span class="id" title="lemma">val_is_nf</span></a> <a id="v:51" class="idref" href="#v:51"><span class="id" title="binder">v</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="oadt.lang_oadt.values.html#v:51"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#nf"><span class="id" title="definition">nf</span></a> (<a class="idref" href="oadt.lang_oadt.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="oadt.lang_oadt.values.html#fdb50c6d1a0896d31bbd0e5c9028ba49"><span class="id" title="variable">Σ</span></a>) <a class="idref" href="oadt.lang_oadt.values.html#v:51"><span class="id" title="variable">v</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">sfirstorder</span> <span class="id" title="var">use</span>: <a class="idref" href="oadt.lang_oadt.values.html#val_step"><span class="id" title="lemma">val_step</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="oadt.lang_oadt.values.html#fix_gctx"><span class="id" title="section">fix_gctx</span></a>.<br/>
 </div>
 </div>
 <div id="footer">
