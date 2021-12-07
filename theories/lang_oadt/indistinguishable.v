@@ -2,7 +2,7 @@ From oadt Require Import idt.
 From oadt.lang_oadt Require Import base syntax.
 Import syntax.notations.
 
-(** ** Indistinguishability *)
+(** * Indistinguishability *)
 
 (** Instead of formalizing an observe function and considering two expressions
 indistinguishable if they are observed the same, we directly formalize the
