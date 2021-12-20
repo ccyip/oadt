@@ -380,7 +380,7 @@ Proof.
   scongruence use: subst_id, surjective_pairing.
 Qed.
 
-Lemma lexpr_subst_distr (l : bool) x s τ :
+Lemma lexpr_subst_distr (l : llabel) x s τ :
   (l, <{ {x↦s}τ }>) = {x↦s}(l, τ).
 Proof.
   reflexivity.

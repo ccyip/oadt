@@ -73,7 +73,7 @@ Section fix_gctx.
 Context (Σ : gctx).
 
 (** [TIte] and [TCase] require special rules. *)
-Inductive typing_inv : tctx -> expr -> bool -> expr -> Prop :=
+Inductive typing_inv : tctx -> expr -> llabel -> expr -> Prop :=
 | ITIte Γ l0 l1 l2 l e0 e1 e2 τ :
     Γ ⊢ e0 :{l0} 𝔹 ->
     Γ ⊢ e1 :{l1} τ^(lit true) ->

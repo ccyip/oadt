@@ -239,7 +239,7 @@ Reserved Notation "Γ '⊢' τ '::' κ" (at level 40,
                                     τ custom oadt at level 99,
                                     κ custom oadt at level 99).
 
-Inductive typing : tctx -> expr -> bool -> expr -> Prop :=
+Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
 | TFVar Γ x l τ κ :
     Γ !! x = Some (l, τ) ->
     Γ ⊢ τ :: κ ->
