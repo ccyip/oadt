@@ -89,16 +89,9 @@ Ltac higher_order_reflexivity :=
     end
   end.
 
-(** Get the head of a type [T]. *)
-Ltac head T :=
-  lazymatch T with
-  | ?T _ => head T
-  | _ => T
-  end.
-
 (** Check if the head of a type [T] is a constructor. *)
 Ltac head_constructor T :=
-  let C := head T in
+  let C := get_head T in
   is_constructor C.
 
 (** A convoluted way to get the head of the conclusion of a type [T]. If [T]
@@ -112,7 +105,7 @@ Ltac concl_head_ T :=
       let H := fresh in
       intros ? H; intros;
       lazymatch goal with
-      | |- ?T => let T := head T in unify T' (block (fun _ => True) T)
+      | |- ?T => let T := get_head T in unify T' (block (fun _ => True) T)
       end; elim H
     end
   | lazymatch type of H with
