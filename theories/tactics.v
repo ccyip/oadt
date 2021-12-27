@@ -147,8 +147,9 @@ hypotheses against some "potentially needed" criteria. *)
 (** This pruning tactic is conservative, hence the name "safe". However, it can
 still make the goal unprovable. For example, it does not consider, say, that the
 set relations may appear in a conjunction. *)
-(* TODO: is it a way to check the conclusion of a hypothesis has certain "head"?
-I am using [context [_ -> _]] for now, which has some false negatives. *)
+(* TODO: is there a way to check if the conclusion of a hypothesis has certain
+"head"? I am using [context [_ -> _]] for now, which has some false
+negatives. *)
 Ltac set_prune_hyps_safe :=
   simpl;
   set_fold_not;
