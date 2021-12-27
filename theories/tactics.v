@@ -117,6 +117,12 @@ Ltac concl_head T :=
   let C := eval cbn in C in
   C.
 
+(** Substitute [s] for subterm [t] in term [T]. *)
+Ltac subst_pattern T t s :=
+  match eval pattern t in T with
+  | ?f _ => let T' := eval hnf in (f s) in T'
+  end.
+
 (** ** Set solving *)
 
 (** Much faster set solving tactic, with less solving strength. *)

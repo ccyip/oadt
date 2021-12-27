@@ -23,11 +23,8 @@ Ltac tsf_ectx ctor R :=
       | context [ ectx (fun e : ?T => _) ] =>
           let e' := fresh e "'" in
           refine (forall (e e' : T), R Σ e e' -> _ : Prop);
-          match eval pattern ectx in P with
-          | ?P _ =>
-              let H := eval simpl in (P (fun ℇ => R Σ (ℇ e) (ℇ e'))) in
-                exact H
-          end
+          let H := subst_pattern P ectx (fun ℇ => R Σ (ℇ e) (ℇ e')) in
+          exact H
       end
   end.
 
@@ -37,16 +34,16 @@ Ltac tsf_lectx ctor R :=
   let v1 := fresh "v1" in
   let v2 := fresh "v2" in
   refine (forall (Σ : gctx) b (v1 v2 : expr), wval v1 -> wval v2 -> _ : Prop);
-    lazymatch type of ctor with
-    | ?P =>
-        match P with
-        | context [ lectx (fun e : ?T => _) ] =>
-            match eval pattern lectx in P with
-            | ?P _ =>
-                let H := eval simpl in (P (fun ℇ => R Σ (ℇ <{ ~if [b] then v1 else v2 }>) (<{ ~if [b] then ,(ℇ v1) else ,(ℇ v2) }>))) in
-                  exact H
-            end
-        end
+  lazymatch type of ctor with
+  | ?P =>
+      match P with
+      | context [ lectx (fun e : ?T => _) ] =>
+          let H := subst_pattern P lectx
+                                 (fun ℇ =>
+                                    R Σ (ℇ <{ ~if [b] then v1 else v2 }>)
+                                      (<{ ~if [b] then ,(ℇ v1) else ,(ℇ v2) }>)) in
+          exact H
+      end
   end.
 
 MetaCoq Run (tsf_ind_gen_from

@@ -9,16 +9,10 @@ Ltac tsf_pared ctor R :=
   pose proof ctor as H;
   repeat
     lazymatch type of H with
+    | lc _ -> ?T' => specialize_any H
     | ?T -> ?T' =>
-        lazymatch T with
-        | lc _ => specialize_any H
-        | _ =>
-            match eval pattern pared in T with
-            | ?P _ =>
-                let P := eval simpl in (P (fun Σ => rtc (pared Σ))) in
-                refine (P -> _ : Prop); specialize_any H
-            end
-        end
+        let P := subst_pattern T pared (fun Σ => rtc (pared Σ)) in
+        refine (P -> _ : Prop); specialize_any H
     | forall e : ?T, _ =>
         refine (forall e : T, _ : Prop); specialize (H e)
     | ?Σ ⊢ ?e ⇛ ?e' => exact (R Σ e e')
