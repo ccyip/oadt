@@ -12,7 +12,7 @@ Coercion EFVar : atom >-> expr.
 
 (** * Kind inversion  *)
 
-Ltac tsf_kinding ctor R :=
+Ltac tsf_kinding ctor kinding_inv :=
   lazymatch ctor with
   | KSub => tsf_skip
   | _ =>
@@ -31,7 +31,7 @@ Ltac tsf_kinding ctor R :=
             | <{ ?κ1 ⊔ ?κ2 }> => refine (κ1 ⊑ κ' -> κ2 ⊑ κ' -> _ : Prop)
             | _ => refine (κ ⊑ κ' -> _ : Prop)
             end;
-            refine (R Σ Γ τ κ' : Prop)
+            exact (kinding_inv Σ Γ τ κ')
         end
   end.
 
@@ -99,7 +99,7 @@ End fix_gctx.
 
 End kernel.
 
-Ltac tsf_typing ctor R :=
+Ltac tsf_typing ctor typing_inv :=
   lazymatch ctor with
   (* Remove the cases about [TIte] and [TCase]. *)
   | TIteNoDep => tsf_skip
@@ -123,7 +123,7 @@ Ltac tsf_typing ctor R :=
             | ⊥ => idtac
             | _ => refine (l ⊑ l' -> _ : Prop)
             end;
-            refine (Σ ⊢ τ' ≡ τ -> R Σ Γ e l' τ' : Prop)
+            exact (Σ ⊢ τ' ≡ τ -> typing_inv Σ Γ e l' τ')
         end
   end.
 

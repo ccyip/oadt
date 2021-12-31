@@ -4,7 +4,7 @@ From oadt.lang_oadt Require Import
      equivalence values head preservation.
 Import syntax.notations typing.notations.
 
-Ltac tsf_pared ctor R :=
+Ltac tsf_pared ctor mpared :=
   let H := fresh in
   pose proof ctor as H;
   repeat
@@ -15,7 +15,7 @@ Ltac tsf_pared ctor R :=
         refine (P -> _ : Prop); specialize_any H
     | forall e : ?T, _ =>
         refine (forall e : T, _ : Prop); specialize (H e)
-    | ?Σ ⊢ ?e ⇛ ?e' => exact (R Σ e e')
+    | ?Σ ⊢ ?e ⇛ ?e' => exact (mpared Σ e e')
     end.
 
 MetaCoq Run (tsf_ind_gen_from
