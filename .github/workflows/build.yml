@@ -10,16 +10,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      TARGET_COQ_VERSION: 8.13
-      TARGET_OCAML_VERSION: 4.11-flambda
+      TARGET_IMAGE: 'coqorg/coq:8.13-ocaml-4.12-flambda'
       TARGET_DOC_FOLDER: master
     strategy:
       matrix:
-        coq_version:
-          - '8.13'
-          - '8.12'
-        ocaml_version:
-          - '4.11-flambda'
+        image:
+          - 'coqorg/coq:8.13-ocaml-4.12-flambda'
+          - 'coqorg/coq:8.12-ocaml-4.11-flambda'
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
@@ -32,8 +29,7 @@ jobs:
       - uses: coq-community/docker-coq-action@v1
         with:
           opam_file: 'coq-oadt.opam'
-          coq_version: ${{ matrix.coq_version }}
-          ocaml_version: ${{ matrix.ocaml_version }}
+          custom_image: ${{ matrix.image }}
           before_script: |
             startGroup "Workaround permission issue"
               sudo chown -R coq:coq .
@@ -55,8 +51,7 @@ jobs:
         if: |-
           ${{
             github.event_name == 'push' &&
-            matrix.coq_version == env.TARGET_COQ_VERSION &&
-            matrix.ocaml_version == env.TARGET_OCAML_VERSION
+            matrix.image == env.TARGET_IMAGE
           }}
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
