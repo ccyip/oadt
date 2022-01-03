@@ -190,55 +190,52 @@ Check goal contains <span class="inlinecode"><span class="id" title="var">pat</s
 </div>
 
 <div class="doc">
-Get the head of a type <span class="inlinecode"><span class="id" title="var">T</span></span>. 
-</div>
-<div class="code">
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">head</span> <span class="id" title="var">T</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">T</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;| ?<span class="id" title="var">T</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">head</span> <span class="id" title="var">T</span><br/>
-&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">T</span><br/>
-&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
 Check if the head of a type <span class="inlinecode"><span class="id" title="var">T</span></span> is a constructor. 
 </div>
 <div class="code">
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">head_constructor</span> <span class="id" title="var">T</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">C</span> := <span class="id" title="var">head</span> <span class="id" title="var">T</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">C</span> := <span class="id" title="var">get_head</span> <span class="id" title="var">T</span> <span class="id" title="tactic">in</span><br/>
 &nbsp;&nbsp;<span class="id" title="var">is_constructor</span> <span class="id" title="var">C</span>.<br/>
 
 <br/>
 </div>
 
 <div class="doc">
-A convoluted way to get the head of the conclusion of a type <span class="inlinecode"><span class="id" title="var">T</span></span>. If <span class="inlinecode"><span class="id" title="var">T</span></span>
-is <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">a</span>,</span> <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">b</span>,</span> <span class="inlinecode">...,</span> <span class="inlinecode"><span class="id" title="var">h</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode"><span class="id" title="var">z</span></span>, then <span class="inlinecode"><span class="id" title="var">concl_head</span></span> <span class="inlinecode"><span class="id" title="var">T</span></span> returns <span class="inlinecode"><span class="id" title="var">h</span></span>. 
+A convoluted way to get the head of the conclusion of a type <span class="inlinecode"><span class="id" title="var">T</span></span>. If <span class="inlinecode"><span class="id" title="var">T</span></span> is
+<span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">a</span>,</span> <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">b</span>,</span> <span class="inlinecode">...,</span> <span class="inlinecode"><span class="id" title="var">h</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode"><span class="id" title="var">z</span></span>, then <span class="inlinecode"><span class="id" title="var">concl_head</span></span> <span class="inlinecode"><span class="id" title="var">T</span></span> returns <span class="inlinecode"><span class="id" title="var">h</span></span>. There may be a better
+approach. 
 </div>
 <div class="code">
-<span class="comment">(*&nbsp;TODO:&nbsp;is&nbsp;there&nbsp;a&nbsp;better&nbsp;approach?&nbsp;*)</span><br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">concl_head_</span> <span class="id" title="var">T</span> :=<br/>
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">concl_head</span> <span class="id" title="var">T</span> :=<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;<span class="id" title="var">eassert</span> (<span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">T</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">H</span>;<br/>
-&nbsp;&nbsp;[ <span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;| |- ?<span class="id" title="var">T'</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> =&gt;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> ? <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| |- ?<span class="id" title="var">T</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">T</span> := <span class="id" title="var">head</span> <span class="id" title="var">T</span> <span class="id" title="tactic">in</span> <span class="id" title="var">unify</span> <span class="id" title="var">T'</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.tactics.html#block"><span class="id" title="definition">block</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'True'"><span class="id" title="notation">True</span></a>) <span class="id" title="var">T</span>)<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>; <span class="id" title="tactic">elim</span> <span class="id" title="var">H</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
-&nbsp;&nbsp;| <span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="keyword">with</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> ?<span class="id" title="var">T</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">exact</span> <span class="id" title="var">T</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> ].<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">_</span> := <span class="id" title="keyword">match</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eassert</span> (<span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">T</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">H</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[ <span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| |- ?<span class="id" title="var">T'</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> ? <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">goal</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| |- ?<span class="id" title="var">T</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">h</span> := <span class="id" title="var">get_head</span> <span class="id" title="var">T</span> <span class="id" title="tactic">in</span> <span class="id" title="var">unify</span> <span class="id" title="var">T'</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.tactics.html#block"><span class="id" title="definition">block</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> =&gt; <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'True'"><span class="id" title="notation">True</span></a>) <span class="id" title="var">h</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>; <span class="id" title="tactic">elim</span> <span class="id" title="var">H</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| ]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">H</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> ?<span class="id" title="var">h</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">h</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Ltac</span> <span class="id" title="var">concl_head</span> <span class="id" title="var">T</span> :=<br/>
-&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">C</span> := <span class="id" title="keyword">constr</span>:(<span class="id" title="keyword">ltac</span>:(<span class="id" title="var">concl_head_</span> <span class="id" title="var">T</span>)) <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">C</span> := <span class="id" title="tactic">eval</span> <span class="id" title="var">cbn</span> <span class="id" title="tactic">in</span> <span class="id" title="var">C</span> <span class="id" title="tactic">in</span><br/>
-&nbsp;&nbsp;<span class="id" title="var">C</span>.<br/>
+</div>
+
+<div class="doc">
+Substitute <span class="inlinecode"><span class="id" title="var">s</span></span> for subterm <span class="inlinecode"><span class="id" title="var">t</span></span> in term <span class="inlinecode"><span class="id" title="var">T</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">subst_pattern</span> <span class="id" title="var">T</span> <span class="id" title="var">t</span> <span class="id" title="var">s</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="tactic">eval</span> <span class="id" title="tactic">pattern</span> <span class="id" title="var">t</span> <span class="id" title="tactic">in</span> <span class="id" title="var">T</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| ?<span class="id" title="var">f</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="keyword">let</span> <span class="id" title="var">T'</span> := <span class="id" title="tactic">eval</span> <span class="id" title="tactic">cbv</span> <span class="id" title="keyword">beta</span> <span class="id" title="tactic">in</span> (<span class="id" title="var">f</span> <span class="id" title="var">s</span>) <span class="id" title="tactic">in</span> <span class="id" title="var">T'</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
 </div>
@@ -286,8 +283,9 @@ still make the goal unprovable. For example, it does not consider, say, that the
 set relations may appear in a conjunction. 
 </div>
 <div class="code">
-<span class="comment">(*&nbsp;TODO:&nbsp;is&nbsp;it&nbsp;a&nbsp;way&nbsp;to&nbsp;check&nbsp;the&nbsp;conclusion&nbsp;of&nbsp;a&nbsp;hypothesis&nbsp;has&nbsp;certain&nbsp;"head"?<br/>
-I&nbsp;am&nbsp;using&nbsp;<span class="inlinecode"><span class="id" title="keyword">context</span></span> <span class="inlinecode">[<span class="id" title="var">_</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">_</span>]</span>&nbsp;for&nbsp;now,&nbsp;which&nbsp;has&nbsp;some&nbsp;false&nbsp;negatives.&nbsp;*)</span><br/>
+<span class="comment">(*&nbsp;TODO:&nbsp;is&nbsp;there&nbsp;a&nbsp;way&nbsp;to&nbsp;check&nbsp;if&nbsp;the&nbsp;conclusion&nbsp;of&nbsp;a&nbsp;hypothesis&nbsp;has&nbsp;certain<br/>
+"head"?&nbsp;I&nbsp;am&nbsp;using&nbsp;<span class="inlinecode"><span class="id" title="keyword">context</span></span> <span class="inlinecode">[<span class="id" title="var">_</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">_</span>]</span>&nbsp;for&nbsp;now,&nbsp;which&nbsp;has&nbsp;some&nbsp;false<br/>
+negatives.&nbsp;*)</span><br/>
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">set_prune_hyps_safe</span> :=<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">simpl</span>;<br/>
 &nbsp;&nbsp;<span class="id" title="var">set_fold_not</span>;<br/>
