@@ -102,10 +102,8 @@ End kernel.
 Ltac tsf_typing ctor typing_inv :=
   lazymatch ctor with
   (* Remove the cases about [TIte] and [TCase]. *)
-  | TIteNoDep => tsf_skip
-  | TCaseNoDep => tsf_skip
-  | TIte => tsf_skip
-  | TCase => tsf_skip
+  | TIte => tsf_skip | TIteNoDep => tsf_skip
+  | TCase => tsf_skip | TCaseNoDep => tsf_skip
   | TConv => tsf_skip
   | _ =>
       let H := fresh in
