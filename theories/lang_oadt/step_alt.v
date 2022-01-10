@@ -3,7 +3,7 @@ evaluation context rules, resulting in a "flat" definition that is equivalent to
 [step] but much more convenient to use in proofs. However, it is not used at the
 moment, because I have already developed enough custom tactics to deal with the
 original [step] relation. *)
-From oadt Require Import idt.
+From idt Require Import all.
 From oadt.lang_oadt Require Import base syntax semantics infrastructure.
 Import syntax.notations semantics.notations.
 

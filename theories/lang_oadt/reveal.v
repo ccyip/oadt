@@ -1,4 +1,4 @@
-From oadt Require Import idt.
+From idt Require Import all.
 From oadt.lang_oadt Require Import
      base syntax semantics typing infrastructure
      values head dec mpared preservation progress.

@@ -1,5 +1,5 @@
 (** Typing and kinding inversion lemmas. *)
-From oadt Require Import idt.
+From idt Require Import all.
 From oadt.lang_oadt Require Import
      base syntax semantics typing infrastructure
      equivalence.
