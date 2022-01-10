@@ -30,7 +30,7 @@
 <h1 class="libtitle">oadt.lang_oadt.reveal</h1>
 
 <div class="code">
-<span class="id" title="keyword">From</span> <span class="id" title="var">oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="oadt.idt.html#"><span class="id" title="library">idt</span></a>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">idt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all</span>.<br/>
 <span class="id" title="keyword">From</span> <span class="id" title="var">oadt.lang_oadt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.base.html#"><span class="id" title="library">base</span></a> <a class="idref" href="oadt.lang_oadt.syntax.html#"><span class="id" title="library">syntax</span></a> <a class="idref" href="oadt.lang_oadt.semantics.html#"><span class="id" title="library">semantics</span></a> <a class="idref" href="oadt.lang_oadt.typing.html#"><span class="id" title="library">typing</span></a> <a class="idref" href="oadt.lang_oadt.infrastructure.html#"><span class="id" title="library">infrastructure</span></a><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.values.html#"><span class="id" title="library">values</span></a> <a class="idref" href="oadt.lang_oadt.head.html#"><span class="id" title="library">head</span></a> <a class="idref" href="oadt.lang_oadt.dec.html#"><span class="id" title="library">dec</span></a> <a class="idref" href="oadt.lang_oadt.mpared.html#"><span class="id" title="library">mpared</span></a> <a class="idref" href="oadt.lang_oadt.preservation.html#"><span class="id" title="library">preservation</span></a> <a class="idref" href="oadt.lang_oadt.progress.html#"><span class="id" title="library">progress</span></a>.<br/>
@@ -47,7 +47,7 @@
 </div>
 
 <div class="doc">
-<a id="lab106"></a><h1 class="section">Definitions</h1>
+<a id="lab103"></a><h1 class="section">Definitions</h1>
 
 </div>
 <div class="code">
@@ -59,7 +59,7 @@
 </div>
 
 <div class="doc">
-<a id="lab107"></a><h2 class="section">Weak value erasure</h2>
+<a id="lab104"></a><h2 class="section">Weak value erasure</h2>
 
 </div>
 <div class="code">
@@ -139,7 +139,7 @@ induction.
 </div>
 
 <div class="doc">
-<a id="lab108"></a><h2 class="section">Reveal semantics</h2>
+<a id="lab105"></a><h2 class="section">Reveal semantics</h2>
  Reveal semantics is a big-step semantics in the reveal phase of an oblivious
 computation. It does not match the small-step semantics completely, e.g., it
 does not evaluate the "dead" branches unnecessarily. As a result, the reveal
@@ -241,7 +241,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab109"></a><h1 class="section">Notations</h1>
+<a id="lab106"></a><h1 class="section">Notations</h1>
 
 </div>
 <div class="code">
@@ -265,7 +265,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab110"></a><h1 class="section">Tactics</h1>
+<a id="lab107"></a><h1 class="section">Tactics</h1>
 
 </div>
 <div class="code">
@@ -295,7 +295,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab111"></a><h1 class="section">Theorems</h1>
+<a id="lab108"></a><h1 class="section">Theorems</h1>
 
 </div>
 <div class="code">
@@ -314,7 +314,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab112"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#is_oif_wval"><span class="id" title="definition">is_oif_wval</span></a></span></h2>
+<a id="lab109"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#is_oif_wval"><span class="id" title="definition">is_oif_wval</span></a></span></h2>
 
 </div>
 <div class="code">
@@ -372,7 +372,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab113"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#erase_wval"><span class="id" title="definition">erase_wval</span></a></span></h2>
+<a id="lab110"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#erase_wval"><span class="id" title="definition">erase_wval</span></a></span></h2>
 
 </div>
 <div class="code">
@@ -532,7 +532,7 @@ small-step semantics.
 </div>
 
 <div class="doc">
-<a id="lab114"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#kernel.reval"><span class="id" title="inductive">reval</span></a></span></h2>
+<a id="lab111"></a><h2 class="section">Properties of <span class="inlinecode"><a class="idref" href="oadt.lang_oadt.reveal.html#kernel.reval"><span class="id" title="inductive">reval</span></a></span></h2>
 
 </div>
 <div class="code">
@@ -936,7 +936,7 @@ From now on, we need the well-formedness of global context.
 </div>
 
 <div class="doc">
-<a id="lab115"></a><h2 class="section">Alternative Definition</h2>
+<a id="lab112"></a><h2 class="section">Alternative Definition</h2>
 
 <div class="paragraph"> </div>
 
@@ -983,7 +983,7 @@ defined expressions, i.e., projection and unfold.
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
-<span class="id" title="var">MetaCoq</span> <span class="id" title="var">Run</span> (<a class="idref" href="oadt.idt.html#tsf_ind_gen_from"><span class="id" title="definition">tsf_ind_gen_from</span></a><br/>
+<span class="id" title="var">MetaCoq</span> <span class="id" title="var">Run</span> (<span class="id" title="definition">tsf_ind_gen_from</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="oadt.lang_oadt.reveal.html#reval"><span class="id" title="inductive">reval</span></a> "reval_alt"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">ltac</span>:(<span class="id" title="var">tsf_ctors</span> <a class="idref" href="oadt.lang_oadt.reveal.html#reval"><span class="id" title="inductive">reval</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Strings.String.html#append"><span class="id" title="definition">append</span></a> "A") <span class="id" title="var">tsf_reval</span>)).<br/>
 
@@ -1074,7 +1074,7 @@ defined expressions, i.e., projection and unfold.
 </div>
 
 <div class="doc">
-<a id="lab116"></a><h2 class="section">Soundness</h2>
+<a id="lab113"></a><h2 class="section">Soundness</h2>
 
 </div>
 <div class="code">
