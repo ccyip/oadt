@@ -432,6 +432,22 @@ Proof.
   - eauto using erase_idemp.
 Qed.
 
+Lemma reval_fix_erase e v :
+  e ↓ v ->
+  v = ⟦v⟧.
+Proof.
+  induction 1; simpl; try scongruence use: erase_idemp;
+    qauto use: erase_otval.
+Qed.
+
+Lemma reval_wval_val e v :
+  e ↓ v ->
+  wval v ->
+  val v.
+Proof.
+  qauto use: reval_fix_erase, erase_wval_val.
+Qed.
+
 Lemma reval_wval w :
   wval w ->
   w ↓ ⟦w⟧.
@@ -865,15 +881,15 @@ Proof.
   sfirstorder use: reval_step.
 Qed.
 
-Theorem reval_soundness e v τ :
-  ∅ ⊢ e :{⊥} τ ->
+Theorem reval_soundness e l v τ :
+  ∅ ⊢ e :{l} τ ->
   e ↓ v ->
   val v.
 Proof.
   intros.
-  assert (∅ ⊢ v :{⊥} τ) as L by eauto using reval_preservation.
-  apply progress in L; eauto.
-  destruct L; simp_hyps; eauto.
+  assert (∅ ⊢ v :{l} τ) as L by eauto using reval_preservation.
+  apply progress_weak in L; eauto.
+  destruct L; simp_hyps; eauto using reval_wval_val.
   exfalso. eauto using reval_step.
 Qed.
 
