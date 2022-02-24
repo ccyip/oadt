@@ -893,4 +893,12 @@ Proof.
   exfalso. eauto using reval_step.
 Qed.
 
+Corollary reval_soundness_strong e l v τ :
+  ∅ ⊢ e :{l} τ ->
+  e ↓ v ->
+  val v /\ ∅ ⊢ v :{l} τ.
+Proof.
+  eauto using reval_soundness, reval_preservation.
+Qed.
+
 End theorems.
