@@ -181,7 +181,7 @@ Notation "e '↓' v" := (reval _ e v) (at level 40).
 
 End notations.
 
-(** * Tactics *)
+(** * Inversion Lemmas *)
 
 Ltac reval_inv :=
   match goal with
@@ -190,6 +190,79 @@ Ltac reval_inv :=
 
 Tactic Notation "reval_inv" "*" :=
   repeat (reval_inv; repeat val_inv; repeat otval_inv).
+
+Section inversion.
+
+Context (Σ : gctx).
+
+#[local]
+Set Default Proof Using "Type".
+
+Ltac inv_solver := intros; reval_inv*; eauto 10 using reval.
+
+Lemma reval_inv_prod τ1 τ2 ω :
+  <{ τ1 * τ2 }> ↓ ω ->
+  exists ω1 ω2, ω = <{ ω1 * ω2 }> /\ τ1 ↓ ω1 /\ τ2 ↓ ω2.
+Proof.
+  inv_solver.
+Qed.
+
+Lemma reval_inv_osum τ1 τ2 ω :
+  <{ τ1 ~+ τ2 }> ↓ ω ->
+  exists ω1 ω2, ω = <{ ω1 ~+ ω2 }> /\ τ1 ↓ ω1 /\ τ2 ↓ ω2.
+Proof.
+  inv_solver.
+Qed.
+
+Lemma reval_inv_inj b τ e v :
+  <{ inj@b<τ> e }> ↓ v ->
+  exists v', v = <{ inj@b<⟦τ⟧> v' }> /\ e ↓ v'.
+Proof.
+  inv_solver.
+Qed.
+
+Lemma reval_inv_oinj b τ e v :
+  <{ ~inj@b<τ> e }> ↓ v ->
+  exists ω v', v = <{ [inj@b<ω> v'] }> /\ τ ↓ ω /\ e ↓ v' /\ otval ω /\ oval v'.
+Proof.
+  inv_solver.
+Qed.
+
+Lemma reval_inv_pair e1 e2 v :
+  <{ (e1, e2) }> ↓ v ->
+  exists v1 v2, v = <{ (v1, v2) }> /\ e1 ↓ v1 /\ e2 ↓ v2.
+Proof.
+  inv_solver.
+Qed.
+
+Lemma reval_inv_fold X e v :
+  <{ fold<X> e }> ↓ v ->
+  exists v', v = <{ fold<X> v' }> /\ e ↓ v'.
+Proof.
+  inv_solver.
+Qed.
+
+End inversion.
+
+(** * Tactics *)
+
+Ltac reval_inv_lem e :=
+  match e with
+  | <{ _ * _ }> => reval_inv_prod
+  | <{ _ ~+ _ }> => reval_inv_osum
+  | <{ inj@_<_> _ }> => reval_inv_inj
+  | <{ ~inj@_<_> _ }> => reval_inv_oinj
+  | <{ (_, _) }> => reval_inv_pair
+  | <{ fold<_> _ }> => reval_inv_fold
+  end.
+
+Ltac reval_inv ::=
+  match goal with
+  | H : ?e ↓ _ |- _ =>
+      let lem := reval_inv_lem e in
+      apply lem in H; try simp_hyp H; subst
+  | H : ?e ↓ _ |- _ => safe_inv e H
+  end.
 
 Ltac relax_reval :=
   match goal with
