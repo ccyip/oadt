@@ -513,6 +513,15 @@ Proof.
     qauto use: erase_otval.
 Qed.
 
+Lemma reval_trans e v1 v2 :
+  e ↓ v1 ->
+  v1 ↓ v2 ->
+  e ↓ v2.
+Proof.
+  intros.
+  by replace v2 with v1 by eauto using reval_deterministic, reval_idemp.
+Qed.
+
 Lemma reval_wval_val e v :
   e ↓ v ->
   wval v ->
