@@ -226,7 +226,7 @@ Hint Constructors lc : lc.
 
 (** * Lemmas *)
 
-(** ** Properties of opening and closing *)
+(** ** Properties of opening *)
 
 (* NOTE: [inversion] is the culprit for the slowness of this proof. *)
 Lemma open_lc_ e : forall s u i j,
@@ -283,42 +283,6 @@ Proof.
     try (auto_eapply; eauto; fast_set_solver!!).
 
   all: set_unfold; sfirstorder.
-Qed.
-
-Lemma close_open e x :
-  x # e ->
-  close x (open x e) = e.
-Proof.
-  intros.
-  unfold open, close. generalize 0.
-  induction e; intros; simpl;
-    hauto solve: fast_set_solver!!.
-Qed.
-
-Lemma open_close_ x y z e : forall i j,
-  i <> j ->
-  y # e ->
-  y <> x ->
-  open_ i y (open_ j z (close_ j x e)) = open_ j z (close_ j x (open_ i y e)).
-Proof.
-  induction e; intros; simpl;
-    solve [ repeat (case_decide; subst; simpl; try scongruence; eauto)
-          | f_equal; auto_apply; eauto; fast_set_solver!! ].
-Qed.
-
-Lemma open_close e x :
-  lc e ->
-  open x (close x e) = e.
-Proof.
-  intros H.
-  unfold open, close. generalize 0.
-  induction H; intros; simpl; try hauto;
-    f_equal; eauto;
-      match goal with
-      | |- ?e = _ => simpl_cofin (fv e)
-      end;
-      (eapply open_inj; [ unfold open; rewrite open_close_ | ]);
-      eauto; fast_set_solver!!.
 Qed.
 
 (** ** Properties of substitution *)
@@ -620,7 +584,7 @@ Lemma open_fv_l e s :
 Proof.
   unfold open. generalize 0.
   induction e; intros; simpl in *;
-    try case_split; fast_set_solver*.
+    try case_decide; fast_set_solver*.
 Qed.
 
 Lemma open_fv_r e s :
@@ -629,6 +593,14 @@ Proof.
   unfold open. generalize 0.
   induction e; intros; simpl in *;
     fast_set_solver.
+Qed.
+
+Lemma subst_fv e x s :
+  fv <{ {x↦s}e }> ⊆ fv e ∪ fv s.
+Proof.
+  induction e; simpl;
+    try case_decide; simpl;
+    try fast_set_solver*!!.
 Qed.
 
 Lemma open_fresh x e s :
@@ -1008,6 +980,54 @@ Ltac simpl_typing_type_fv :=
               with (fun H => simpl in H)
   end.
 Smpl Add simpl_typing_type_fv : fv.
+
+(** ** Properties of closing *)
+
+Lemma close_open e x :
+  x # e ->
+  close x (open x e) = e.
+Proof.
+  intros.
+  unfold open, close. generalize 0.
+  induction e; intros; simpl;
+    hauto solve: fast_set_solver!!.
+Qed.
+
+Lemma open_close_ x y z e : forall i j,
+  i <> j ->
+  y # e ->
+  y <> x ->
+  open_ i y (open_ j z (close_ j x e)) = open_ j z (close_ j x (open_ i y e)).
+Proof.
+  induction e; intros; simpl;
+    solve [ repeat (case_decide; subst; simpl; try scongruence; eauto)
+          | f_equal; auto_apply; eauto; fast_set_solver!! ].
+Qed.
+
+(** We can generalize this to openning with expressions other than atoms. But
+this version is good enough for now. *)
+Lemma open_close_subst e x y :
+  lc e ->
+  open y (close x e) = <{ {x↦y}e }>.
+Proof.
+  intros H.
+  unfold open, close. generalize 0.
+  induction H; intros; simpl; try hauto;
+    f_equal; eauto;
+    match goal with
+    | |- ?e = _ => simpl_cofin (fv e)
+    end;
+    (eapply open_inj; [ rewrite <- ?subst_open_comm;
+                        [ unfold open; rewrite open_close_ | .. ] | .. ]);
+    eauto using lc; rewrite ?subst_fv; fast_set_solver!!.
+Qed.
+
+Lemma open_close e x :
+  lc e ->
+  open x (close x e) = e.
+Proof.
+  qauto use: open_close_subst, subst_id.
+Qed.
 
 (** ** Properties of parallel reduction and local closure *)
 Lemma pared_lc1 Σ e e' :
