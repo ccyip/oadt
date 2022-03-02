@@ -1,7 +1,7 @@
 From oadt.lang_oadt Require Import
      base syntax semantics typing infrastructure
      admissible inversion values weakening preservation progress reveal.
-Import syntax.notations semantics.notations typing.notations.
+Import syntax.notations semantics.notations typing.notations reveal.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -39,109 +39,90 @@ Context (Δ : srctx).
 Context (Hsrwf : srctx_wf Σ Δ).
 
 (** ** Generalized section *)
-(** Compute the section of [e] from public type [τ] to oblivious type [τ']. [e]
-is assumed a [body]. Alternatively, we may assume [e] is locally closed, and
-open/close the expressions accordingly. That way we also need to record the used
-atoms in an extra arguments, similar to the lifting functions below. *)
-Fixpoint gsec (τ τ' : expr) (e : expr) : option expr :=
-  match τ, τ' with
-  | <{ 𝟙 }>, <{ 𝟙 }> => Some <{ tape e }>
-  | <{ 𝔹 }>, <{ ~𝔹 }> => Some <{ tape (s𝔹 e) }>
-  | <{ τ1 * τ2 }>, <{ τ1' * τ2' }> =>
-    e1 <- gsec τ1 τ1' <{ π1 e }>;
-    e2 <- gsec τ2 τ2' <{ π2 e }>;
-    Some <{ (e1, e2) }>
-  | <{ τ1 + τ2 }>, <{ τ1' ~+ τ2' }> =>
-    e1 <- gsec τ1 τ1' <{ bvar 0 }>;
-    e2 <- gsec τ2 τ2' <{ bvar 0 }>;
-    Some <{ tape (case e of ~inl<τ1' ~+ τ2'> e1 | ~inr<τ1' ~+ τ2'> e2) }>
-  (* Outsource to predefined context *)
-  | <{ gvar X }>, <{ X'@k }> =>
-    '(s, _) <- Δ !! (X, X');
-    Some <{ (gvar s) k e }>
-  | _, _ => None
-  end.
+(** [gsec τ τ' e e'] means [e'] of oblivious type [τ'] is a section of [e] which
+has a public type [τ]. *)
+Inductive gsec : expr -> expr -> expr -> expr -> Prop :=
+| GSUnit e : gsec <{ 𝟙 }> <{ 𝟙 }> e <{ tape e }>
+| GSBool e : gsec <{ 𝔹 }> <{ ~𝔹 }> e <{ tape (s𝔹 e) }>
+| GSProd τ1 τ1' τ2 τ2' e e1 e2 :
+    gsec τ1 τ1' <{ π1 e }> e1 ->
+    gsec τ2 τ2' <{ π2 e }> e2 ->
+    gsec <{ τ1 * τ2 }> <{ τ1' * τ2' }> e <{ (e1, e2) }>
+| GSSum τ1 τ1' τ2 τ2' e e1 e2 L1 L2 :
+    (forall x, x ∉ L1 -> gsec τ1 τ1' x <{ e1^x }>) ->
+    (forall x, x ∉ L2 -> gsec τ2 τ2' x <{ e2^x }>) ->
+    gsec <{ τ1 + τ2 }> <{ τ1' ~+ τ2' }> e
+         <{ tape (case e of ~inl<τ1' ~+ τ2'> e1 | ~inr<τ1' ~+ τ2'> e2) }>
+(* Outsource to predefined context *)
+| GSOADT X X' k s r e :
+    Δ !! (X, X') = Some (s, r) ->
+    gsec <{ gvar X }> <{ X'@k }> e <{ (gvar s) k e }>
+.
 
 (** ** Generalized retraction *)
-(** Compute the retraction of [e] from oblivious type [τ'] to public type [τ]. *)
-Fixpoint gret (τ τ' : expr) (e : expr) : option expr :=
-  match τ, τ' with
-  (* Unlike section, retraction also allows the oblivious type [τ'] to contain
-  non-oblivious components, as long as they match the corresponding components
-  in [τ]. *)
-  | <{ 𝟙 }>, <{ 𝟙 }> | <{ 𝔹 }>, <{ 𝔹 }> => Some e
-  | <{ gvar X }>, <{ gvar Y }> =>
-    if decide (X = Y) then Some e else None
-  | <{ Π:{_}_, _ }>, <{ Π:{_}_, _ }> =>
-    if decide (τ = τ') then Some e else None
-  | <{ 𝔹 }>, <{ ~𝔹 }> => Some <{ ~if tape e then true else false }>
-  | <{ τ1 * τ2 }>, <{ τ1' * τ2' }> =>
-    e1 <- gret τ1 τ1' <{ π1 e }>;
-    e2 <- gret τ2 τ2' <{ π2 e }>;
-    Some <{ (e1, e2) }>
-  | <{ τ1 + τ2 }>, <{ τ1' + τ2' }> =>
-    e1 <- gret τ1 τ1' <{ bvar 0 }>;
-    e2 <- gret τ2 τ2' <{ bvar 0 }>;
-    Some <{ case e of inl<τ1 + τ2> e1 | inr<τ1 + τ2> e2 }>
-  | <{ τ1 + τ2 }>, <{ τ1' ~+ τ2' }> =>
-    e1 <- gret τ1 τ1' <{ bvar 0 }>;
-    e2 <- gret τ2 τ2' <{ bvar 0 }>;
-    Some <{ ~case tape e of inl<τ1 + τ2> e1 | inr<τ1 + τ2> e2 }>
-  (* Outsource to predefined context *)
-  | <{ gvar X }>, <{ X'@k }> =>
-    '(_, r) <- Δ !! (X, X');
-    Some <{ (gvar r) k e }>
-  | _, _ => None
-  end.
+(** [gret τ τ' e' e] means [e] of public type [τ] is a retraction of [e'] which
+has an oblivious type [τ']. Unlike [gsec], retraction also allow the oblivious
+type [τ'] to contain non-oblivious components, as long as they match the
+corresponding components in [τ]. *)
+Inductive gret : expr -> expr -> expr -> expr -> Prop :=
+| GRId τ e : gret τ τ e e
+| GRBool e' : gret <{ 𝔹 }> <{ ~𝔹 }> e' <{ ~if tape e' then true else false }>
+| GRProd τ1 τ1' τ2 τ2' e' e1 e2 :
+    <{ τ1 * τ2 }> <> <{ τ1' * τ2' }> ->
+    gret τ1 τ1' <{ π1 e' }> e1 ->
+    gret τ2 τ2' <{ π2 e' }> e2 ->
+    gret <{ τ1 * τ2 }> <{ τ1' * τ2' }> e' <{ (e1, e2) }>
+| GRSum τ1 τ1' τ2 τ2' e' e1 e2 L1 L2 :
+    <{ τ1 + τ2 }> <> <{ τ1' + τ2' }> ->
+    (forall x, x ∉ L1 -> gret τ1 τ1' x <{ e1^x }>) ->
+    (forall x, x ∉ L2 -> gret τ2 τ2' x <{ e2^x }>) ->
+    gret <{ τ1 + τ2 }> <{ τ1' + τ2' }> e'
+         <{ case e' of inl<τ1 + τ2> e1 | inr<τ1 + τ2> e2 }>
+| GROSum τ1 τ1' τ2 τ2' e' e1 e2 L1 L2 :
+    (forall x, x ∉ L1 -> gret τ1 τ1' x <{ e1^x }>) ->
+    (forall x, x ∉ L2 -> gret τ2 τ2' x <{ e2^x }>) ->
+    gret <{ τ1 + τ2 }> <{ τ1' ~+ τ2' }> e'
+         <{ ~case tape e' of inl<τ1 + τ2> e1 | inr<τ1 + τ2> e2 }>
+(* Outsource to predefined context *)
+| GROADT X X' k s r e' :
+    Δ !! (X, X') = Some (s, r) ->
+    gret <{ gvar X }> <{ X'@k }> e' <{ (gvar r) k e' }>
+.
 
 (** ** Lifting *)
 
-(** The core lifting function. All arguments are supposed to be locally closed,
-and the indices in [τ'] have been instantiated with free variables in [xs]. [e]
-of type [τ] is lifted to the oblivious counterpart of type [τ']. [xs] keeps
-track of used free variables. *)
-Fixpoint lift_core (τ τ' : expr) (xs : aset) (e : expr) : option expr :=
-  match τ, τ' with
-  | <{ Π:{l}τ1, τ2 }>, <{ Π:{l'}τ1', τ2' }> =>
+(** The core lifting relation. [lift_core τ τ' e e'] means [e'] of oblivious
+type [τ'] is the lifted result from [e] of public type [τ]. *)
+Inductive lift_core : expr -> expr -> expr -> expr -> Prop :=
+| LPi τ1 τ1' τ2 τ2' e e' r l' L1 L2 :
+    (forall x, x ∉ L1 -> gret τ1 τ1' x <{ r^x }>) ->
+    (* Types in [lift_core] are assumed to be non-dependent types, so [τ2] and
+    [τ2'] are locally closed. *)
+    (forall x, x ∉ L2 -> lift_core τ2 τ2' <{ e (r^x) }> <{ e'^x }>) ->
     (* The function argument of [e] should have a leakage label of [⊤]
-    ([LLeak]), because it is applied to retraction. *)
-    if l
-    then let x := fresh xs in
-         r <- gret τ1 τ1' <{ fvar x }>;
-         (* [τ] and [τ'] are assumed non-dependent types, so [τ2] and [τ2']
-         are locally closed. *)
-         e' <- lift_core τ2 τ2' ({[x]} ∪ xs) <{ e r }>;
-         Some <{ \:{l'}τ1' => ,(close x e') }>
-    else None
-  | _, _ => gsec τ τ' e
-  end.
+    ([LLeak]), because [e] is applied to retraction. *)
+    lift_core <{ Π:{⊤}τ1, τ2 }> <{ Π:{l'}τ1', τ2' }> e
+              <{ \:{l'}τ1' => e' }>
+| LSec τ τ' e e' :
+    gsec τ τ' e e' ->
+    lift_core τ τ' e e'
+.
 
-(** This function handles type index arguments and calls [lift_core] to do the
-heavy lifting (pun intended). All arguments are locally closed. It lifts [e] of
-type [τ] to the oblivious counterpart of type [τ']. Unlike [lift_core], [τ']
-contains all the type index arguments from [τs]. *)
-Fixpoint lift_ (τ τ' : expr) (τs : list expr) (xs : aset) (e : expr) : option expr :=
-  match τs with
-  | _::τs =>
-    match τ' with
-    | <{ Π:{_}τ1, τ2' }> =>
-      let x := fresh xs in
-      e' <- lift_ τ <{ τ2'^x }> τs ({[x]} ∪ xs) e;
-      Some <{ \:τ1 => ,(close x e') }>
-    | _ => None
-    end
-  | [] => lift_core τ τ' xs e
-  end.
+(** Top-level relation that handles type index arguments and calls [lift_core]
+to do the heavy lifting (pun intended). [lift τs τ τ' e e'] means [e] of type
+[τ] is lifted to [e'] of type [τ'] which has type indices [τs]. *)
+Inductive lift : list expr -> expr -> expr -> expr -> expr -> Prop :=
+| LCons τs τ τ1 τ2' e e' L :
+    (forall x, x ∉ L -> lift τs τ <{ τ2'^x }> e <{ e'^x }>) ->
+    lift (τ1::τs) τ <{ Π:τ1, τ2' }> e <{ \:τ1 => e' }>
+| LNil τ τ' e e' : lift_core τ τ' e e' -> lift [] τ τ' e e'
+.
 
-(** The top level lifting function. It lifts [e] of type [τ] to the oblivious
-counterpart of type [τ'], whose public indices are [τs]. *)
-Definition lift (τ τ' : expr) (τs : list expr) (e : expr) : option expr :=
-  lift_ τ τ' τs ∅ e.
 
 (** ** Well-formedness of lifting input *)
 
-(** [τ] is not a dependent type (at top level). It may still take a higher-order
-function that is dependently typed. *)
+(** [τ] is not a dependent type (at top level). It may still take as argument a
+dependently typed higher-order function. *)
 Fixpoint nodep (τ : expr) : Prop :=
   match τ with
   | <{ Π:{_}_, τ2 }> =>
@@ -164,7 +145,6 @@ Inductive lift_type_wf : list expr -> expr -> Prop :=
 .
 
 Instance list_expr_stale : Stale (list expr) := foldr (fun e S => fv e ∪ S) ∅.
-Arguments list_expr_stale /.
 
 (** * Theorems *)
 
@@ -175,251 +155,78 @@ Set Default Proof Using "Type".
 
 Arguments open /.
 
-Ltac simpl_sr :=
-  intros; simpl in *; simplify_eq;
-  repeat (case_split; simpl in *; simplify_eq);
-  simplify_option_eq;
-  simp_hyps; intros; subst; simpl in *.
-
-Lemma gsec_body τ : forall τ' e e',
-  gsec τ τ' e = Some e' ->
-  lc τ' ->
-  body e ->
-  body e'.
-Proof.
-  unfold body, open.
-  induction τ; simpl_sr;
-      try solve [ eexists; simpl_cofin; eauto with lc ];
-      repeat lc_inv;
-      (* Apply induction hypotheses. *)
-      repeat match goal with
-             | IH : context [gsec ?τ _ _ = _ -> _], H : gsec ?τ _ _ = _ |- _ =>
-               apply IH in H; clear IH
-             end;
-      simpl;
-      eauto using lc;
-      simp_hyps;
-      eexists; simpl_cofin;
-        try solve [ repeat econstructor; eauto; by rewrite open_lc ].
-
-  econstructor.
-  econstructor; eauto;
-    simpl_cofin; simpl;
-      repeat econstructor;
-      try solve [ repeat (rewrite open_lc; eauto) ];
-      rewrite open_comm by eauto using lc;
-      rewrite open_lc; eauto with lc.
-
-  Unshelve.
-  all: exact ∅.
-Qed.
-
-Lemma gsec_open τ s : forall τ' e e',
-  gsec τ τ' e = Some e' ->
-  lc τ' ->
-  gsec τ τ' <{ e^s }> = Some <{ e'^s }>.
-Proof.
-  unfold open.
-  induction τ; simpl_sr; eauto;
-    repeat lc_inv;
-    repeat f_equal; try solve [ by rewrite !open_lc by eauto ].
-
-  repeat match goal with
-         | IH : context [gsec ?τ _ _ = _ -> _], H : gsec ?τ _ _ = _ |- _ =>
-           apply IH in H; clear IH; [ simpl in H; rewrite H | .. ]
-         end;
-    eauto.
-
-  all: rewrite open_body; eauto using gsec_body, body_bvar.
-Qed.
-
-Lemma gsec_well_typed τ : forall τ' e e' Γ κ κ',
-  gsec τ τ' e = Some e' ->
+Lemma gsec_well_typed τ τ' e e' Γ κ κ' :
+  gsec τ τ' e e' ->
   Γ ⊢ τ :: κ ->
   Γ ⊢ τ' :: κ' ->
   Γ ⊢ e :{⊤} τ ->
   Γ ⊢ e' :{⊥} τ'.
 Proof using Hsrwf.
-  induction τ; simpl_sr;
+  intros H. revert Γ κ κ'.
+  induction H; intros;
     eauto using typing, kinding;
     kind_inv.
-  (* OADT application *)
-  - apply_srctx_wf. simplify_eq.
-    relax_typing_type.
-    econstructor; eauto.
-    relax_typing_type.
-    econstructor; eauto.
-    econstructor; eauto.
-    reflexivity.
-    simpl.
-    rewrite open_lc; eauto with lc.
-  (* Product *)
+  (* GSProd *)
   - econstructor;
-      try match goal with
-          | H : _ -> _ |- _ ⊢ _ :{_} _ =>
-            eapply H; eauto using kinding;
-              solve [ relax_typing_type; econstructor; eauto ]
-          end.
-    reflexivity.
-  (* Sum *)
+      try auto_eapply; eauto using kinding;
+        solve [ relax_typing_type; [ econstructor | ]; eauto ].
+  (* GSSum *)
   - econstructor; eauto using kinding.
     econstructor; eauto using kinding;
-        simpl; simpl_cofin;
+      simpl; simpl_cofin;
         match goal with
-        | |- context [<{ ?τ1 ~+ ?τ2 }>] =>
+        | |- context [<{ ?τ1 +{_} ?τ2 }>] =>
           rewrite open_lc with (e := τ1) by eauto with lc;
             rewrite open_lc with (e := τ2) by eauto with lc
         end;
         econstructor; eauto using kinding, kinding_weakening_insert;
-          match goal with
-          | IH : context [gsec ?τ _ _ = _ -> _],
-                 H : gsec ?τ ?τ' _ = _ |- _ ⊢ _:{_} ?τ' =>
-            eapply IH
-          end;
-          eauto using gsec_open, kinding_weakening_insert with lc;
-          simpl; econstructor; simplify_map_eq;
-            eauto using kinding_weakening_insert.
+          auto_eapply;
+          eauto using typing, kinding_weakening_insert with lc simpl_map.
+  (* GSOADT *)
+  - apply_srctx_wf. simplify_eq.
+    repeat (first [ typing_intro
+                  | relax_typing_type; [ econstructor | ] ];
+            eauto); simpl; eauto.
+    rewrite open_lc; eauto with lc.
 Qed.
 
-Lemma gret_body τ : forall τ' e e',
-  gret τ τ' e' = Some e ->
-  lc τ ->
-  lc τ' ->
-  body e' ->
-  body e.
-Proof.
-  unfold body, open.
-  induction τ; simpl_sr;
-      try solve [ eexists; simpl_cofin; eauto with lc ];
-      repeat lc_inv;
-      (* Apply induction hypotheses. *)
-      repeat match goal with
-             | IH : context [gret ?τ _ _ = _ -> _], H : gret ?τ _ _ = _ |- _ =>
-               apply IH in H; clear IH
-             end;
-      simpl;
-      eauto using lc;
-      simp_hyps;
-      eexists; simpl_cofin;
-        try solve [ repeat econstructor; eauto; by rewrite open_lc ].
-
-  all: econstructor; eauto using lc;
-    simpl_cofin; simpl;
-      repeat econstructor;
-      try solve [ repeat (rewrite open_lc; eauto) ];
-      rewrite open_comm by eauto using lc;
-      rewrite open_lc; eauto with lc.
-
-  Unshelve.
-  all: exact ∅.
-Qed.
-
-Lemma gret_open τ s : forall τ' e e',
-  gret τ τ' e' = Some e ->
-  lc τ ->
-  lc τ' ->
-  gret τ τ' <{ e'^s }> = Some <{ e^s }>.
-Proof.
-  unfold open.
-  induction τ; simpl_sr; eauto;
-    repeat lc_inv;
-    repeat f_equal; try solve [ by rewrite !open_lc by eauto ].
-
-  repeat match goal with
-         | IH : context [gret ?τ _ _ = _ -> _], H : gret ?τ _ _ = _ |- _ =>
-           apply IH in H; clear IH; [ simpl in H; rewrite H | .. ]
-         end;
-    eauto.
-
-  all: repeat f_equal;
-    try solve [ by rewrite !open_lc by eauto ];
-    rewrite open_body; eauto using gret_body, body_bvar.
-Qed.
-
-Lemma gret_well_typed τ : forall τ' e e' Γ κ κ',
-  gret τ τ' e' = Some e ->
+Lemma gret_well_typed τ τ' e e' Γ κ κ' :
+  gret τ τ' e' e ->
   Γ ⊢ τ :: κ ->
   Γ ⊢ τ' :: κ' ->
   Γ ⊢ e' :{⊤} τ' ->
   Γ ⊢ e :{⊤} τ.
 Proof using Hsrwf.
-  induction τ; simpl_sr;
+  intros H. revert Γ κ κ'.
+  induction H; intros;
     eauto using typing, kinding;
     kind_inv.
 
-  (* OADT application *)
-  apply_srctx_wf. simplify_eq.
-  relax_typing_type.
-  econstructor; eauto.
-  relax_typing_type.
-  econstructor; eauto.
-  econstructor; eauto.
-  reflexivity.
-  reflexivity.
-
-  (* Product *)
+  (* GRProd *)
   econstructor;
-    try match goal with
-        | H : _ -> _ |- _ ⊢ _ :{_} _ =>
-          eapply H; eauto using kinding;
-            solve [ relax_typing_type; econstructor; eauto ]
-        end.
-  reflexivity.
+    try auto_eapply; eauto using kinding;
+      solve [ relax_typing_type; [ econstructor | ]; eauto ].
 
-  (* Sum *)
-  all: econstructor; eauto using typing, kinding;
+  (* GRSum and GROSum *)
+  1-2:
+    econstructor; eauto using typing, kinding;
     simpl; simpl_cofin;
       match goal with
-      | |- context [<{ ?τ1 + ?τ2 }>] =>
+      | |- context [<{ ?τ1 +{_} ?τ2 }>] =>
         rewrite open_lc with (e := τ1) by eauto with lc;
           rewrite open_lc with (e := τ2) by eauto with lc
       end;
       econstructor; eauto using kinding, kinding_weakening_insert;
-        match goal with
-        | IH : context [gret ?τ _ _ = _ -> _] |- _ ⊢ _:{_} ?τ =>
-          eapply IH
-        end;
-        eauto using gret_open, kinding_weakening_insert with lc;
-        simpl; (eapply TConv; [ econstructor; simplify_map_eq | .. ];
-                eauto using kinding_weakening_insert; reflexivity).
-Qed.
+        auto_eapply;
+        try eapply TConv;
+        eauto using typing, kinding_weakening_insert with lc simpl_map;
+        reflexivity.
 
-(** ** Properties of input well-formedness *)
-
-Lemma nodep_rename_ τ x y :
-  nodep <{ τ }> ->
-  nodep <{ {x↦y}τ }>.
-Proof.
-  induction τ; simpl; intros; eauto.
-  - case_decide; eauto.
-  - simp_hyps. eauto with lc.
-Qed.
-
-Lemma lift_type_wf_rename_ τs τ' x y :
-  x # τs ->
-  lift_type_wf τs τ' ->
-  lift_type_wf τs <{ {x↦y}τ' }>.
-Proof.
-  intros ?.
-  induction 1; intros; subst; simpl in *.
-  - econstructor. eauto using nodep_rename_.
-  - rewrite subst_fresh.
-    econstructor; eauto.
-    simpl_cofin.
-    rewrite <- subst_open_comm; eauto using lc.
-    auto_eapply.
-    all: fast_set_solver!!.
-Qed.
-
-Lemma lift_type_wf_rename τs τ' x y :
-  x # τs ->
-  x # τ' ->
-  lift_type_wf τs <{ τ'^x }> ->
-  lift_type_wf τs <{ τ'^y }>.
-Proof.
-  intros.
-  rewrite (subst_intro τ' y x) by auto.
-  eauto using lift_type_wf_rename_.
+  (* GROADT *)
+  apply_srctx_wf. simplify_eq.
+  repeat (first [ typing_intro
+                | relax_typing_type; [ econstructor | ] ];
+          eauto); simpl; eauto.
 Qed.
 
 
@@ -428,103 +235,64 @@ Qed.
 #[local]
 Set Default Proof Using "All".
 
-Arguments gret : simpl never.
-Arguments gsec : simpl never.
-
-Lemma lift_core_well_typed τ : forall τ' xs e e' κ' Γ,
-  lift_core τ τ' xs e = Some e' ->
+Lemma lift_core_well_typed τ τ' e e' Γ κ' :
+  lift_core τ τ' e e' ->
   nodep τ ->
   nodep τ' ->
-  dom aset Γ ∪ tctx_fv Γ ⊆ xs ->
   Γ ⊢ τ' :: κ' ->
   Γ ⊢ e :{⊤} τ ->
   Γ ⊢ e' :{⊥} τ'.
 Proof.
-  induction τ; simpl; intros;
+  intros H. revert Γ κ'.
+  induction H; intros;
     apply_regularity;
     eauto using gsec_well_typed.
 
-  repeat case_split; simplify_eq.
-  simplify_option_eq.
-  simp_hyps.
-  kind_inv*. subst.
-  pose proof (atom_is_fresh xs).
-
-  match goal with
-  | IH : context[ lift_core _ _ _ _ = _ -> _ ], H : lift_core _ _ _ _ = _ |- _ =>
-    eapply IH in H
-  end; eauto; try set_shelve.
-  - typing_intro; eauto; try set_shelve.
-    rewrite open_close by eauto with lc.
-    rewrite open_lc_intro by auto.
-    eauto.
-  - simpl_cofin.
-    eapply_eq kinding_rename; eauto; try set_shelve.
-    by rewrite open_lc_intro by auto.
-  - relax_typing_type.
-    econstructor.
-    + eapply weakening_insert; eauto; try set_shelve.
-    + eapply gret_well_typed;
-        try (goal_is (_ ⊢ _ :: _); eapply kinding_weakening_insert);
-        eauto; try set_shelve.
-      eapply TConv.
-      econstructor. by simplify_map_eq.
-      eapply kinding_weakening_insert; eauto; try set_shelve.
-      reflexivity.
-      eapply kinding_weakening_insert; eauto; try set_shelve.
-      apply top_ub.
-    + by rewrite open_lc_intro.
-
-  Unshelve.
-  all: try fast_set_solver!!;
-           simpl_fv; rewrite ?close_fv by eauto with lc; try fast_set_solver*!!.
+  kind_inv. subst.
+  econstructor; eauto.
+  cbn in *. simp_hyps.
+  simpl_cofin.
+  repeat match goal with
+         | H : lc ?τ |- _ =>
+           rewrite (open_lc τ) in * by apply H
+         end.
+  auto_eapply; eauto.
+  relax_typing_type; [ econstructor | ];
+    eauto using weakening_insert, open_lc_intro.
+  eapply gret_well_typed; eauto using kinding_weakening_insert.
+  eapply TConv; eauto using typing, kinding_weakening_insert with simpl_map.
+  reflexivity.
+  apply top_ub.
 Qed.
 
-Lemma lift_well_typed_ τ τs : forall τ' xs e e' κ' Γ,
-  lift_ τ τ' τs xs e = Some e' ->
+Lemma lift_well_typed_ τs τ τ' e e' Γ κ' :
+  lift τs τ τ' e e' ->
   nodep τ ->
   lift_type_wf τs τ' ->
-  dom aset Γ ∪ tctx_fv Γ ⊆ xs ->
   Γ ⊢ τ' :: κ' ->
   Γ ⊢ e :{⊤} τ ->
   Γ ⊢ e' :{⊥} τ'.
 Proof.
-  induction τs; simpl; intros.
-  - qauto use: lift_core_well_typed inv: lift_type_wf.
-  - case_split; simplify_eq.
-    simplify_option_eq.
-    select (lift_type_wf _ _) (fun H => sinvert H).
-    kind_inv*. subst.
-    pose proof (atom_is_fresh xs).
+  intros H. revert Γ κ'.
+  induction H; intros.
+  - select (lift_type_wf _ _) (fun H => sinvert H).
+    kind_inv. subst.
+    econstructor; eauto.
     simpl_cofin.
-    match goal with
-    | IH : context [lift_ ?τ _ _ _ _ = _ -> _], H : lift_ _ _ _ _ _ = _ |- _ =>
-      eapply IH in H
-    end; try set_shelve.
-    + typing_intro; eauto; try set_shelve.
-      rewrite open_close; eauto with lc.
-    + eauto.
-    + eauto using lift_type_wf_rename.
-    + eapply kinding_rename; eauto; try set_shelve.
-    + eapply weakening_insert; eauto; try set_shelve.
-
-  Unshelve.
-  all: try fast_set_solver!!;
-           simpl_fv; rewrite ?close_fv by eauto with lc; try fast_set_solver*!!.
+    auto_eapply; eauto.
+    eauto using weakening_insert.
+  - qauto use: lift_core_well_typed inv: lift_type_wf.
 Qed.
 
-Theorem lift_well_typed τ τs τ' e e' κ :
-  lift τ τ' τs e = Some e' ->
+Theorem lift_well_typed τs τ τ' e e' κ' :
+  lift τs τ τ' e e' ->
   nodep τ ->
   lift_type_wf τs τ' ->
-  ∅ ⊢ τ' :: κ ->
+  ∅ ⊢ τ' :: κ' ->
   ∅ ⊢ e :{⊤} τ ->
   ∅ ⊢ e' :{⊥} τ'.
 Proof.
-  unfold lift.
-  intros.
-  eapply lift_well_typed_; eauto.
-  fast_set_solver!!.
+  eauto using lift_well_typed_.
 Qed.
 
 End lifting.
