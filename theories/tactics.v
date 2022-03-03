@@ -131,7 +131,7 @@ Tactic Notation "fast_set_solver" :=
 (** Faster set solving tactic. Stronger than [fast_set_solver], but also
 slower. *)
 Tactic Notation "fast_set_solver" "*" :=
-  try fast_done; set_unfold; qauto.
+  try fast_done; set_unfold; set_unfold; qauto.
 
 Ltac set_fold_not :=
   change (?x ∈ ?v -> False) with (x ∉ v) in *;
