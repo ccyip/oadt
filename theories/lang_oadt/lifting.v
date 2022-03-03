@@ -854,6 +854,63 @@ Proof.
   case_split; eauto.
 Qed.
 
+(** ** Local closure properties *)
+
+Lemma gsec_lc τ τ' e e' :
+  gsec τ τ' e' e ->
+  lc τ -> lc τ' -> lc e' ->
+  lc e.
+Proof.
+  induction 1; intros; repeat lc_inv; eauto 10 using lc.
+  (* Oblivious sum *)
+  econstructor.
+  econstructor; eauto using lc;
+    simpl_cofin; simpl;
+    rewrite !open_lc by eauto;
+    eauto 10 using lc.
+Qed.
+
+Lemma gret_lc τ τ' e e' :
+  gret τ τ' e e' ->
+  lc τ -> lc τ' -> lc e ->
+  lc e'.
+Proof.
+  induction 1; intros; repeat lc_inv; eauto 10 using lc;
+    (* Sum and Oblivious sum *)
+    econstructor; eauto using lc;
+    simpl_cofin; simpl;
+    rewrite !open_lc by eauto;
+    eauto 10 using lc.
+Qed.
+
+Lemma lift_core_lc τ τ' e e' :
+  lift_core τ τ' e e' ->
+  nodep τ -> nodep τ' ->
+  lc τ -> lc τ' -> lc e ->
+  lc e'.
+Proof.
+  induction 1; simpl; intros; simp_hyps; repeat lc_inv;
+    eauto using gsec_lc.
+  econstructor; eauto.
+  simpl_cofin.
+  eauto using lc, gret_lc.
+Qed.
+
+Lemma lift_lc τs τ τ' e e' :
+  lift τs τ τ' e e' ->
+  nodep τ ->
+  lift_type_wf τs τ' ->
+  lc τ -> lc τ' -> lc e ->
+  lc e'.
+Proof.
+  induction 1; simpl; intros; simp_hyps; repeat lc_inv;
+    select (lift_type_wf _ _) (fun H => sinvert H);
+    eauto using lift_core_lc.
+  econstructor; eauto.
+  simpl_cofin.
+  eauto.
+Qed.
+
 (** ** Correctness of section and retraction *)
 
 Lemma gsec_reval_reflect τ τ' e e' v' :
@@ -1013,21 +1070,6 @@ Qed.
 
 (** ** Correctness of lifting *)
 
-Lemma gret_lc τ τ' e e' :
-  gret τ τ' e e' ->
-  lc τ ->
-  lc τ' ->
-  lc e ->
-  lc e'.
-Proof.
-  induction 1; intros; repeat lc_inv; eauto 10 using lc;
-    (* Sum and Oblivious sum *)
-    econstructor; eauto using lc;
-    simpl_cofin; simpl;
-    rewrite !open_lc by eauto;
-    eauto 10 using lc.
-Qed.
-
 Lemma lift_core_correct τ : forall τ' e e',
   lift_core τ τ' e e' ->
   lc e ->
@@ -1081,6 +1123,404 @@ Theorem lift_correct τs τ τ' e e' :
   lift_requiv τs τ τ' e e'.
 Proof.
   eauto using lift_correct_, lift_requiv_reval_sound.
+Qed.
+
+
+(** * Computation *)
+
+(** ** Implementation of lifting *)
+
+Fixpoint Gsec (τ τ' : expr) (e : expr) : option expr :=
+  match τ, τ' with
+  | <{ 𝟙 }>, <{ 𝟙 }> => Some <{ tape e }>
+  | <{ 𝔹 }>, <{ ~𝔹 }> => Some <{ tape (s𝔹 e) }>
+  | <{ τ1 * τ2 }>, <{ τ1' * τ2' }> =>
+    e1 <- Gsec τ1 τ1' <{ π1 e }>;
+    e2 <- Gsec τ2 τ2' <{ π2 e }>;
+    Some <{ (e1, e2) }>
+  | <{ τ1 + τ2 }>, <{ τ1' ~+ τ2' }> =>
+    e1 <- Gsec τ1 τ1' <{ bvar 0 }>;
+    e2 <- Gsec τ2 τ2' <{ bvar 0 }>;
+    Some <{ tape (case e of ~inl<τ1' ~+ τ2'> e1 | ~inr<τ1' ~+ τ2'> e2) }>
+  | <{ gvar X }>, <{ X'@k }> =>
+    '(s, _) <- Δ !! (X, X');
+    Some <{ (gvar s) k e }>
+  | _, _ => None
+  end.
+
+Fixpoint Gret (τ τ' : expr) (e : expr) : option expr :=
+  if decide (τ = τ')
+  then Some e
+  else match τ, τ' with
+       | <{ 𝔹 }>, <{ ~𝔹 }> => Some <{ ~if tape e then true else false }>
+       | <{ τ1 * τ2 }>, <{ τ1' * τ2' }> =>
+         e1 <- Gret τ1 τ1' <{ π1 e }>;
+         e2 <- Gret τ2 τ2' <{ π2 e }>;
+         Some <{ (e1, e2) }>
+       | <{ τ1 + τ2 }>, <{ τ1' + τ2' }> =>
+         e1 <- Gret τ1 τ1' <{ bvar 0 }>;
+         e2 <- Gret τ2 τ2' <{ bvar 0 }>;
+         Some <{ case e of inl<τ1 + τ2> e1 | inr<τ1 + τ2> e2 }>
+       | <{ τ1 + τ2 }>, <{ τ1' ~+ τ2' }> =>
+         e1 <- Gret τ1 τ1' <{ bvar 0 }>;
+         e2 <- Gret τ2 τ2' <{ bvar 0 }>;
+         Some <{ ~case tape e of inl<τ1 + τ2> e1 | inr<τ1 + τ2> e2 }>
+       | <{ gvar X }>, <{ X'@k }> =>
+         '(_, r) <- Δ !! (X, X');
+         Some <{ (gvar r) k e }>
+       | _, _ => None
+       end.
+
+Fixpoint Lift_core (τ τ' : expr) (xs : aset) (e : expr) : option expr :=
+  match τ, τ' with
+  | <{ Π:{l}τ1, τ2 }>, <{ Π:{l'}τ1', τ2' }> =>
+    if l
+    then let x := fresh xs in
+         r <- Gret τ1 τ1' <{ fvar x }>;
+         e' <- Lift_core τ2 τ2' ({[x]} ∪ xs) <{ e r }>;
+         Some <{ \:{l'}τ1' => ,(close x e') }>
+    else None
+  | _, _ => Gsec τ τ' e
+  end.
+
+Fixpoint Lift_ (τs : list expr) (τ τ' : expr) (xs : aset) (e : expr) : option expr :=
+  match τs with
+  | _::τs =>
+    match τ' with
+    | <{ Π:{l}τ1, τ2' }> =>
+      let x := fresh xs in
+      e' <- Lift_ τs τ <{ τ2'^x }> ({[x]} ∪ xs) e;
+      Some <{ \:τ1 => ,(close x e') }>
+    | _ => None
+    end
+  | [] => Lift_core τ τ' xs e
+  end.
+
+Definition Lift (τs : list expr) (τ τ' : expr) (e : expr) : option expr :=
+  Lift_ τs τ τ' ∅ e.
+
+(** ** Lemmas about opening, renaming and free variables *)
+
+Arguments open : simpl never.
+
+Ltac simpl_lift :=
+  intros; cbn in *;
+  repeat (first [ case_decide | case_split_var ]; cbn in *; simplify_eq);
+  simplify_option_eq;
+  simp_hyps; intros; subst; cbn in *.
+
+Lemma Gsec_body τ : forall τ' e e',
+  Gsec τ τ' e = Some e' ->
+  lc τ' ->
+  body e ->
+  body e'.
+Proof.
+  unfold body, open.
+  induction τ; simpl_lift;
+    repeat lc_inv;
+    (* Apply induction hypotheses. *)
+    repeat match goal with
+           | IH : context [Gsec ?τ _ _ = _ -> _], H : Gsec ?τ _ _ = _ |- _ =>
+               apply IH in H; clear IH
+           end;
+    simpl;
+    eauto using lc;
+    simp_hyps;
+    eexists; simpl_cofin;
+    try solve [ repeat econstructor; eauto; by rewrite open_lc ].
+
+  econstructor.
+  econstructor; eauto;
+    simpl_cofin; simpl;
+      repeat econstructor;
+      try solve [ repeat (rewrite open_lc; eauto) ];
+      rewrite open_comm by eauto using lc;
+      rewrite open_lc; eauto with lc.
+
+  Unshelve.
+  all: exact ∅.
+Qed.
+
+Lemma Gsec_open τ s : forall τ' e e',
+  Gsec τ τ' e = Some e' ->
+  lc τ' ->
+  Gsec τ τ' <{ e^s }> = Some <{ e'^s }>.
+Proof.
+  unfold open.
+  induction τ; simpl_lift; eauto;
+    repeat lc_inv;
+    repeat f_equal; try solve [ by rewrite !open_lc by eauto ].
+
+  repeat match goal with
+         | IH : context [Gsec ?τ _ _ = _ -> _], H : Gsec ?τ _ _ = _ |- _ =>
+           apply IH in H; clear IH; [ simpl in H; rewrite H | .. ]
+         end;
+    eauto.
+
+  all: rewrite open_body; eauto using Gsec_body, body_bvar.
+Qed.
+
+Lemma Gret_body τ : forall τ' e e',
+  Gret τ τ' e' = Some e ->
+  lc τ ->
+  lc τ' ->
+  body e' ->
+  body e.
+Proof.
+  unfold body, open.
+  induction τ; simpl_lift; eauto;
+      repeat lc_inv;
+      (* Apply induction hypotheses. *)
+      repeat match goal with
+             | IH : context [Gret ?τ _ _ = _ -> _], H : Gret ?τ _ _ = _ |- _ =>
+               apply IH in H; clear IH
+             end;
+      simpl;
+      eauto using lc;
+      simp_hyps;
+      eexists; simpl_cofin;
+        try solve [ repeat econstructor; eauto; by rewrite open_lc ].
+
+  all: econstructor; eauto using lc;
+      simpl_cofin; simpl;
+      repeat econstructor;
+      try solve [ repeat (rewrite open_lc; eauto) ];
+      rewrite open_comm by eauto using lc;
+      rewrite open_lc; eauto with lc.
+
+  Unshelve.
+  all: exact ∅.
+Qed.
+
+Lemma Gret_open τ s : forall τ' e e',
+  Gret τ τ' e' = Some e ->
+  lc τ ->
+  lc τ' ->
+  Gret τ τ' <{ e'^s }> = Some <{ e^s }>.
+Proof.
+  unfold open.
+  induction τ; simpl_lift; eauto;
+    repeat lc_inv;
+    repeat f_equal; try solve [ by rewrite !open_lc by eauto ].
+
+  repeat match goal with
+         | IH : context [Gret ?τ _ _ = _ -> _], H : Gret ?τ _ _ = _ |- _ =>
+           apply IH in H; clear IH; [ simpl in H; rewrite H | .. ]
+         end;
+    eauto.
+
+  all: repeat f_equal;
+    try solve [ by rewrite !open_lc by eauto ];
+    rewrite open_body; eauto using Gret_body, body_bvar.
+Qed.
+
+Lemma nodep_rename τ x y :
+  nodep <{ τ }> ->
+  nodep <{ {x↦y}τ }>.
+Proof.
+  induction τ; simpl; intros; eauto.
+  - case_decide; eauto.
+  - simp_hyps. eauto with lc.
+Qed.
+
+Lemma lift_type_wf_rename_ τs τ' x y :
+  x # τs ->
+  lift_type_wf τs τ' ->
+  lift_type_wf τs <{ {x↦y}τ' }>.
+Proof.
+  intros ?.
+  induction 1; intros; subst; simpl in *.
+  - econstructor. eauto using nodep_rename.
+  - rewrite subst_fresh.
+    econstructor; eauto.
+    simpl_cofin.
+    rewrite <- subst_open_comm; eauto using lc.
+    auto_eapply.
+    all: fast_set_solver!!.
+Qed.
+
+Lemma lift_type_wf_rename τs τ' x y :
+  lift_type_wf τs <{ τ'^x }> ->
+  x # τs ->
+  x # τ' ->
+  lift_type_wf τs <{ τ'^y }>.
+Proof.
+  intros.
+  rewrite (subst_intro τ' y x) by auto.
+  eauto using lift_type_wf_rename_.
+Qed.
+
+Lemma gret_fv τ τ' e e' :
+  gret τ τ' e' e ->
+  fv e ⊆ fv τ ∪ fv τ' ∪ fv e'.
+Proof.
+  induction 1; simpl; eauto;
+    simpl_cofin?; simpl_fv; fast_set_solver*!.
+Qed.
+
+Lemma lift_type_wf_fv τs τ :
+  lift_type_wf τs τ ->
+  stale τs ⊆ fv τ.
+Proof.
+  induction 1; simpl.
+  - fast_set_solver!!.
+  - simpl_cofin.
+    simpl_fv.
+    fast_set_solver*!.
+Qed.
+
+(** ** Correctness of the implementation *)
+
+Lemma Gsec_refine τ : forall τ' e e',
+  Gsec τ τ' e = Some e' ->
+  lc τ' ->
+  gsec τ τ' e e'.
+Proof.
+  induction τ; simpl_lift; try repeat lc_inv; eauto using gsec.
+  (* Sum *)
+  econstructor; simpl_cofin;
+    match goal with
+    | H : Gsec ?τ _ _ = _ |- gsec ?τ _ <{ fvar ?x }> _ =>
+        eapply Gsec_open with (s:=x) in H; eauto
+    end.
+Qed.
+
+Lemma Gret_refine τ : forall τ' e e',
+  Gret τ τ' e = Some e' ->
+  lc τ ->
+  lc τ' ->
+  gret τ τ' e e'.
+Proof.
+  induction τ; simpl_lift; try repeat lc_inv; eauto using gret.
+  (* Sum and oblivious sum *)
+  all:
+    econstructor; eauto; simpl_cofin;
+    match goal with
+    | H : Gret ?τ _ _ = _ |- gret ?τ _ <{ fvar ?x }> _ =>
+        eapply Gret_open with (s:=x) in H; eauto
+    end.
+Qed.
+
+Arguments Gsec : simpl never.
+Arguments Gret : simpl never.
+
+Lemma Lift_core_refine τ : forall τ' xs e e',
+  Lift_core τ τ' xs e = Some e' ->
+  nodep τ -> nodep τ' ->
+  lc e -> lc τ -> lc τ' ->
+  fv τ ∪ fv τ' ∪ fv e ⊆ xs ->
+  lift_core τ τ' e e'.
+Proof.
+  induction τ; simpl_lift;
+    eauto using lift_core, Gsec_refine.
+  repeat lc_inv.
+  match goal with
+  | H : context [ fresh ?xs ] |- _ =>
+      let y := fresh "y" in
+      set (fresh xs) as y in *;
+      assert (y ∉ xs) by apply atom_is_fresh
+  end.
+  match goal with
+  | H : Gret _ _ <{ fvar ?y }> = Some ?e' |- _ =>
+      apply Gret_refine in H; eauto;
+      assert (lc e') by eauto using lc, gret_lc;
+      dup_hyp H (fun H => eapply gret_fv in H);
+      rewrite <- (open_close e' y) in H by assumption
+  end.
+  match goal with
+  | H : Lift_core ?τ _ _ _ = Some ?e', IH : context [ lift_core ?τ _ _ _ ] |- _ =>
+      eapply IH in H; eauto using lc; try set_shelve;
+      assert (lc e') by eauto using lc, lift_core_lc
+  end.
+
+  econstructor; simpl_cofin.
+  - match goal with
+    | H : gret _ _ <{ fvar ?y }> _ |- gret _ _ <{ fvar ?x }> _ =>
+        eapply gret_subst with (x:=y) (s:=x) in H;
+        [ | eauto using lc | shelve ];
+        simpl in H;
+        rewrite decide_True in H by eauto;
+        rewrite <- subst_intro in H by shelve
+    end.
+    eassumption.
+  - rewrite !open_close_subst by eauto.
+    match goal with
+    | H : lift_core _ _ <{ ?e _ }> _ |- context [ <{ {?y↦fvar ?x}_ }> ] =>
+        eapply lift_core_subst with (x:=y) (s:=x) in H;
+        [ | eauto using lc | shelve ];
+        simpl in H;
+        rewrite (subst_fresh e) in H by shelve
+    end.
+    eassumption.
+
+  Unshelve.
+  all: simpl; rewrite ?close_fv by eauto; fast_set_solver*!!.
+Qed.
+
+Lemma Lift_refine_ τs : forall τ τ' xs e e',
+  Lift_ τs τ τ' xs e = Some e' ->
+  nodep τ ->
+  lift_type_wf τs τ' ->
+  lc e -> lc τ -> lc τ' ->
+  fv τ ∪ fv τ' ∪ fv e ⊆ xs ->
+  lift τs τ τ' e e'.
+Proof.
+  induction τs; simpl_lift;
+    select (lift_type_wf _ _) (fun H => sinvert H);
+    eauto using Lift_core_refine, lift.
+  repeat lc_inv.
+  match goal with
+  | H : context [ fresh ?xs ] |- _ =>
+      let y := fresh "y" in
+      set (fresh xs) as y in *;
+      assert (y ∉ xs) by apply atom_is_fresh
+  end.
+  econstructor.
+  simpl_cofin.
+  select (lift_type_wf _ _)
+         (fun H => dup_hyp H (fun H => apply lift_type_wf_fv in H);
+                 eapply lift_type_wf_rename in H); eauto.
+  match goal with
+  | H : Lift_ _ _ _ _ _ = Some ?e', IH : context [ lift _ _ _ _ _ ] |- _ =>
+      eapply IH in H; eauto with lc; try set_shelve;
+      assert (lc e') by eauto using lift_lc with lc
+  end.
+  rewrite open_close_subst by eauto.
+  match goal with
+  | H : lift _ _ _ _ _ |- context [ <{ {?y↦(fvar ?x)}_ }> ] =>
+      eapply lift_subst with (x:=y) (s:=x) in H;
+      [ | eauto using lc | shelve ];
+      rewrite <- subst_intro in H by shelve
+  end.
+  eassumption.
+
+  Unshelve.
+  all: simpl_fv; fast_set_solver*!.
+Qed.
+
+Theorem Lift_refine τs τ τ' e e' κ' :
+  Lift τs τ τ' e = Some e' ->
+  nodep τ ->
+  lift_type_wf τs τ' ->
+  ∅ ⊢ τ' :: κ' ->
+  ∅ ⊢ e :{⊤} τ ->
+  lift τs τ τ' e e'.
+Proof.
+  intros.
+  eapply Lift_refine_; eauto with lc.
+  simpl_fv.
+  fast_set_solver*!!.
+Qed.
+
+Theorem Lift_well_typed_correct τs τ τ' e e' κ' :
+  Lift τs τ τ' e = Some e' ->
+  nodep τ ->
+  lift_type_wf τs τ' ->
+  ∅ ⊢ τ' :: κ' ->
+  ∅ ⊢ e :{⊤} τ ->
+  ∅ ⊢ e' :{⊥} τ' /\ lift_requiv τs τ τ' e e'.
+Proof.
+  eauto 10 using Lift_refine, lift_well_typed, lift_correct with lc.
 Qed.
 
 End lifting.
