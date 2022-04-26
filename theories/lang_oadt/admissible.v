@@ -224,12 +224,11 @@ Proof.
   typing_intro_solver.
 Qed.
 
-Lemma TLet_intro Γ l1 l2 l e1 e2 τ1 τ2 x :
+Lemma TLet_intro Γ l1 l2 e1 e2 τ1 τ2 x :
   Γ ⊢ e1 :{l1} τ1 ->
   <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x ->
-  l = l1 ⊔ l2 ->
   x ∉ fv e2 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
-  Γ ⊢ let e1 in e2 :{l} τ2^e1.
+  Γ ⊢ let e1 in e2 :{l2} τ2^e1.
 Proof.
   typing_intro_solver.
 Qed.

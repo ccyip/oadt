@@ -251,11 +251,10 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     (forall x, x ∉ L -> <[x:=(l2, τ2)]>Γ ⊢ e^x :{l1} τ1^x) ->
     Γ ⊢ τ2 :: κ ->
     Γ ⊢ \:{l2}τ2 => e :{l1} (Π:{l2}τ2, τ1)
-| TLet Γ l1 l2 l e1 e2 τ1 τ2 L :
+| TLet Γ l1 l2 e1 e2 τ1 τ2 L :
     Γ ⊢ e1 :{l1} τ1 ->
     (forall x, x ∉ L -> <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x) ->
-    l = l1 ⊔ l2 ->
-    Γ ⊢ let e1 in e2 :{l} τ2^e1
+    Γ ⊢ let e1 in e2 :{l2} τ2^e1
 | TApp Γ l1 l2 e1 e2 τ1 τ2 :
     Γ ⊢ e1 :{l1} (Π:{l2}τ2, τ1) ->
     Γ ⊢ e2 :{l2} τ2 ->
