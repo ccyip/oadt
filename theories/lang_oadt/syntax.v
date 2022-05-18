@@ -167,32 +167,32 @@ Notation "'Π' :{ l } τ1 , τ2" := (EPi l τ1 τ2)
                                    (in custom oadt at level 50,
                                        right associativity,
                                        format "Π :{ l } τ1 ,  τ2").
-Notation "'Π' : τ1 , τ2" := (EPi LSafe τ1 τ2)
+Notation "'Π' !: τ1 , τ2" := (EPi LSafe τ1 τ2)
+                               (in custom oadt at level 50,
+                                   right associativity,
+                                   format "Π !: τ1 ,  τ2").
+Notation "'Π' : τ1 , τ2" := (EPi LLeak τ1 τ2)
                               (in custom oadt at level 50,
                                   right associativity,
                                   format "Π : τ1 ,  τ2").
-Notation "'Π' ~: τ1 , τ2" := (EPi LLeak τ1 τ2)
-                               (in custom oadt at level 50,
-                                   right associativity,
-                                   format "Π ~: τ1 ,  τ2").
 Notation "\ :{ l } τ '=>' e" := (EAbs l τ e)
                                   (in custom oadt at level 90,
                                       τ custom oadt at level 99,
                                       e custom oadt at level 99,
                                       left associativity,
                                       format "\ :{ l } τ  =>  e").
-Notation "\ : τ '=>' e" := (EAbs LSafe τ e)
+Notation "\ !: τ '=>' e" := (EAbs LSafe τ e)
+                              (in custom oadt at level 90,
+                                  τ custom oadt at level 99,
+                                  e custom oadt at level 99,
+                                  left associativity,
+                                  format "\ !: τ  =>  e").
+Notation "\ : τ '=>' e" := (EAbs LLeak τ e)
                              (in custom oadt at level 90,
                                  τ custom oadt at level 99,
                                  e custom oadt at level 99,
                                  left associativity,
                                  format "\ : τ  =>  e").
-Notation "\ ~: τ '=>' e" := (EAbs LLeak τ e)
-                              (in custom oadt at level 90,
-                                  τ custom oadt at level 99,
-                                  e custom oadt at level 99,
-                                  left associativity,
-                                  format "\ ~: τ  =>  e").
 Notation "e1 e2" := (EApp e1 e2) (in custom oadt at level 2, left associativity).
 Notation "X @ e" := (ETApp X e) (in custom oadt at level 2,
                                     format "X @ e").
