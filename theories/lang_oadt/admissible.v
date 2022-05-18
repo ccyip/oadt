@@ -302,7 +302,7 @@ Qed.
 Lemma KProd_intro Γ τ1 τ2 κ1 κ2 :
   Γ ⊢ τ1 :: κ1 ->
   Γ ⊢ τ2 :: κ2 ->
-  Γ ⊢ τ1 * τ2 :: (κ1 ⊔ κ2).
+  Γ ⊢ τ1 * τ2 :: (κ1 ⊔ κ2 ⊔ *@P).
 Proof.
   eauto using kinding, join_ub_l, join_ub_r.
 Qed.
@@ -327,8 +327,10 @@ Ltac typing_intro_ :=
   | |- _ ⊢ lit _ : _ => eapply TLit
   | |- _ ⊢ s𝔹 _ : _ => eapply TSec
   | |- _ ⊢ (_, _) : _ => eapply TPair
+  | |- _ ⊢ ~(_, _) : _ => eapply TOPair
   | |- _ ⊢ ~if _ then _ else _ : _ => eapply TOIte
   | |- _ ⊢ π@_ _ : _ => eapply TProj
+  | |- _ ⊢ ~π@_ _ : _ => eapply TOProj
   | |- _ ⊢ inj@_<_> _ : _ => eapply TInj
   | |- _ ⊢ ~inj@_<_> _ : _ => eapply TOInj
   | |- _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
@@ -353,6 +355,7 @@ Ltac kinding_intro_ :=
   | |- _ ⊢ Π:{_}_, _ :: _ => eapply KPi_intro
   | |- _ ⊢ _@_ :: _ => eapply KApp
   | |- _ ⊢ _ * _ :: _ => eapply KProd_intro
+  | |- _ ⊢ _ ~* _ :: _ => eapply KOProd
   | |- _ ⊢ _ + _ :: _ => eapply KSum
   | |- _ ⊢ _ ~+ _ :: _ => eapply KOSum
   | |- _ ⊢ if _ then _ else _ :: _ => eapply KIte

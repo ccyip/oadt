@@ -68,8 +68,7 @@ Lemma indistinguishable_otval ω ω' :
   otval ω ->
   otval ω'.
 Proof.
-  induction 1; intros;
-    qauto l: on inv: otval ctrs: otval.
+  induction 1; intros; repeat otval_inv; qauto ctrs: otval.
 Qed.
 
 Lemma indistinguishable_otval_inv ω ω' :
@@ -78,8 +77,16 @@ Lemma indistinguishable_otval_inv ω ω' :
   otval ω' ->
   ω = ω'.
 Proof.
-  induction 1; intros;
-    qauto l: on inv: otval.
+  induction 1; intros; repeat otval_inv; qauto.
+Qed.
+
+Lemma indistinguishable_oval v v' :
+  v ≈ v' ->
+  oval v ->
+  lc v' ->
+  oval v'.
+Proof.
+  induction 1; intros; repeat oval_inv; repeat lc_inv; eauto using oval.
 Qed.
 
 Lemma indistinguishable_wval_ v v' :
@@ -88,7 +95,11 @@ Lemma indistinguishable_wval_ v v' :
   lc v' ->
   wval v'.
 Proof.
-  induction 1; intros; hauto l: on ctrs: wval inv: wval, lc, indistinguishable.
+  induction 1; intros;
+    repeat wval_inv; repeat oval_inv; repeat lc_inv;
+    eauto using wval, oval, indistinguishable_oval.
+
+  qauto ctrs: wval, oval inv: indistinguishable.
 Qed.
 
 Lemma indistinguishable_wval v v' Σ Γ l τ :
@@ -100,72 +111,9 @@ Proof.
   qauto use: indistinguishable_wval_, typing_lc.
 Qed.
 
-Lemma indistinguishable_wval_is_nf Σ v v' :
-  wval v ->
-  v ≈ v' ->
-  nf (@step Σ) v'.
-Proof.
-  intros H. revert v'.
-  induction H; intros ?? [];
-    repeat (indistinguishable_inv || step_inv);
-    eauto; sfirstorder.
-Qed.
-
-Lemma indistinguishable_otval_is_nf Σ ω ω' :
-  otval ω ->
-  ω ≈ ω' ->
-  nf (@step Σ) ω'.
-Proof.
-  intros H. revert ω'.
-  induction H; intros ?? [];
-    select (_ ≈ _) (fun H => sinvert H);
-    select (_ ⊨ _ -->! _) (fun H => sinvert H);
-    repeat ectx_inv;
-    simplify_eq; eauto; sfirstorder.
-Qed.
-
 Section fix_gctx.
 
 Context (Σ : gctx).
-
-#[local]
-Set Default Proof Using "Type".
-
-Lemma indistinguishable_wval_step v v' e :
-  wval v ->
-  v ≈ v' ->
-  v' -->! e ->
-  False.
-Proof.
-  sfirstorder use: indistinguishable_wval_is_nf.
-Qed.
-
-Lemma indistinguishable_otval_step ω ω' e :
-  otval ω ->
-  ω ≈ ω' ->
-  ω' -->! e ->
-  False.
-Proof.
-  sfirstorder use: indistinguishable_otval_is_nf.
-Qed.
-
-
-Ltac apply_canonical_form_ H τ :=
-  lazymatch τ with
-  | <{ 𝟙 }> => eapply canonical_form_unit in H
-  | <{ ~𝔹 }> => eapply canonical_form_obool in H
-  | <{ _ * _ }> => eapply canonical_form_prod in H
-  | <{ _ ~+ _ }> => eapply canonical_form_osum in H
-  end.
-
-(* This tactic is destructive. *)
-Ltac apply_canonical_form :=
-  match goal with
-  | H : val ?e, H' : _ ⊢ ?e : ?τ |- _ =>
-    apply_canonical_form_ H τ; eauto; try simp_hyp H
-  end; subst.
-
-
 Context (Hwf : gctx_wf Σ).
 
 #[local]
@@ -185,6 +133,7 @@ Proof.
   intros H. revert v' l'.
   induction H; intros;
     repeat val_inv;
+    repeat oval_inv;
     try apply_regularity;
     try apply_canonical_form;
     type_inv;
@@ -196,12 +145,12 @@ Proof.
                 econstructor; eauto with equiv_naive_solver ].
 
   (* Boxed injection *)
-  - select (ovalty _ _) (fun H => sinvert H).
+  - ovalty_inv.
     apply_canonical_form.
     type_inv.
     kind_inv.
     select (_ ≡ _) (fun H => eapply otval_uniq in H;
-                               eauto using otval; rewrite H).
+                           eauto using otval; rewrite H).
     econstructor.
 
   (* Equivalence case *)
@@ -222,16 +171,17 @@ Proof.
   induction H; intros;
     try indistinguishable_inv;
     repeat val_inv;
+    repeat oval_inv;
     try apply_regularity;
     type_inv;
     kind_inv;
     simplify_eq;
     try easy.
 
-  (* Product *)
-  - select (_ ≡ <{ _ * _ }>) (fun H => rewrite H).
+  (* Oblivious product *)
+  - etrans; [ | symmetry; eauto ].
     apply_pared_equiv_congr; eauto using kinding_lc, typing_type_lc;
-      auto_eapply; eauto using kinding.
+      auto_eapply; eauto using kinding, oval_val.
 
   (* Equivalence case *)
   - etrans; try auto_eapply; eauto with equiv_naive_solver.
@@ -297,22 +247,21 @@ Proof.
   intros H. revert e2 e2'.
   induction H; intros;
     repeat ectx_inv; simplify_eq;
-      repeat
-        (indistinguishable_inv;
-         try (select (_ \/ _) (fun H => destruct H as [ [?[?[?[?[??]]]]] | [?[?[??]]] ]));
-         type_inv; kind_inv; simplify_eq;
-         try step_inv;
-         try select (oval _) (fun H => apply oval_val in H; apply val_wval in H);
-         try select! (woval _) (fun H => apply woval_wval in H);
-         try solve
-             (* Discharge the impossible cases *)
-             [ val_step_absurd
-             (* Solve the trivial cases *)
-             | eauto using indistinguishable, indistinguishable_open
-             (* Solve the inductive cases. *)
-             | econstructor; eauto; auto_eapply; eauto 10 using kinding ]);
-      (* Solve other less trivial cases *)
-      try qauto rew: off use: indistinguishable_open solve: reflexivity.
+    repeat
+      (repeat indistinguishable_inv;
+       try (select (_ \/ _) (fun H => destruct H); simp_hyps);
+       type_inv; kind_inv; simplify_eq;
+       try step_inv; try oval_inv;
+       try select! (woval _) (fun H => apply woval_wval in H);
+       try solve
+           (* Discharge the impossible cases *)
+           [ val_step_absurd
+           (* Solve the trivial cases *)
+           | eauto using indistinguishable, indistinguishable_open
+           (* Solve the inductive cases. *)
+           | econstructor; eauto; auto_eapply; eauto 10 using kinding ]);
+    (* Solve other less trivial cases *)
+    try qauto rew: off use: indistinguishable_open solve: reflexivity.
 
   (* Step from oblivious injection to boxed injection *)
   - match goal with

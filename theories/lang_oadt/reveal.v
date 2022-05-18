@@ -55,9 +55,9 @@ Fixpoint erase_wval (e : expr) : expr :=
   | <{ let e1 in e2 }> => <{ let ⟦e1⟧ in ⟦e2⟧ }>
   | <{ s𝔹 e }> => <{ s𝔹 ⟦e⟧ }>
   | <{ if e0 then e1 else e2 }> => <{ if ⟦e0⟧ then ⟦e1⟧ else ⟦e2⟧ }>
-  | <{ τ1 * τ2 }> => <{ ⟦τ1⟧ * ⟦τ2⟧ }>
-  | <{ (e1, e2) }> => <{ (⟦e1⟧, ⟦e2⟧) }>
-  | <{ π@b e }> => <{ π@b ⟦e⟧ }>
+  | <{ τ1 *{l} τ2 }> => <{ ⟦τ1⟧ *{l} ⟦τ2⟧ }>
+  | <{ (e1, e2){l} }> => <{ (⟦e1⟧, ⟦e2⟧){l} }>
+  | <{ π{l}@b e }> => <{ π{l}@b ⟦e⟧ }>
   | <{ τ1 +{l} τ2 }> => <{ ⟦τ1⟧ +{l} ⟦τ2⟧ }>
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<⟦τ⟧> ⟦e⟧ }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} ⟦e0⟧ of ⟦e1⟧ | ⟦e2⟧ }>
@@ -89,7 +89,7 @@ Inductive reval : expr -> expr -> Prop :=
 | REProd τ1 τ2 ω1 ω2 :
     τ1 ↓ ω1 ->
     τ2 ↓ ω2 ->
-    <{ τ1 * τ2 }> ↓ <{ ω1 * ω2 }>
+    <{ τ1 ~* τ2 }> ↓ <{ ω1 ~* ω2 }>
 | REOSum τ1 τ2 ω1 ω2 :
     τ1 ↓ ω1 ->
     τ2 ↓ ω2 ->
@@ -141,13 +141,13 @@ Inductive reval : expr -> expr -> Prop :=
     otval ω ->
     oval v ->
     <{ ~inj@b<τ> e }> ↓ <{ [inj@b<ω> v] }>
-| REPair e1 e2 v1 v2 :
+| REPair l e1 e2 v1 v2 :
     e1 ↓ v1 ->
     e2 ↓ v2 ->
-    <{ (e1, e2) }> ↓ <{ (v1, v2) }>
-| REProj b e v1 v2 :
-    e ↓ <{ (v1, v2) }> ->
-    <{ π@b e }> ↓ <{ ite b v1 v2 }>
+    <{ (e1, e2){l} }> ↓ <{ (v1, v2){l} }>
+| REProj l b e v1 v2 :
+    e ↓ <{ (v1, v2){l} }> ->
+    <{ π{l}@b e }> ↓ <{ ite b v1 v2 }>
 | REFold X e v :
     e ↓ v ->
     <{ fold<X> e }> ↓ <{ fold<X> v }>
@@ -189,7 +189,7 @@ Ltac reval_inv :=
   end.
 
 Tactic Notation "reval_inv" "*" :=
-  repeat (reval_inv; repeat val_inv; repeat otval_inv).
+  repeat (reval_inv; repeat val_inv; repeat oval_inv; repeat otval_inv).
 
 Section inversion.
 
@@ -198,11 +198,11 @@ Context (Σ : gctx).
 #[local]
 Set Default Proof Using "Type".
 
-Ltac inv_solver := intros; reval_inv*; eauto 10 using reval.
+Ltac inv_solver := intros; reval_inv*; eauto 10 using reval, val.
 
-Lemma reval_inv_prod τ1 τ2 ω :
-  <{ τ1 * τ2 }> ↓ ω ->
-  exists ω1 ω2, ω = <{ ω1 * ω2 }> /\ τ1 ↓ ω1 /\ τ2 ↓ ω2.
+Lemma reval_inv_oprod τ1 τ2 ω :
+  <{ τ1 ~* τ2 }> ↓ ω ->
+  exists ω1 ω2, ω = <{ ω1 ~* ω2 }> /\ τ1 ↓ ω1 /\ τ2 ↓ ω2.
 Proof.
   inv_solver.
 Qed.
@@ -228,9 +228,9 @@ Proof.
   inv_solver.
 Qed.
 
-Lemma reval_inv_pair e1 e2 v :
-  <{ (e1, e2) }> ↓ v ->
-  exists v1 v2, v = <{ (v1, v2) }> /\ e1 ↓ v1 /\ e2 ↓ v2.
+Lemma reval_inv_pair l e1 e2 v :
+  <{ (e1, e2){l} }> ↓ v ->
+  exists v1 v2, v = <{ (v1, v2){l} }> /\ e1 ↓ v1 /\ e2 ↓ v2.
 Proof.
   inv_solver.
 Qed.
@@ -248,11 +248,11 @@ End inversion.
 
 Ltac reval_inv_lem e :=
   match e with
-  | <{ _ * _ }> => reval_inv_prod
+  | <{ _ * _ }> => reval_inv_oprod
   | <{ _ ~+ _ }> => reval_inv_osum
   | <{ inj@_<_> _ }> => reval_inv_inj
   | <{ ~inj@_<_> _ }> => reval_inv_oinj
-  | <{ (_, _) }> => reval_inv_pair
+  | <{ (_, _){_} }> => reval_inv_pair
   | <{ fold<_> _ }> => reval_inv_fold
   end.
 
@@ -329,6 +329,20 @@ Arguments is_oif_wval : simpl never.
 
 (** ** Properties of [erase_wval] *)
 
+Lemma erase_otval ω :
+  otval ω ->
+  ⟦ω⟧ = ω.
+Proof.
+  induction 1; qauto.
+Qed.
+
+Lemma erase_oval v :
+  oval v ->
+  ⟦v⟧ = v.
+Proof.
+  induction 1; qauto.
+Qed.
+
 Lemma erase_wval_val w :
   wval w ->
   val (⟦w⟧).
@@ -336,6 +350,7 @@ Proof.
   induction 1; eauto using val.
 
   simpl. simpl_is_oif_wval; qauto use: val_wval.
+  rewrite erase_oval; eauto using val.
 Qed.
 
 Lemma erase_val_val v :
@@ -350,20 +365,6 @@ Lemma erase_wval_wval v :
   wval (⟦v⟧).
 Proof.
   eauto using erase_wval_val, val_wval.
-Qed.
-
-Lemma erase_otval ω :
-  otval ω ->
-  ⟦ω⟧ = ω.
-Proof.
-  induction 1; qauto.
-Qed.
-
-Lemma erase_oval v :
-  oval v ->
-  ⟦v⟧ = v.
-Proof.
-  induction 1; qauto.
 Qed.
 
 Lemma erase_idemp e :
@@ -396,7 +397,8 @@ Lemma wval_open e k s :
   wval <{ {k~>s}e }>.
 Proof.
   intros H.
-  revert k. induction H; intros; qauto ctrs: wval.
+  revert k. induction H; intros; try qauto ctrs: wval.
+  rewrite open_lc; eauto using oval_lc, oval_wval.
 Qed.
 
 Lemma erase_open2 e s :
@@ -418,6 +420,17 @@ Proof.
   qauto use: erase_open1, erase_open2.
 Qed.
 
+Lemma oval_open_inv e k s :
+  ¬(oval s) ->
+  oval <{ {k~>s}e }> ->
+  oval e.
+Proof.
+  intros Hs.
+  revert k.
+  induction e; simpl; intros; try case_decide; try oval_inv;
+    intuition eauto using oval.
+Qed.
+
 Lemma wval_open_inv e k s :
   ¬(wval s) ->
   wval <{ {k~>s}e }> ->
@@ -425,10 +438,11 @@ Lemma wval_open_inv e k s :
 Proof.
   intro Hs.
   revert k.
-  induction e; simpl; intros; try case_decide; try wval_inv;
-    intuition eauto using wval.
+  induction e; simpl; intros; try case_decide; try wval_inv; try oval_inv;
+    intuition eauto using wval, oval.
 
-  apply_open_hd; qauto ctrs: wval.
+  apply_open_hd; hauto ctrs: wval, oval.
+  eauto 10 using wval, oval, oval_open_inv, oval_wval.
 Qed.
 
 Lemma erase_open_not_wval_ e s :
@@ -445,7 +459,7 @@ Proof.
     + exfalso.
       select! (forall n, _ = _) (fun H => srewrite H; clear H).
       intuition eauto using wval_open_inv.
-      apply_open_hd; qauto ctrs: wval.
+      apply_open_hd; qauto ctrs: wval, oval.
 Qed.
 
 Lemma erase_open_not_wval e s :
@@ -459,7 +473,7 @@ Lemma erase_open_atom e x :
   <{ ⟦e^x⟧ }> = <{ ⟦e⟧^x }>.
 Proof.
   rewrite erase_open_not_wval; eauto using wval.
-  qauto inv: wval.
+  qauto inv: wval, oval.
 Qed.
 
 
@@ -470,7 +484,7 @@ Lemma reval_val_inv v v' :
   val v ->
   ⟦v⟧ = v'.
 Proof.
-  induction 1; intros; try val_inv; try qauto use: val_otval.
+  induction 1; intros; try val_inv; try oval_inv; qauto use: val_otval, oval_val.
 Qed.
 
 Lemma reval_otval_inv ω ω' :
@@ -489,17 +503,17 @@ Proof.
   intros H. revert v2.
   induction H; intros; reval_inv*;
     eauto using reval_val_inv, reval_otval_inv;
-    hauto lq: on ctrs: reval.
+    hauto lq: on ctrs: reval use: oval_val.
 Qed.
 
 Lemma reval_idemp e v :
   e ↓ v ->
   v ↓ v.
 Proof.
-  induction 1; try hauto ctrs: reval, val;
+  induction 1; try hauto ctrs: reval, val, oval;
     reval_inv*;
     try case_split; eauto;
-      reval_intro; eauto; try congruence.
+      reval_intro; eauto using val; try congruence.
   - rewrite erase_idemp. reflexivity.
   - eauto using erase_val_val.
   - eauto using erase_idemp.
@@ -539,7 +553,7 @@ Proof.
           | hauto l: on ctrs: reval, val ].
 
   simpl. simpl_is_oif_wval.
-  - case_split; repeat (eauto using val; reval_intro).
+  - case_split; repeat (eauto using val, oval; reval_intro).
   - exfalso. eauto using erase_wval_wval.
 Qed.
 
@@ -550,15 +564,31 @@ Proof.
   qauto use: reval_wval, oval_val, val_wval, erase_oval.
 Qed.
 
+Lemma reval_oval_inv v v' :
+  v ↓ v' ->
+  oval v ->
+  v = v'.
+Proof.
+  eauto using reval_oval, reval_deterministic.
+Qed.
+
+Lemma reval_oval_oval v v' :
+  v ↓ v' ->
+  oval v ->
+  oval v'.
+Proof.
+  intros. srewrite reval_oval_inv. eauto.
+Qed.
+
 Lemma reval_erase_val e :
   val (⟦e⟧) ->
   e ↓ ⟦e⟧.
 Proof.
-  induction e; simpl; intros; repeat val_inv;
-    try solve [ reval_intro; eauto using val ].
-  case_label; try simpl_is_oif_wval; repeat val_inv.
+  induction e; simpl; intros; repeat val_inv; repeat oval_inv;
+    try solve [ reval_intro; eauto using val, oval ].
+  case_label; try simpl_is_oif_wval; repeat val_inv; repeat oval_inv.
 
-  case_split; econstructor; eauto using val.
+  case_split; econstructor; eauto using val, oval.
 Qed.
 
 Lemma reval_erase_boxedlit e b :
@@ -568,7 +598,7 @@ Proof.
   intros H.
   relax_reval.
   apply reval_erase_val.
-  rewrite H. constructor.
+  rewrite H. eauto using val, oval.
   auto.
 Qed.
 
@@ -627,7 +657,7 @@ Proof.
               | head_constructor e;
                 dup_hyp H (fun H => apply erase_inv in H; destruct H as [| [? ?]];
                                   [ expr_hd_inv in H
-                                  | try wval_inv ]);
+                                  | try wval_inv; try oval_inv ]);
                 simpl in H; simplify_eq
           ]
       end;
@@ -648,8 +678,9 @@ Proof.
                 [reval_deterministic]. In that case, induction hypothesis will
                 be used with [erase_idemp] and [reval_val_inv] *)
                 eauto using erase_wval_erase_val,
-                reval_erase_val,
-                reval_deterministic ].
+                  reval_erase_val,
+                  oval_val,
+                  reval_deterministic ].
 
   (* [REVal] *)
   - qauto l: on use: reval_erase_val, erase_val_val.
@@ -700,16 +731,15 @@ Proof.
           head_constructor e; reval_intro; simpl
         | |- _ ↓ _ =>
           reval_inv*; eauto using reval_wval, reval_erase, erase_open1, erase_open
-        | |- val _ => eauto using val
+        | |- val _ => eauto using val, oval
         | |- ⟦_⟧ = _ => eauto using reval_deterministic, reval_wval
         | |- oval _ => eauto using oval
         | |- _ => eauto
-        end.
-  - eauto using reval.
-  - eauto using reval_oval.
+        end; eauto using reval, oval_val, reval_oval.
   - select! (ovalty _ _) (fun H => apply ovalty_elim in H; try simp_hyp H);
-      eauto using val, otval.
+      eauto using val, oval, otval.
   - case_split; reval_inv*; eauto.
+  - eauto using reval_oval_oval.
 
   Unshelve.
 
@@ -848,10 +878,10 @@ Reserved Notation "e '⇓' v" (at level 40).
 (** We add side-conditions [v ⇓ v] for each sub-expression of the negatively
 defined expressions, i.e., projection and unfold. *)
 Inductive reval (Σ : gctx) : expr -> expr -> Prop :=
-| REProj b e v1 v2 :
-    e ⇓ <{ (v1, v2) }> ->
+| REProj l b e v1 v2 :
+    e ⇓ <{ (v1, v2){l} }> ->
     v1 ⇓ v1 -> v2 ⇓ v2 ->
-    <{ π@b e }> ⇓ <{ ite b v1 v2 }>
+    <{ π{l}@b e }> ⇓ <{ ite b v1 v2 }>
 | REUnfold X X' e v :
     e ⇓ <{ fold <X'> v }> ->
     v ⇓ v ->
@@ -884,7 +914,7 @@ Ltac reval_alt_inv :=
   end.
 
 Tactic Notation "reval_alt_inv" "*" :=
-  repeat (reval_alt_inv; repeat val_inv; repeat otval_inv).
+  repeat (reval_alt_inv; repeat val_inv; repeat oval_inv; repeat otval_inv).
 
 Ltac relax_reval_alt :=
   match goal with
@@ -905,7 +935,7 @@ Lemma reval_alt_idemp e v :
   e ⇓ v ->
   v ⇓ v.
 Proof.
-  induction 1; try hauto ctrs: reval_alt, val;
+  induction 1; try hauto ctrs: reval_alt, val, oval;
     reval_alt_inv*;
     try case_split; eauto;
     reval_alt_intro; eauto; try congruence.
@@ -926,7 +956,7 @@ Proof.
     reval_alt_inv*; eauto using reval_alt;
     select! (⟦_⟧ = _) (fun H => srewrite H);
     econstructor; eauto;
-    reval_alt_intro; eauto.
+    reval_alt_intro; eauto using val.
 Qed.
 
 Lemma reval_alt_sound e v :

@@ -13,14 +13,7 @@ Lemma oval_val v :
   oval v ->
   val v.
 Proof.
-  induction 1; eauto using val.
-Qed.
-
-Lemma otval_well_kinded ω Σ Γ :
-  otval ω ->
-  Σ; Γ ⊢ ω :: *@O.
-Proof.
-  induction 1; eauto using kinding with lattice_naive_solver.
+  eauto using val.
 Qed.
 
 Lemma otval_uniq Σ ω1 ω2 :
@@ -41,9 +34,9 @@ Proof.
   hauto use: ovalty_elim, oval_val.
 Qed.
 
-Lemma ovalty_intro_alt v ω l Σ Γ :
+Lemma ovalty_intro v ω l Σ Γ :
   gctx_wf Σ ->
-  val v ->
+  oval v ->
   otval ω ->
   Σ; Γ ⊢ v :{l} ω ->
   ovalty v ω.
@@ -62,14 +55,16 @@ Proof.
     qauto l: on use: ovalty_elim inv: otval.
 Qed.
 
-Lemma ovalty_intro v ω l Σ Γ :
+Lemma ovalty_intro_alt v ω l Σ Γ :
   gctx_wf Σ ->
-  oval v ->
+  val v ->
   otval ω ->
   Σ; Γ ⊢ v :{l} ω ->
   ovalty v ω.
 Proof.
-  hauto use: ovalty_intro_alt, oval_val.
+  destruct 2; eauto using ovalty_intro; inversion 1; intros; subst;
+    type_inv;
+    simpl_whnf_equiv.
 Qed.
 
 (** We can always find an inhabitant for any oblivious type value. *)
@@ -88,6 +83,7 @@ Lemma any_kind_otval Σ Γ τ :
 Proof.
   remember <{ *@A }>.
   induction 1; subst; try hauto ctrs: otval.
+  - srewrite join_bot_iff. easy.
   - srewrite join_bot_iff. easy.
   - eauto using bot_inv.
 Qed.
@@ -111,6 +107,13 @@ Proof.
   induction 1; eauto using wval.
 Qed.
 
+Lemma oval_wval v :
+  oval v ->
+  wval v.
+Proof.
+  eauto using oval_val, val_wval.
+Qed.
+
 Lemma woval_otval Σ Γ v l τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ v :{l} τ ->
@@ -119,20 +122,19 @@ Lemma woval_otval Σ Γ v l τ :
 Proof.
   intros Hwf.
   induction 1; intros Hv;
-    try woval_inv; simp_hyps;
-      try solve [ repeat esplit; eauto;
-                  try lazymatch goal with
-                      | |- _ ⊢ _ : _ =>
-                        repeat (econstructor;
-                                eauto using otval_well_kinded with equiv_naive_solver)
-                      | |- _ ≡ _ => equiv_naive_solver
-                      | |- otval _ => eauto using otval
-                      end ].
+    try woval_inv; try oval_inv; simp_hyps;
+    try solve [ repeat esplit; eauto;
+                try lazymatch goal with
+                    | |- _ ⊢ _ : _ =>
+                        eauto using typing, otval_well_kinded with equiv_naive_solver
+                    | |- _ ≡ _ => equiv_naive_solver
+                    | |- otval _ => eauto using otval
+                    end ].
 
-  (* Product *)
-  repeat esplit.
-  econstructor; eauto using otval_well_kinded with equiv_naive_solver.
-  eauto using otval.
+  (* Oblivious pair *)
+  select! (woval _ -> _) (fun H => feed specialize H; eauto using woval).
+  simp_hyps.
+  repeat esplit; eauto using typing, otval, otval_well_kinded.
   apply_pared_equiv_congr; eauto with lc.
 Qed.
 
@@ -140,14 +142,14 @@ Lemma woval_wval v :
   woval v ->
   wval v.
 Proof.
-  induction 1; eauto using wval.
+  induction 1; eauto using wval, val_wval, oval_val.
 Qed.
 
 Lemma oval_woval v :
   oval v ->
   woval v.
 Proof.
-  induction 1; eauto using woval.
+  eauto using woval.
 Qed.
 
 Lemma wval_otval v :
@@ -155,7 +157,7 @@ Lemma wval_otval v :
   otval v ->
   False.
 Proof.
-  inversion 1; inversion 1.
+  inversion 1; inversion 1; subst; oval_inv.
 Qed.
 
 Lemma val_otval v :
@@ -176,7 +178,8 @@ Lemma wval_step v e :
   wval v ->
   False.
 Proof.
-  induction 1; intros; repeat ectx_inv; repeat wval_inv; try step_inv; eauto.
+  induction 1; intros; repeat ectx_inv;
+    repeat wval_inv; repeat oval_inv; try step_inv; eauto using oval_wval.
 Qed.
 
 Lemma otval_step ω e :

@@ -38,10 +38,10 @@ Inductive pared : expr -> expr -> Prop :=
 | RFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> ⇛ <{ e }>
-| RProj b e1 e2 e1' e2' :
+| RProj l b e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ π@b (e1, e2) }> ⇛ <{ ite b e1' e2' }>
+    <{ π{l}@b (e1, e2){l} }> ⇛ <{ ite b e1' e2' }>
 | RFold X X' e e' :
     e ⇛ e' ->
     <{ unfold<X> (fold<X'> e) }> ⇛ e'
@@ -117,18 +117,9 @@ proof convenience. *)
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ tape (~if [b] then e1 else e2) }> ⇛ <{ mux [b] (tape e1') (tape e2') }>
-| RTapePair e1 e2 e1' e2' :
-    e1 ⇛ e1' ->
-    e2 ⇛ e2' ->
-    woval e1 -> woval e2 ->
-    <{ tape (e1, e2) }> ⇛ <{ (tape e1', tape e2') }>
-| RTapeUnitV :
-    <{ tape () }> ⇛ <{ () }>
-| RTapeBoxedLit b :
-    <{ tape [b] }> ⇛ <{ [b] }>
-| RTapeBoxedInj b ω v :
-    otval ω -> oval v ->
-    <{ tape [inj@b<ω> v] }> ⇛ <{ [inj@b<ω> v] }>
+| RTapeOVal v :
+    oval v ->
+    <{ tape v }> ⇛ v
 (* Congruence rules *)
 | RCgrPi l τ1 τ2 τ1' τ2' L :
     τ1 ⇛ τ1' ->
@@ -157,17 +148,17 @@ proof convenience. *)
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ if{l} e0 then e1 else e2 }> ⇛ <{ if{l} e0' then e1' else e2' }>
-| RCgrProd τ1 τ2 τ1' τ2' :
+| RCgrProd l τ1 τ2 τ1' τ2' :
     τ1 ⇛ τ1' ->
     τ2 ⇛ τ2' ->
-    <{ τ1 * τ2 }> ⇛ <{ τ1' * τ2' }>
-| RCgrPair e1 e2 e1' e2' :
+    <{ τ1 *{l} τ2 }> ⇛ <{ τ1' *{l} τ2' }>
+| RCgrPair l e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ (e1, e2) }> ⇛ <{ (e1', e2') }>
-| RCgrProj b e e' :
+    <{ (e1, e2){l} }> ⇛ <{ (e1', e2'){l} }>
+| RCgrProj l b e e' :
     e ⇛ e' ->
-    <{ π@b e }> ⇛ <{ π@b e' }>
+    <{ π{l}@b e }> ⇛ <{ π{l}@b e' }>
 | RCgrSum l τ1 τ2 τ1' τ2' :
     τ1 ⇛ τ1' ->
     τ2 ⇛ τ2' ->
@@ -316,9 +307,18 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     Γ ⊢ e2 :{l2} τ2 ->
     l = l1 ⊔ l2 ->
     Γ ⊢ (e1, e2) :{l} τ1 * τ2
+| TOPair Γ e1 e2 τ1 τ2 :
+    Γ ⊢ e1 :{⊥} τ1 ->
+    Γ ⊢ e2 :{⊥} τ2 ->
+    Γ ⊢ τ1 :: *@O ->
+    Γ ⊢ τ2 :: *@O ->
+    Γ ⊢ ~(e1, e2) :{⊥} τ1 ~* τ2
 | TProj Γ l b e τ1 τ2 :
     Γ ⊢ e :{l} τ1 * τ2 ->
     Γ ⊢ π@b e :{l} ite b τ1 τ2
+| TOProj Γ b e τ1 τ2 :
+    Γ ⊢ e :{⊥} τ1 ~* τ2 ->
+    Γ ⊢ ~π@b e :{⊥} ite b τ1 τ2
 | TFold Γ l X e τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e :{l} τ ->
@@ -369,7 +369,11 @@ with kinding : tctx -> expr -> kind -> Prop :=
 | KProd Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
-    Γ ⊢ τ1 * τ2 :: κ
+    Γ ⊢ τ1 * τ2 :: (κ ⊔ *@P)
+| KOProd Γ τ1 τ2 :
+    Γ ⊢ τ1 :: *@O ->
+    Γ ⊢ τ2 :: *@O ->
+    Γ ⊢ τ1 ~* τ2 :: *@O
 | KSum Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->

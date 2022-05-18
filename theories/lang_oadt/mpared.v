@@ -196,11 +196,7 @@ Lemma mpared_tape v :
   oval v ->
   <{ tape v }> ⇛* v.
 Proof.
-  induction 1; try solve [ eauto 10 using mpared_sound, mpared with lc ].
-  etrans.
-  - apply mpared_sound; eauto with lc.
-    econstructor; try reflexivity; eauto using oval_woval.
-  - eauto 10 using mpared_sound, mpared with lc.
+  intros. eauto 10 using mpared_sound, mpared with lc.
 Qed.
 
 End fix_gctx.

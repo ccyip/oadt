@@ -19,9 +19,9 @@ Variant expr_head :=
 | HLit
 | HSec
 | HIte (l : olabel)
-| HProd
-| HPair
-| HProj
+| HProd (l : olabel)
+| HPair (l : olabel)
+| HProj (l : olabel)
 | HSum (l : olabel)
 | HInj (l : olabel)
 | HCase (l : olabel)
@@ -49,9 +49,9 @@ Definition expr_hd (e : expr) : expr_head :=
   | ELit _ => HLit
   | ESec _ => HSec
   | EIte l _ _ _ => HIte l
-  | EProd _ _ => HProd
-  | EPair _ _ => HPair
-  | EProj _ _ => HProj
+  | EProd l _ _ => HProd l
+  | EPair l _ _ => HPair l
+  | EProj l _ _ => HProj l
   | ESum l _ _ => HSum l
   | EInj l _ _ _ => HInj l
   | ECase l _ _ _ => HCase l
@@ -80,9 +80,9 @@ Lemma expr_hd_inv t h :
   | HLit => exists b, t = ELit b
   | HSec => exists e, t = ESec e
   | HIte l => exists e0 e1 e2, t = EIte l e0 e1 e2
-  | HProd => exists τ1 τ2, t = EProd τ1 τ2
-  | HPair => exists e1 e2, t = EPair e1 e2
-  | HProj => exists b e, t = EProj b e
+  | HProd l => exists τ1 τ2, t = EProd l τ1 τ2
+  | HPair l => exists e1 e2, t = EPair l e1 e2
+  | HProj l => exists b e, t = EProj l b e
   | HSum l => exists τ1 τ2, t = ESum l τ1 τ2
   | HInj l => exists b τ e, t = EInj l b τ e
   | HCase l => exists e0 e1 e2, t = ECase l e0 e1 e2

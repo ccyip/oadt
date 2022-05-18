@@ -47,7 +47,7 @@ Inductive gsec : expr -> expr -> expr -> expr -> Prop :=
 | GSProd τ1 τ1' τ2 τ2' e e1 e2 :
     gsec τ1 τ1' <{ π1 e }> e1 ->
     gsec τ2 τ2' <{ π2 e }> e2 ->
-    gsec <{ τ1 * τ2 }> <{ τ1' * τ2' }> e <{ (e1, e2) }>
+    gsec <{ τ1 * τ2 }> <{ τ1' ~* τ2' }> e <{ ~(e1, e2) }>
 | GSSum τ1 τ1' τ2 τ2' e e1 e2 L1 L2 :
     (forall x, x ∉ L1 -> gsec τ1 τ1' x <{ e1^x }>) ->
     (forall x, x ∉ L2 -> gsec τ2 τ2' x <{ e2^x }>) ->
@@ -72,6 +72,10 @@ Inductive gret : expr -> expr -> expr -> expr -> Prop :=
     gret τ1 τ1' <{ π1 e' }> e1 ->
     gret τ2 τ2' <{ π2 e' }> e2 ->
     gret <{ τ1 * τ2 }> <{ τ1' * τ2' }> e' <{ (e1, e2) }>
+| GROProd τ1 τ1' τ2 τ2' e' e1 e2 :
+    gret τ1 τ1' <{ ~π1 (tape e') }> e1 ->
+    gret τ2 τ2' <{ ~π2 (tape e') }> e2 ->
+    gret <{ τ1 * τ2 }> <{ τ1' ~* τ2' }> e' <{ (e1, e2) }>
 | GRSum τ1 τ1' τ2 τ2' e' e1 e2 L1 L2 :
     <{ τ1 + τ2 }> <> <{ τ1' + τ2' }> ->
     (forall x, x ∉ L1 -> gret τ1 τ1' x <{ e1^x }>) ->
@@ -153,10 +157,10 @@ oblivious type [τ']. In other words, it is constrained by the indices in τ'. *
 Inductive in_range : expr -> expr -> expr -> Prop :=
 | IRSame τ v : in_range τ τ v
 | IRBool b : in_range <{ 𝔹 }> <{ ~𝔹 }> b
-| IRProd τ1 τ1' τ2 τ2' v1 v2 :
+| IRProd τ1 τ1' τ2 τ2' l v1 v2 :
     in_range τ1 τ1' v1 ->
     in_range τ2 τ2' v2 ->
-    in_range <{ τ1 * τ2 }> <{ τ1' * τ2' }> <{ (v1, v2) }>
+    in_range <{ τ1 * τ2 }> <{ τ1' *{l} τ2' }> <{ (v1, v2) }>
 | IRSum τ1 τ1' τ2 τ2' l b v :
     in_range <{ ite b τ1 τ2 }> <{ ite b τ1' τ2' }> v ->
     in_range <{ τ1 + τ2 }> <{ τ1' +{l} τ2' }> <{ inj@b<τ1 + τ2> v }>
@@ -185,6 +189,10 @@ Inductive val_requiv : expr -> expr -> expr -> expr -> Prop :=
     val_requiv τ1 τ1' v1 v1' ->
     val_requiv τ2 τ2' v2 v2' ->
     val_requiv <{ τ1 * τ2 }> <{ τ1' * τ2' }> <{ (v1, v2) }> <{ (v1', v2') }>
+| VQOProd τ1 τ1' τ2 τ2' v1 v1' v2 v2' :
+    val_requiv τ1 τ1' v1 v1' ->
+    val_requiv τ2 τ2' v2 v2' ->
+    val_requiv <{ τ1 * τ2 }> <{ τ1' ~* τ2' }> <{ (v1, v2) }> <{ ~(v1', v2') }>
 | VQSum τ1 τ1' τ2 τ2' b v v' :
     val_requiv <{ ite b τ1 τ2 }> <{ ite b τ1' τ2' }> v v' ->
     val_requiv <{ τ1 + τ2 }> <{ τ1' + τ2' }>
@@ -316,6 +324,13 @@ Proof using Hsrwf.
   econstructor;
     try auto_eapply; eauto using kinding;
       solve [ relax_typing_type; [ econstructor | ]; eauto ].
+
+  (* GROProd *)
+  econstructor;
+    try auto_eapply; eauto using kinding;
+    try eapply TConv;
+    econstructor;
+    eauto using typing, kinding.
 
   (* GRSum and GROSum *)
   1-2:
@@ -817,15 +832,15 @@ Proof.
   eauto.
 Qed.
 
-Lemma expr_simple_requiv_congr_prod τ1 τ2 τ1' τ2' e1 e2 e1' e2' :
+Lemma expr_simple_requiv_congr_prod τ1 τ2 τ1' τ2' l e1 e2 e1' e2' :
   expr_simple_requiv_reval τ1 τ1' e1 e1' ->
   expr_simple_requiv_reval τ2 τ2' e2 e2' ->
-  expr_simple_requiv_reval <{ τ1 * τ2 }> <{ τ1' * τ2' }>
-                           <{ (e1, e2) }> <{ (e1', e2') }>.
+  expr_simple_requiv_reval <{ τ1 * τ2 }> <{ τ1' *{l} τ2' }>
+                           <{ (e1, e2) }> <{ (e1', e2'){l} }>.
 Proof.
   unfold expr_simple_requiv_reval.
   intros. reval_inv*.
-  econstructor; eauto;
+  case_label; econstructor; eauto;
     auto_apply; eauto;
     qauto l: on inv: in_range ctrs: in_range.
 Qed.
@@ -920,9 +935,8 @@ Lemma gsec_reval_reflect τ τ' e e' v' :
 Proof.
   intros H. revert v'.
   induction H; intros; reval_inv*; eauto.
-  select! (forall v, _ -> exists _, _) (fun H => edestruct H); eauto.
-  reval_inv*.
-  eauto.
+  select! (forall v, _ -> exists _, _) (fun H => edestruct H); eauto using reval_oval.
+  reval_inv*. eauto.
 Qed.
 
 Lemma gsec_correct τ : forall τ' e e',
@@ -1021,6 +1035,8 @@ Proof.
   (* [VQProd] *)
   - econstructor; auto_eapply; eauto using lc;
       reval_intro; eauto.
+  (* [VQOProd] *)
+  - admit.
   (* [VQSum] *)
   - econstructor; eauto.
     simpl. rewrite !open_lc by eauto.
@@ -1055,7 +1071,7 @@ Proof.
   - erewrite <- reval_fix_erase by eauto.
     eapply reval_refine_congr_app2; eauto.
     eauto using reval_refine_erase1, reval_refine_reval2.
-Qed.
+Admitted.
 
 Lemma gret_correct τ τ' v v' e :
   val_requiv τ τ' v v' ->
@@ -1134,10 +1150,10 @@ Fixpoint Gsec (τ τ' : expr) (e : expr) : option expr :=
   match τ, τ' with
   | <{ 𝟙 }>, <{ 𝟙 }> => Some <{ tape e }>
   | <{ 𝔹 }>, <{ ~𝔹 }> => Some <{ tape (s𝔹 e) }>
-  | <{ τ1 * τ2 }>, <{ τ1' * τ2' }> =>
+  | <{ τ1 * τ2 }>, <{ τ1' ~* τ2' }> =>
     e1 <- Gsec τ1 τ1' <{ π1 e }>;
     e2 <- Gsec τ2 τ2' <{ π2 e }>;
-    Some <{ (e1, e2) }>
+    Some <{ ~(e1, e2) }>
   | <{ τ1 + τ2 }>, <{ τ1' ~+ τ2' }> =>
     e1 <- Gsec τ1 τ1' <{ bvar 0 }>;
     e2 <- Gsec τ2 τ2' <{ bvar 0 }>;
@@ -1156,6 +1172,10 @@ Fixpoint Gret (τ τ' : expr) (e : expr) : option expr :=
        | <{ τ1 * τ2 }>, <{ τ1' * τ2' }> =>
          e1 <- Gret τ1 τ1' <{ π1 e }>;
          e2 <- Gret τ2 τ2' <{ π2 e }>;
+         Some <{ (e1, e2) }>
+       | <{ τ1 * τ2 }>, <{ τ1' ~* τ2' }> =>
+         e1 <- Gret τ1 τ1' <{ ~π1 (tape e) }>;
+         e2 <- Gret τ2 τ2' <{ ~π2 (tape e) }>;
          Some <{ (e1, e2) }>
        | <{ τ1 + τ2 }>, <{ τ1' + τ2' }> =>
          e1 <- Gret τ1 τ1' <{ bvar 0 }>;
@@ -1303,6 +1323,7 @@ Proof.
     repeat lc_inv;
     repeat f_equal; try solve [ by rewrite !open_lc by eauto ].
 
+  1-2:
   repeat match goal with
          | IH : context [Gret ?τ _ _ = _ -> _], H : Gret ?τ _ _ = _ |- _ =>
            apply IH in H; clear IH; [ simpl in H; rewrite H | .. ]

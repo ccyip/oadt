@@ -31,9 +31,6 @@ Proof.
     try solve [ kinding_intro; eauto; set_shelve ];
     try easy.
 
-  (* Product *)
-  hauto ctrs: kinding solve: lattice_naive_solver.
-
   Unshelve.
   all : fast_set_solver!!.
 Qed.
@@ -54,10 +51,9 @@ Lemma wval_woval Γ v l τ :
   wval v ->
   woval v.
 Proof.
-  induction 1; intros; try wval_inv;
+  induction 1; intros; try wval_inv; try oval_inv;
     kind_inv; simplify_eq;
-      try hauto lq: on ctrs: woval, kinding;
-      try easy.
+      try hauto lq: on ctrs: woval, oval; try easy.
 
   (* TConv *)
   apply_regularity.
@@ -66,9 +62,24 @@ Proof.
   equiv_naive_solver.
 Qed.
 
+Lemma val_oval Γ v l τ :
+  Γ ⊢ v :{l} τ ->
+  Γ ⊢ τ :: *@O ->
+  val v ->
+  oval v.
+Proof.
+  intros Ht Hk Hv.
+  pose proof Hv.
+  apply val_wval in Hv.
+  eapply wval_woval in Hv; eauto.
+  sinvert Hv; eauto. val_inv. oval_inv.
+Qed.
+
 (** * Canonical forms *)
 Ltac canonical_form_solver :=
-  inversion 1; intros; subst; eauto;
+  inversion 1; intros; subst;
+  try select (oval _) (fun H => sinvert H);
+  eauto;
   type_inv;
   kind_inv;
   try simpl_whnf_equiv;
@@ -111,6 +122,14 @@ Lemma canonical_form_prod Γ l e τ1 τ2 :
   val e ->
   Γ ⊢ e :{l} τ1 * τ2 ->
   exists v1 v2, val v1 /\ val v2 /\ e = <{ (v1, v2) }>.
+Proof.
+  canonical_form_solver.
+Qed.
+
+Lemma canonical_form_oprod Γ l e τ1 τ2 :
+  val e ->
+  Γ ⊢ e :{l} τ1 ~* τ2 ->
+  exists v1 v2, oval v1 /\ oval v2 /\ e = <{ ~(v1, v2) }>.
 Proof.
   canonical_form_solver.
 Qed.
@@ -175,14 +194,6 @@ Proof.
   canonical_form_solver.
 Qed.
 
-Lemma canonical_form_weak_obool Γ e :
-  wval e ->
-  Γ ⊢ e :{⊥} ~𝔹 ->
-  exists b, e = <{ [b] }>.
-Proof.
-  canonical_form_solver.
-Qed.
-
 Lemma canonical_form_weak_prod Γ l e τ1 τ2 :
   wval e ->
   Γ ⊢ e :{l} τ1 * τ2 ->
@@ -209,6 +220,52 @@ Lemma canonical_form_weak_fold Γ l e X :
 Proof.
   inversion 1; canonical_form_solver.
 Qed.
+
+End fix_gctx.
+
+Ltac apply_canonical_form_lem τ :=
+  lazymatch τ with
+  | <{ 𝟙 }> => canonical_form_unit
+  | <{ ~𝔹 }> => canonical_form_obool
+  | <{ _ ~* _ }> => canonical_form_oprod
+  | <{ _ ~+ _ }> => canonical_form_osum
+  end.
+
+Ltac apply_canonical_form :=
+  match goal with
+  | H : val ?e, H' : _; _ ⊢ ?e :{_} ?τ |- _ =>
+    let lem := apply_canonical_form_lem τ in
+    eapply lem in H; [ | solve [ eauto ] | solve [ eauto ] ]; try simp_hyp H
+  end; subst.
+
+Ltac apply_canonical_form_weak_lem τ :=
+  lazymatch τ with
+  | <{ Π:{_}_, _ }> => canonical_form_weak_abs
+  | <{ 𝔹 }> => canonical_form_weak_bool
+  | <{ _ + _ }> => canonical_form_weak_sum
+  | <{ _ * _ }> => canonical_form_weak_prod
+  | <{ gvar _ }> => canonical_form_weak_fold
+  end.
+
+Ltac apply_canonical_form_weak :=
+  match goal with
+  | Hw : wval ?e, Ht : _; _ ⊢ ?e :{⊥} ?τ |- _ =>
+      eapply wval_val in Hw; [ | solve [ eauto ] ];
+      apply_canonical_form
+  | Hw : wval ?e, Ht : _; _ ⊢ ?e :{_} ?τ |- _ =>
+      let lem := apply_canonical_form_weak_lem τ in
+      eapply lem in Hw; [ | solve [ eauto ] | solve [ eauto ] ];
+      destruct Hw; try simp_hyp Hw; subst
+  end.
+
+
+Section fix_gctx.
+
+Context (Σ : gctx).
+Context (Hwf : gctx_wf Σ).
+
+#[local]
+Set Default Proof Using "Hwf".
 
 (** * Progress *)
 
@@ -238,56 +295,47 @@ Proof.
         | H : context [otval ?τ \/ _] |- val ?e \/ _ =>
           assert_fails contains e τ; clear H
         end;
-    (* Try solve the boring cases. *)
-    first [ qauto q: on rew: off
-                  simp: simpl_map
-                  ctrs: wval, otval, step
-                  solve: ctx_solver
-          (* Take care of the more complex cases involving evaluation context. *)
-          | qauto q: on
-                  ctrs: wval, otval, step
-                  use: canonical_form_weak_abs,
-                       canonical_form_weak_bool,
-                       canonical_form_weak_obool,
-                       canonical_form_weak_prod,
-                       canonical_form_weak_sum,
-                       canonical_form_weak_fold
-                  solve: ctx_solver
-          | idtac ].
+    simp_hyps; try case_label; simplify_map_eq; eauto;
+    (* Solve the trivial evaluation context step. *)
+    repeat
+      match reverse goal with
+      | H : otval _ \/ exists _, _ |- _ =>
+          destruct H as [| [] ]; [ | solve [ right; ctx_solver ] ]
+      end;
+    repeat
+      match reverse goal with
+      | H : wval _ \/ exists _, _ |- _ =>
+          destruct H as [| [] ]; [ | solve [ right; ctx_solver ] ]
+      end;
+    try apply_canonical_form_weak;
+    try solve [ right; eauto using step, wval; ctx_solver
+              | left; eauto using wval, oval, otval ].
 
-  (* Injection *)
-  - right. intuition; try qauto solve: ctx_solver.
-    (* Step to boxed injection *)
-    eexists. econstructor; eauto.
-    qauto l: on ctrs: otval inv: otval use: wval_val, ovalty_elim, ovalty_intro_alt.
+  (* Oblivious injection. It steps to boxed injection. *)
+  right. otval_inv.
+  repeat econstructor; eauto.
+  case_split; eauto using otval_well_kinded, val_oval, wval_val.
 
-  (* [~case _ of _ | _] *)
-  - right. intuition.
-    (* Discriminee is value. *)
-    + select (_ ⊢ _ : _) (fun H => apply canonical_form_osum in H);
-        eauto using wval_val.
-      simp_hyps.
-      select! (otval _) (fun H => use (ovalty_inhabited _ H)).
-      hauto ctrs: step.
-    (* Discriminee can take a step. *)
-    + hauto ctrs: step solve: ctx_solver.
+  (* Oblivious case. *)
+  right.
+  select! (otval _) (fun H => use (ovalty_inhabited _ H)).
+  eauto using step.
 
-  (* [tape _] *)
-  - right. simp_hyps.
-    select (wval _ \/ _) (fun H => destruct H);
-      [ | hauto ctrs: step solve: ctx_solver ].
-    select (wval _) (fun H => eapply wval_woval in H; eauto; sinvert H);
-      eauto using step.
+  (* Oblivious pair. *)
+  left. eauto 10 using wval, oval, val_oval, wval_val.
 
-  (* [[inj@_<_> _]] *)
-  - sfirstorder use: ovalty_elim_alt, val_wval.
+  (* Tape. *)
+  right.
+  hauto use: wval_woval ctrs: step inv: woval.
 
-  (* [_ + _]. This case is impossible. *)
-  - enough (<{ *@P }> ⊑ <{ *@O }>) by easy.
-    scongruence use: join_ub_r.
+  (* Boxed injection. *)
+  left. qauto use: ovalty_elim ctrs: wval.
+
+  (* Public product and sum. These case are impossible. *)
+  1-2:  enough (<{ *@P }> ⊑ <{ *@O }>) by easy; scongruence use: join_ub_r.
 
   (* Kinding subsumption *)
-  - select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
+  select kind (fun κ => destruct κ); sintuition use: any_kind_otval.
 Qed.
 
 Theorem progress_weak l τ e :

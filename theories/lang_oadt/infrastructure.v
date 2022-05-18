@@ -31,9 +31,9 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ X@e }> => <{ X@({k<~x}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k<~x}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k<~x}e0 then {k<~x}e1 else {k<~x}e2 }>
-  | <{ τ1 * τ2 }> => <{ ({k<~x}τ1) * ({k<~x}τ2) }>
-  | <{ (e1, e2) }> => <{ ({k<~x}e1, {k<~x}e2) }>
-  | <{ π@b e }> => <{ π@b ({k<~x}e) }>
+  | <{ τ1 *{l} τ2 }> => <{ ({k<~x}τ1) *{l} ({k<~x}τ2) }>
+  | <{ (e1, e2){l} }> => <{ ({k<~x}e1, {k<~x}e2){l} }>
+  | <{ π{l}@b e }> => <{ π{l}@b ({k<~x}e) }>
   | <{ τ1 +{l} τ2 }> => <{ ({k<~x}τ1) +{l} ({k<~x}τ2) }>
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k<~x}τ)> ({k<~x}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k<~x}e) }>
@@ -56,14 +56,14 @@ Fixpoint fv (e : expr) : aset :=
   (* Congruence rules *)
   | <{ \:{_}τ => e }> | <{ inj{_}@_<τ> e }> | <{ [inj@_<τ> e] }> =>
     fv τ ∪ fv e
-  | <{ Π:{_}τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 +{_} τ2 }> =>
+  | <{ Π:{_}τ1, τ2 }> | <{ τ1 *{_} τ2 }> | <{ τ1 +{_} τ2 }> =>
     fv τ1 ∪ fv τ2
-  | <{ let e1 in e2 }> | <{ (e1, e2) }> | <{ e1 e2 }> =>
+  | <{ let e1 in e2 }> | <{ (e1, e2){_} }> | <{ e1 e2 }> =>
     fv e1 ∪ fv e2
   | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }>
   | <{ mux e0 e1 e2 }> =>
     fv e0 ∪ fv e1 ∪ fv e2
-  | <{ _@e }> | <{ s𝔹 e }> | <{ π@_ e }>
+  | <{ _@e }> | <{ s𝔹 e }> | <{ π{_}@_ e }>
   | <{ fold<_> e }> | <{ unfold<_> e }>
   | <{ tape e }> =>
     fv e
@@ -121,8 +121,11 @@ Ltac case_label :=
   | |- context [<{ if{?l} _ then _ else _ }>] => go l
   | |- context [<{ inj{?l}@_<_> _ }>] => go l
   | |- context [<{ case{?l} _ of _ | _ }>] => go l
+  | |- context [<{ (_, _){?l} }>] => go l
+  | |- context [<{ π{?l}@_ _ }>] => go l
   | |- context [<{ 𝔹{?l} }>] => go l
   | |- context [<{ _ +{?l} _ }>] => go l
+  | |- context [<{ _ *{?l} _ }>] => go l
   end.
 
 (** Inversion tactics *)
@@ -137,6 +140,8 @@ Ltac safe_inv2 R :=
   end.
 
 Ltac lc_inv := safe_inv1 lc.
+
+Ltac oval_inv := safe_inv1 oval.
 
 Ltac val_inv := safe_inv1 val.
 
@@ -366,11 +371,18 @@ Qed.
 
 (** ** Properties of values *)
 
+Lemma otval_well_kinded ω Σ Γ :
+  otval ω ->
+  Σ; Γ ⊢ ω :: *@O.
+Proof.
+  induction 1; eauto using kinding with lattice_naive_solver.
+Qed.
+
 Lemma ovalty_elim v ω:
   ovalty v ω ->
   oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v :{⊥} ω.
 Proof.
-  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
+  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing use: otval_well_kinded.
 Qed.
 
 (** ** Properties of local closure *)

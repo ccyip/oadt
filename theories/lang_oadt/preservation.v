@@ -367,6 +367,20 @@ Proof.
   hauto use: subst_conv_.
 Qed.
 
+Lemma oval_safe Γ v l τ :
+  Γ ⊢ v :{l} τ ->
+  oval v ->
+  Γ ⊢ v :{⊥} τ.
+Proof.
+  intros Ht Hv.
+  apply_regularity.
+  apply woval_otval in Ht; eauto using oval_woval. simp_hyps.
+  eapply ovalty_intro in Hv; eauto.
+  select (_ ⊢ _ : _) (fun H => clear H).
+  eapply ovalty_elim in Hv. simp_hyps.
+  econstructor; eauto.
+Qed.
+
 (** * Preservation *)
 
 (** The combined preservation theorems for parallel reduction. *)
@@ -390,6 +404,10 @@ Proof.
     try solve [ lazymatch goal with
                 | H : _ !! _ = Some (DFun _ _) |- _ =>
                   eauto using weakening_empty
+                end
+              | lazymatch goal with
+                | H : oval _ |- _ =>
+                    eauto using oval_safe
                 end
               | try case_ite_expr;
                 simp_hyps;
@@ -449,65 +467,63 @@ Proof.
     lemmas. *)
     simpl_cofin?;
     simplify_eq;
-    (* Main solver. But delay the trickier case of taping pair. *)
-    first [ goal_contains <{ (tape _, tape _) }>
-          | repeat
-              (try case_ite_expr;
-               eauto;
-               match goal with
-               (* Replace the types in context with an equivalent ones. *)
-               | H : <[_:=_]>_ ⊢ _ :{?l} _ |- <[_:=_]>_ ⊢ _ :{?l} _ =>
-                 eapply subst_conv
-               | |- <[_:=_]>_ ⊢ _ :{?l} _ =>
-                 is_evar l; eapply subst_conv
-               | |- <[_:=_]>_ ⊢ _ :: _ =>
-                 eapply kinding_subst_conv
-               (* Apply substitution/open lemmas. *)
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : ?τ |- ?Γ ⊢ ?e^_ : ?τ =>
-                 eapply open_preservation_lc
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^(fvar _) |- ?Γ ⊢ ?e^_ : _ =>
-                 eapply open_preservation
-               (* This is for the dependent case expression. *)
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^_ |- ?Γ ⊢ ?e^_ : _ =>
-                 eapply open_preservation_alt
-               | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) :: _ |- ?Γ ⊢ ?e^_ :: _ =>
-                 eapply kinding_open_preservation
-               (* Apply typing rules. *)
-               | |- _ ⊢ _ : _ =>
-                 typing_intro
-               | |- _ ⊢ _ : ?τ =>
-                 assert_fails is_evar τ; eapply TConv
-               (* Apply kinding rules. *)
-               | |- _ ⊢ _ :: ?κ =>
-                 eauto using kinding_weakening_empty; kinding_intro
-               (* Solve equivalence. *)
-               | |- _ ≡ _ =>
-                 try case_split; equiv_naive_solver
-               | |- _ ≡ _ =>
-                 apply_pared_equiv_congr
-               | |- <{ _^_ }> ≡ <{ _^_ }> =>
-                 eapply pared_equiv_open1; simpl_cofin?
-               | |- <{ _^_ }> ≡ <{ _^_ }> =>
-                 eapply pared_equiv_open
-               (* Solve other side conditions. *)
-               | |- lc _ =>
-                 eauto using lc, open_respect_lc,
-                             typing_type_lc, typing_lc, kinding_lc
-               | |- _ ⊑ _ =>
-                 first [ lattice_naive_solver
-                         by eauto using (top_ub (A:=bool)),
-                            (join_ub_l (A:=bool)), (join_ub_r (A:=bool))
-                       | hauto use: (join_lub (A:=bool)) ]
-               | |- ovalty _ _ => eauto using ovalty
-               | |- _ ∉ _ => shelve
-               end) ].
+    (* Main solver. *)
+    repeat
+      (try case_ite_expr;
+       eauto;
+       match goal with
+       (* Replace the types in context with an equivalent ones. *)
+       | H : <[_:=_]>_ ⊢ _ :{?l} _ |- <[_:=_]>_ ⊢ _ :{?l} _ =>
+           eapply subst_conv
+       | |- <[_:=_]>_ ⊢ _ :{?l} _ =>
+           is_evar l; eapply subst_conv
+       | |- <[_:=_]>_ ⊢ _ :: _ =>
+           eapply kinding_subst_conv
+       (* Apply substitution/open lemmas. *)
+       | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : ?τ |- ?Γ ⊢ ?e^_ : ?τ =>
+           eapply open_preservation_lc
+       | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^(fvar _) |- ?Γ ⊢ ?e^_ : _ =>
+           eapply open_preservation
+       (* This is for the dependent case expression. *)
+       | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) : _^_ |- ?Γ ⊢ ?e^_ : _ =>
+           eapply open_preservation_alt
+       | H : <[_:=_]>?Γ ⊢ ?e^(fvar _) :: _ |- ?Γ ⊢ ?e^_ :: _ =>
+           eapply kinding_open_preservation
+       (* Apply typing rules. *)
+       | |- _ ⊢ _ : _ =>
+           typing_intro
+       | |- _ ⊢ _ : ?τ =>
+           assert_fails is_evar τ; eapply TConv
+       (* Apply kinding rules. *)
+       | |- _ ⊢ _ :: ?κ =>
+           eauto using kinding_weakening_empty; kinding_intro
+       (* Solve equivalence. *)
+       | |- _ ≡ _ =>
+           try case_split; equiv_naive_solver
+       | |- _ ≡ _ =>
+           apply_pared_equiv_congr
+       | |- <{ _^_ }> ≡ <{ _^_ }> =>
+           eapply pared_equiv_open1; simpl_cofin?
+       | |- <{ _^_ }> ≡ <{ _^_ }> =>
+           eapply pared_equiv_open
+       (* Solve other side conditions. *)
+       | |- lc _ =>
+           eauto using lc, open_respect_lc,
+           typing_type_lc, typing_lc, kinding_lc
+       | |- _ ⊑ _ =>
+           first [ lattice_naive_solver
+                     by eauto using (top_ub (A:=bool)),
+                                    (join_ub_l (A:=bool)), (join_ub_r (A:=bool))
+                 | hauto use: (join_lub (A:=bool)) ]
+       | |- _ ∉ _ => shelve
+       end).
 
   (* The case when oblivious injection steps to boxed injection. *)
   hauto lq: on ctrs: ovalty inv: otval use: ovalty_intro.
 
   (* These equivalence are generated by the case when the case discriminee takes
   a step. *)
-  1-2:
+  1-2 :
   rewrite subst_open_distr by eauto using typing_lc; simpl;
   rewrite decide_True by auto;
   rewrite !subst_fresh by shelve;
@@ -522,22 +538,6 @@ Proof.
   select! (ovalty _ _) (fun H => apply ovalty_elim in H; simp_hyp H);
   eapply TConv;
   eauto using weakening, map_empty_subseteq with equiv_naive_solver.
-
-  (* The case when we tape a pair: [RTapePair] *)
-  apply_regularity.
-  select! (_ ⊢ _ : _)
-        (fun H => try lazymatch type of H with
-                    | _ ⊢ ?e : _ =>
-                      lazymatch goal with
-                      | |- context [e] =>
-                        eapply woval_otval in H; eauto using pared_woval;
-                        simp_hyp H
-                      end
-                    end).
-  eapply TConv; eauto.
-  typing_intro; [ typing_intro | typing_intro | .. ];
-    eauto using otval_well_kinded.
-  equiv_naive_solver by eauto using pared_equiv_congr_prod, otval_lc, kinding_lc.
 
   (* The case when we apply oblivious type to its argument: [RAppOADT] *)
   eapply kinding_open_preservation; eauto; try set_shelve.
