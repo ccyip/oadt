@@ -49,15 +49,15 @@ Definition defs := [{
   (* The list element is either a leaf or a node with Boolean payload. *)
   data list := 𝟙 + V * list;
 
-  def append :{⊤} Π~:list, Π~:list, list :=
-    \~:list => \~:list =>
+  def append :{⊤} Π:list, Π:list, list :=
+    \:list => \:list =>
       case unfold<list> $1 of
         $1
       | cons (($0).1, append ($0).2 $1);
 
   (* Skip a tree *)
-  def skip :{⊤} Π~:list, list :=
-    \~:list =>
+  def skip :{⊤} Π:list, list :=
+    \:list =>
       case unfold<list> $0 of
         (* Bogus. Can't skip a tree in empty list. *)
         nil
@@ -68,13 +68,13 @@ Definition defs := [{
           subtrees. *)
         | skip (skip ($1).2);
 
-  def s_V :{⊥} Π~:V, ~V :=
-    \~:V =>
+  def s_V :{⊥} Π:V, ~V :=
+    \:V =>
       tape (case $0 of
               ~inl<(~V)> ()
             | ~inr<(~V)> (tape (s𝔹 $0)));
-  def r_V :{⊤} Π:~V, V :=
-    \:~V =>
+  def r_V :{⊤} Π!:~V, V :=
+    \!:~V =>
       ~case $0 of
         Vleaf
       | Vnode (r𝔹 $0);
@@ -83,42 +83,42 @@ Definition defs := [{
   obliv ~list (:nat) :=
     case unfold<nat> $0 of
       𝟙
-    | 𝟙 ~+ ~V * (~list@$0);
+    | 𝟙 ~+ ~V ~* (~list@$0);
 
-  def s_list :{⊥} Π~:list, Π:nat, ~list@$0 :=
-    \~:list => \:nat =>
-      case unfold<nat> $0 of
+  def s_list :{⊥} Π!:nat, Π:list, ~list@$1 :=
+    \!:nat => \:list =>
+      case unfold<nat> $1 of
         ()
-      | tape (case unfold<list> $2 of
-                ~inl<𝟙 ~+ ~V * (~list@$1)> ()
-              | ~inr<𝟙 ~+ ~V * (~list@$1)> (tape (s_V ($0).1, s_list ($0).2 $1)));
+      | tape (case unfold<list> $1 of
+                ~inl<𝟙 ~+ ~V ~* (~list@$1)> ()
+              | ~inr<𝟙 ~+ ~V ~* (~list@$1)> ~(tape (s_V ($0).1), s_list $1 ($0).2));
 
-  def r_list :{⊤} Π:nat, Π:~list@$0, list :=
-    \:nat =>
+  def r_list :{⊤} Π!:nat, Π!:~list@$0, list :=
+    \!:nat =>
       case unfold<nat> $0 of
-        \:𝟙 => nil
-      | \:𝟙 ~+ ~V * (~list@$0) =>
+        \!:𝟙 => nil
+      | \!:𝟙 ~+ ~V ~* (~list@$0) =>
           ~case $0 of
             nil
-          | cons (r_V ($0).1, r_list $2 ($0).2);
+          | cons (r_V ($0).~1, r_list $2 ($0).~2);
 
   (* The public view is the upper bound of the number of its vertices. The
   oblivious representation is essentially the flatten tree. So [~tree] is simply
   an alias of [~list]. *)
-  def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
-    \~:tree => \:nat => s_list (tolist $1) $0;
+  def s_tree :{⊥} Π!:nat, Π:tree, ~tree@$1 :=
+    \!:nat => \:tree => s_list $1 (tolist $0);
 
-  def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
-    \:nat => \:~tree@$0 => fromlist (r_list $1 $0);
+  def r_tree :{⊤} Π!:nat, Π!:~tree@$0, tree :=
+    \!:nat => \!:~tree@$0 => fromlist (r_list $1 $0);
 
-  def tolist :{⊤} Π~:tree, list :=
-    \~:tree =>
+  def tolist :{⊤} Π:tree, list :=
+    \:tree =>
       case unfold<tree> $0 of
         cons (Vleaf, nil)
       | cons (Vnode ($0).1.1, append (tolist ($0).1.2) (tolist ($0).2));
 
-  def fromlist :{⊤} Π~:list, tree :=
-    \~:list =>
+  def fromlist :{⊤} Π:list, tree :=
+    \:list =>
       case unfold<list> $0 of
         (* Bogus. Empty list does not correspond to any tree. *)
         leaf

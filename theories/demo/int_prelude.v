@@ -27,7 +27,7 @@ Arguments open /.
 Lemma KProd_alt Γ τ1 τ2 κ1 κ2 :
   Γ ⊢ τ1 :: κ1 ->
   Γ ⊢ τ2 :: κ2 ->
-  Γ ⊢ τ1 * τ2 :: κ1 ⊔ κ2.
+  Γ ⊢ τ1 * τ2 :: (κ1 ⊔ κ2 ⊔ *@P).
 Proof.
   intros.
   econstructor;
@@ -358,6 +358,12 @@ Ltac typing_tac :=
     eapply TConv; [ eapply TCase_alt | .. ]
   | |- _; _ ⊢ if _ then _ else _ : _ => eapply TIteNoDep
   | |- _; _ ⊢ case _ of _ | _ : _ => eapply TCaseNoDep
+  | |- _; ?Γ ⊢ fvar ?x :{?l} _ =>
+      assert_fails is_evar l;
+      match Γ with
+      | context [ <[x:=(l, _)]> _ ] => econstructor
+      | _ => eapply TConv
+      end
   | |- _; _ ⊢ _ : _ => econstructor
   | |- _; _ ⊢ _ * _ :: _ => eapply KProd_alt
   | |- _; _ ⊢ _ + _ :: _ => eapply KSum_alt
@@ -426,6 +432,12 @@ Notation "e '.1'" := <{ π1 e }> (in custom oadt at level 1,
 Notation "e '.2'" := <{ π2 e }> (in custom oadt at level 1,
                                     left associativity,
                                     format "e '.2'").
+Notation "e '.~1'" := <{ ~π1 e }> (in custom oadt at level 1,
+                                      left associativity,
+                                      format "e '.~1'").
+Notation "e '.~2'" := <{ ~π2 e }> (in custom oadt at level 1,
+                                      left associativity,
+                                      format "e '.~2'").
 
 (** Global definitions. *)
 Notation "D" := D (in custom oadt_def at level 0, D constr at level 0).

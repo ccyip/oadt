@@ -60,22 +60,22 @@ Definition defs := [{
   (* def node :{⊤} Π~:int * tree * tree, tree := *)
   (*   \~:int * tree * tree => fold<tree> (inr<𝟙 + int * tree * tree> $0); *)
 
-  def is_zero :{⊥} Π:nat, 𝔹 :=
-    \:nat => case unfold<nat> $0 of true | false;
+  def is_zero :{⊥} Π!:nat, 𝔹 :=
+    \!:nat => case unfold<nat> $0 of true | false;
 
-  def pred :{⊥} Π:nat, nat :=
-    \:nat => case unfold<nat> $0 of zero | $0;
+  def pred :{⊥} Π!:nat, nat :=
+    \!:nat => case unfold<nat> $0 of zero | $0;
 
-  def insert :{⊤} Π~:int, Π~:tree, tree :=
-    \~:int => \~:tree =>
+  def insert :{⊤} Π:int, Π:tree, tree :=
+    \:int => \:tree =>
     case unfold<tree> $0 of
       node ($2, leaf, leaf)
     | if $2 <= ($0).1.1
       then node (($0).1.1, insert $2 ($0).1.2, ($0).2)
       else node (($0).1.1, ($0).1.2, insert $2 ($0).2);
 
-  def lookup :{⊤} Π~:int, Π~:tree, 𝔹 :=
-    \~:int => \~:tree =>
+  def lookup :{⊤} Π:int, Π:tree, 𝔹 :=
+    \:int => \:tree =>
     case unfold<tree> $0 of
       false
     | if $2 <= ($0).1.1
@@ -89,75 +89,75 @@ Definition defs := [{
   obliv ~tree (:nat) :=
     if is_zero $0
     then 𝟙
-    else 𝟙 ~+ ~int * (~tree@(pred $0)) * (~tree@(pred $0));
+    else 𝟙 ~+ ~int ~* (~tree@(pred $0)) ~* (~tree@(pred $0));
 
-  def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
-    \~:tree => \:nat =>
-      if is_zero $0
+  def s_tree :{⊥} Π!:nat, Π:tree, ~tree@$1 :=
+    \!:nat => \:tree =>
+      if is_zero $1
       then ()
-      else tape (case unfold<tree> $1 of
-                   ~inl<𝟙 ~+ ~int * (~tree@(pred $1)) * (~tree@(pred $1))> ()
-                 | ~inr<𝟙 ~+ ~int * (~tree@(pred $1)) * (~tree@(pred $1))>
-                     tape (s_int ($0).1.1,
-                           s_tree ($0).1.2 (pred $1),
-                           s_tree ($0).2 (pred $1)));
+      else tape (case unfold<tree> $0 of
+                   ~inl<𝟙 ~+ ~int ~* (~tree@(pred $2)) ~* (~tree@(pred $2))> ()
+                 | ~inr<𝟙 ~+ ~int ~* (~tree@(pred $2)) ~* (~tree@(pred $2))>
+                     ~(tape (s_int ($0).1.1),
+                       s_tree (pred $2) ($0).1.2,
+                       s_tree (pred $2) ($0).2));
 
-  def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
-    \:nat =>
+  def r_tree :{⊤} Π!:nat, Π!:~tree@$0, tree :=
+    \!:nat =>
       if is_zero $0
-      then \:𝟙 => leaf
-      else \:𝟙 ~+ ~int * (~tree@(pred $0)) * (~tree@(pred $0)) =>
+      then \!:𝟙 => leaf
+      else \!:𝟙 ~+ ~int ~* (~tree@(pred $0)) ~* (~tree@(pred $0)) =>
              ~case $0 of
                leaf
-             | node (r_int ($0).1.1,
-                     r_tree (pred $2) ($0).1.2,
-                     r_tree (pred $2) ($0).2);
+             | node (r_int ($0).~1.~1,
+                     r_tree (pred $2) ($0).~1.~2,
+                     r_tree (pred $2) ($0).~2);
 
   (* The oblivious tree with the upper bound of its spine as the public view. *)
   data spine := 𝟙 + spine * spine;
   obliv ~tree' (:spine) :=
     case unfold<spine> $0 of
       𝟙
-    | 𝟙 ~+ ~int * (~tree'@($0).1) * (~tree'@($0).2);
+    | 𝟙 ~+ ~int ~* (~tree'@($0).1) ~* (~tree'@($0).2);
 
-  def s_tree' :{⊥} Π~:tree, Π:spine, ~tree'@$0 :=
-    \~:tree => \:spine =>
-      case unfold<spine> $0 of
+  def s_tree' :{⊥} Π!:spine, Π:tree, ~tree'@$1 :=
+    \!:spine => \:tree =>
+      case unfold<spine> $1 of
         ()
-      | tape (case unfold<tree> $2 of
-                   ~inl<𝟙 ~+ ~int * (~tree'@($1).1) * (~tree'@($1).2)> ()
-                 | ~inr<𝟙 ~+ ~int * (~tree'@($1).1) * (~tree'@($1).2)>
-                     tape (s_int ($0).1.1,
-                           s_tree' ($0).1.2 ($1).1,
-                           s_tree' ($0).2 ($1).2));
+      | tape (case unfold<tree> $1 of
+                   ~inl<𝟙 ~+ ~int ~* (~tree'@($1).1) ~* (~tree'@($1).2)> ()
+                 | ~inr<𝟙 ~+ ~int ~* (~tree'@($1).1) ~* (~tree'@($1).2)>
+                     ~(tape (s_int ($0).1.1),
+                       s_tree' ($1).1 ($0).1.2,
+                       s_tree' ($1).2 ($0).2));
 
-  def r_tree' :{⊤} Π:spine, Π:~tree'@$0, tree :=
-    \:spine =>
+  def r_tree' :{⊤} Π!:spine, Π!:~tree'@$0, tree :=
+    \!:spine =>
       case unfold<spine> $0 of
-        \:𝟙 => leaf
-      | \:𝟙 ~+ ~int * (~tree'@($0).1) * (~tree'@($0).2) =>
+        \!:𝟙 => leaf
+      | \!:𝟙 ~+ ~int ~* (~tree'@($0).1) ~* (~tree'@($0).2) =>
           ~case $0 of
             leaf
-          | node (r_int ($0).1.1,
-                  r_tree' ($2).1 ($0).1.2,
-                  r_tree' ($2).2 ($0).2);
+          | node (r_int ($0).~1.~1,
+                  r_tree' ($2).1 ($0).~1.~2,
+                  r_tree' ($2).2 ($0).~2);
 
   (* The oblivious lookup function for [~tree]. *)
-  def ~lookup :{⊥} Π:~int, Π:nat, Π:~tree@$0, ~𝔹 :=
-    \:~int => \:nat => \:~tree@$0 =>
-      tape (s𝔹 (lookup (r_int $2) (r_tree $1 $0)));
+  def ~lookup :{⊥} Π!:nat, Π!:~int, Π!:~tree@$1, ~𝔹 :=
+    \!:nat => \!:~int => \!:~tree@$1 =>
+      tape (s𝔹 (lookup (r_int $1) (r_tree $2 $0)));
 
   (* The oblivious lookup function that uses [~tree'] instead. Note that the
   implementation is the same as [~lookup] above with different oblivious tree
   and its section/retraction functions. *)
-  def ~lookup' :{⊥} Π:~int, Π:spine, Π:~tree'@$0, ~𝔹 :=
-    \:~int => \:spine => \:~tree'@$0 =>
-      tape (s𝔹 (lookup (r_int $2) (r_tree' $1 $0)));
+  def ~lookup' :{⊥} Π!:spine, Π!:~int, Π!:~tree'@$1, ~𝔹 :=
+    \!:spine => \!:~int => \!:~tree'@$1 =>
+      tape (s𝔹 (lookup (r_int $1) (r_tree' $2 $0)));
 
   (* The oblivious insert function for [~tree]. *)
-  def ~insert :{⊥} Π:~int, Π:nat, Π:~tree@$0, ~tree@(succ $1) :=
-    \:~int => \:nat => \:~tree@$0 =>
-      s_tree (insert (r_int $2) (r_tree $1 $0)) (succ $1)
+  def ~insert :{⊥} Π!:nat, Π!:~int, Π!:~tree@$1, ~tree@(succ $2) :=
+    \!:nat => \!:~int => \!:~tree@$1 =>
+      s_tree (succ $2) (insert (r_int $1) (r_tree $2 $0))
 }].
 
 Definition Σ : gctx := list_to_map defs.
@@ -193,7 +193,7 @@ Print ex_tree.
 
 (** The corresponding oblivious tree built using the section function. *)
 Definition ex_otree :=
-  <{ s_tree ex_tree (succ (succ zero)) }>.
+  <{ s_tree (succ (succ zero)) ex_tree }>.
 
 (** We can evaluate it to an oblivious value. *)
 Definition ex_otree_pack :
@@ -224,7 +224,7 @@ Print ex_lookup2_result.
 (** The corresponding examples of the oblivious lookup function. Observe that
 the results are equivalent to the ones in the public world. *)
 Definition ex_olookup1 :
-  sig (fun v => Σ ⊨ <{ ~lookup i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~lookup (succ (succ zero)) i[3] ex_otree_v }> -->* v /\ val v).
 Proof.
   mstep_solver.
 Defined.
@@ -232,7 +232,7 @@ Definition ex_olookup1_result := ltac:(extract ex_olookup1).
 Print ex_olookup1_result.
 
 Definition ex_olookup2 :
-  sig (fun v => Σ ⊨ <{ ~lookup i[1] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~lookup (succ (succ zero)) i[1] ex_otree_v }> -->* v /\ val v).
 Proof.
   mstep_solver.
 Defined.
@@ -263,7 +263,7 @@ Print ex_spine_tree.
 
 (** The corresponding oblivious tree. *)
 Definition ex_spine_otree :=
-  <{ s_tree' ex_spine_tree ex_spine }>.
+  <{ s_tree' ex_spine ex_spine_tree }>.
 
 (** We can evaluate it to an oblivious value. *)
 Definition ex_spine_otree_pack :
@@ -276,7 +276,7 @@ Print ex_spine_otree_v.
 
 (** Examples of the oblivious lookup for the spine view. *)
 Definition ex_spine_olookup1 :
-  sig (fun v => Σ ⊨ <{ ~lookup' i[1] ex_spine ex_spine_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~lookup' ex_spine i[1] ex_spine_otree_v }> -->* v /\ val v).
 Proof.
   mstep_solver.
 Defined.
@@ -295,7 +295,7 @@ Print ex_insert_result.
 
 (** The corresponding example for the oblivious insert function. *)
 Definition ex_oinsert :
-  sig (fun v => Σ ⊨ <{ ~insert i[3] (succ (succ zero)) ex_otree_v }> -->* v /\ val v).
+  sig (fun v => Σ ⊨ <{ ~insert (succ (succ zero)) i[3] ex_otree_v }> -->* v /\ val v).
 Proof.
   mstep_solver.
 Defined.

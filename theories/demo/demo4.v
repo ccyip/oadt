@@ -35,41 +35,41 @@ Definition defs := [{
   obliv ~tree (:nat) :=
     case unfold<nat> $0 of
       𝟙
-    | 𝟙 ~+ ~𝔹 * (~tree@$0) * (~tree@$0);
+    | 𝟙 ~+ ~𝔹 ~* (~tree@$0) ~* (~tree@$0);
 
-  def s_tree :{⊥} Π~:tree, Π:nat, ~tree@$0 :=
-    \~:tree => \:nat =>
-      case unfold<nat> $0 of
+  def s_tree :{⊥} Π!:nat, Π:tree, ~tree@$1 :=
+    \!:nat => \:tree =>
+      case unfold<nat> $1 of
         ()
-      | tape (case unfold<tree> $2 of
-                   ~inl<𝟙 ~+ ~𝔹 * (~tree@$1) * (~tree@$1)> ()
-                 | ~inr<𝟙 ~+ ~𝔹 * (~tree@$1) * (~tree@$1)>
-                     tape (s𝔹 ($0).1.1,
-                           s_tree ($0).1.2 $1,
-                           s_tree ($0).2 $1));
+      | tape (case unfold<tree> $1 of
+                   ~inl<𝟙 ~+ ~𝔹 ~* (~tree@$1) ~* (~tree@$1)> ()
+                 | ~inr<𝟙 ~+ ~𝔹 ~* (~tree@$1) ~* (~tree@$1)>
+                     ~(tape (s𝔹 ($0).1.1),
+                       s_tree $1 ($0).1.2,
+                       s_tree $1 ($0).2));
 
-  def r_tree :{⊤} Π:nat, Π:~tree@$0, tree :=
-    \:nat =>
+  def r_tree :{⊤} Π!:nat, Π!:~tree@$0, tree :=
+    \!:nat =>
       case unfold<nat> $0 of
-        \:𝟙 => leaf
-      | \:𝟙 ~+ ~𝔹 * (~tree@$0) * (~tree@$0) =>
+        \!:𝟙 => leaf
+      | \!:𝟙 ~+ ~𝔹 ~* (~tree@$0) ~* (~tree@$0) =>
           ~case $0 of
             leaf
-          | node (r𝔹 ($0).1.1,
-                  r_tree $2 ($0).1.2,
-                  r_tree $2 ($0).2);
+          | node (r𝔹 ($0).~1.~1,
+                  r_tree $2 ($0).~1.~2,
+                  r_tree $2 ($0).~2);
 
-  def map :{⊤} Π~:(Π~:𝔹, 𝔹), Π~:tree, tree :=
-    \~:(Π~:𝔹, 𝔹) => \~:tree =>
+  def map :{⊤} Π:(Π:𝔹, 𝔹), Π:tree, tree :=
+    \:(Π:𝔹, 𝔹) => \:tree =>
       case unfold<tree> $0 of
         leaf
       | node ($2 ($0).1.1, map $2 ($0).1.2, map $2 ($0).2);
 
   (* The oblivious counterpart of the map function. Note that this idea of
   lifting a public function to its oblivious version works naturally here. *)
-  def ~map :{⊥} Π~:(Π~:𝔹, 𝔹), Π:nat, Π:~tree@$0, ~tree@$1 :=
-    \~:(Π~:𝔹, 𝔹) => \:nat => \:~tree@$0 =>
-      s_tree (map $2 (r_tree $1 $0)) $1
+  def ~map :{⊥} Π!:nat, Π!:(Π:𝔹, 𝔹), Π!:~tree@$1, ~tree@$2 :=
+    \!:nat => \!:(Π:𝔹, 𝔹) => \!:~tree@$1 =>
+      s_tree $2 (map $1 (r_tree $2 $0))
 }].
 
 Definition Σ : gctx := list_to_map defs.
@@ -87,7 +87,7 @@ Print ex_tree.
 
 (** Its corresponding oblivious tree. *)
 Definition ex_otree :=
-  <{ s_tree ex_tree (succ (succ zero)) }>.
+  <{ s_tree (succ (succ zero)) ex_tree }>.
 
 Definition ex_otree_pack :
   sig (fun v => Σ ⊨ ex_otree -->* v /\ oval v).
@@ -99,8 +99,8 @@ Print ex_otree_v.
 
 (** Map a negation function on this oblivious tree. *)
 Definition ex_omap :
-  sig (fun v => Σ ⊨ <{ ~map (\~:𝔹 => if $0 then false else true)
-                          (succ (succ zero))
+  sig (fun v => Σ ⊨ <{ ~map (succ (succ zero))
+                          (\:𝔹 => if $0 then false else true)
                           ex_otree_v }> -->* v /\ val v).
 Proof.
   mstep_solver.

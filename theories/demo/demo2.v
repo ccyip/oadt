@@ -53,24 +53,24 @@ Definition defs := [{
   obliv olist (:nat) :=
     case unfold<nat> $0 of
       𝟙
-    | 𝟙 ~+ ~𝔹 * (olist@$0);
+    | 𝟙 ~+ ~𝔹 ~* (olist@$0);
 
-  def s_list :{⊥} Π~:list, Π:nat, olist@$0 :=
-    \~:list => \:nat =>
-      case unfold<nat> $0 of
+  def s_list :{⊥} Π!:nat, Π:list, olist@$1 :=
+    \!:nat => \:list =>
+      case unfold<nat> $1 of
         ()
-      | tape (case unfold<list> $2 of
-                ~inl<𝟙 ~+ ~𝔹 * (olist@$1)> ()
-              | ~inr<𝟙 ~+ ~𝔹 * (olist@$1)> (tape (s𝔹 ($0).1, s_list ($0).2 $1)));
+      | tape (case unfold<list> $1 of
+                ~inl<𝟙 ~+ ~𝔹 ~* (olist@$1)> ()
+              | ~inr<𝟙 ~+ ~𝔹 ~* (olist@$1)> ~(tape (s𝔹 ($0).1), s_list $1 ($0).2));
 
-  def r_list :{⊤} Π:nat, Π:olist@$0, list :=
-    \:nat =>
+  def r_list :{⊤} Π!:nat, Π!:olist@$0, list :=
+    \!:nat =>
       case unfold<nat> $0 of
-        \:𝟙 => nil
-      | \:𝟙 ~+ ~𝔹 * (olist@$0) =>
+        \!:𝟙 => nil
+      | \!:𝟙 ~+ ~𝔹 ~* (olist@$0) =>
           ~case $0 of
             nil
-          | cons (r𝔹 ($0).1, r_list $2 ($0).2)
+          | cons (r𝔹 ($0).~1, r_list $2 ($0).~2)
 }].
 
 Definition Σ : gctx := list_to_map defs.

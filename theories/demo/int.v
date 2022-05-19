@@ -28,9 +28,9 @@ Inductive expr :=
 | ELit (b : bool)
 | ESec (e : expr)
 | EIte (l : olabel) (e0 e1 e2 : expr)
-| EProd (τ1 τ2 : expr)
-| EPair (e1 e2 : expr)
-| EProj (b : bool) (e : expr)
+| EProd (l : olabel) (τ1 τ2 : expr)
+| EPair (l : olabel) (e1 e2 : expr)
+| EProj (l : olabel) (b : bool) (e : expr)
 | ESum (l : olabel) (τ1 τ2 : expr)
 | EInj (l : olabel) (b : bool) (τ e : expr)
 | ECase (l : olabel) (e0 : expr) (e1 : expr) (e2 : expr)
@@ -84,7 +84,6 @@ Coercion lexpr_expr : lexpr >-> expr.
 Notation "<{ e }>" := e (e custom oadt at level 99).
 Notation "',(' e ')'" := e (in custom oadt at level 0,
                                e constr at level 0).
-
 Notation "( x )" := x (in custom oadt, x at level 99).
 Notation "x" := x (in custom oadt at level 0, x constr at level 0).
 Notation "'bvar' x" := (EBVar x) (in custom oadt at level 0, x constr at level 0).
@@ -102,9 +101,17 @@ Notation "'𝔹'" := (EBool LPub) (in custom oadt at level 0).
 Notation "'Bool'" := (EBool LPub) (in custom oadt at level 0, only parsing).
 Notation "'~𝔹'" := (EBool LObliv) (in custom oadt at level 0).
 Notation "'~Bool'" := (EBool LObliv) (in custom oadt at level 0, only parsing).
-Notation "τ1 * τ2" := (EProd τ1 τ2) (in custom oadt at level 3,
-                                        τ1 custom oadt,
-                                        τ2 custom oadt at level 0).
+Notation "τ1 '*{' l '}' τ2" := (EProd l τ1 τ2) (in custom oadt at level 3,
+                                                   l constr at level 0,
+                                                   τ1 custom oadt,
+                                                   τ2 custom oadt at level 0,
+                                                  format "τ1  '*{' l '}'  τ2").
+Notation "τ1 * τ2" := (EProd LPub τ1 τ2) (in custom oadt at level 3,
+                                             τ1 custom oadt,
+                                             τ2 custom oadt at level 0).
+Notation "τ1 ~* τ2" := (EProd LObliv τ1 τ2) (in custom oadt at level 3,
+                                                τ1 custom oadt,
+                                                τ2 custom oadt at level 0).
 Notation "τ1 '+{' l '}' τ2" := (ESum l τ1 τ2) (in custom oadt at level 4,
                                                   l constr at level 0,
                                                   left associativity,
@@ -117,46 +124,68 @@ Notation "'Π' :{ l } τ1 , τ2" := (EPi l τ1 τ2)
                                    (in custom oadt at level 50,
                                        right associativity,
                                        format "Π :{ l } τ1 ,  τ2").
-Notation "'Π' : τ1 , τ2" := (EPi LSafe τ1 τ2)
+Notation "'Π' !: τ1 , τ2" := (EPi LSafe τ1 τ2)
+                               (in custom oadt at level 50,
+                                   right associativity,
+                                   format "Π !: τ1 ,  τ2").
+Notation "'Π' : τ1 , τ2" := (EPi LLeak τ1 τ2)
                               (in custom oadt at level 50,
                                   right associativity,
                                   format "Π : τ1 ,  τ2").
-Notation "'Π' ~: τ1 , τ2" := (EPi LLeak τ1 τ2)
-                               (in custom oadt at level 50,
-                                   right associativity,
-                                   format "Π ~: τ1 ,  τ2").
 Notation "\ :{ l } τ '=>' e" := (EAbs l τ e)
                                   (in custom oadt at level 90,
                                       τ custom oadt at level 99,
                                       e custom oadt at level 99,
                                       left associativity,
                                       format "\ :{ l } τ  =>  e").
-Notation "\ : τ '=>' e" := (EAbs LSafe τ e)
+Notation "\ !: τ '=>' e" := (EAbs LSafe τ e)
+                              (in custom oadt at level 90,
+                                  τ custom oadt at level 99,
+                                  e custom oadt at level 99,
+                                  left associativity,
+                                  format "\ !: τ  =>  e").
+Notation "\ : τ '=>' e" := (EAbs LLeak τ e)
                              (in custom oadt at level 90,
                                  τ custom oadt at level 99,
                                  e custom oadt at level 99,
                                  left associativity,
                                  format "\ : τ  =>  e").
-Notation "\ ~: τ '=>' e" := (EAbs LLeak τ e)
-                              (in custom oadt at level 90,
-                                  τ custom oadt at level 99,
-                                  e custom oadt at level 99,
-                                  left associativity,
-                                  format "\ ~: τ  =>  e").
 Notation "e1 e2" := (EApp e1 e2) (in custom oadt at level 2, left associativity).
 Notation "X @ e" := (ETApp X e) (in custom oadt at level 2,
                                     format "X @ e").
 Notation "()" := EUnitV (in custom oadt at level 0).
-Notation "( x , y , .. , z )" := (EPair .. (EPair x y) .. z)
+Notation "( x , y , .. , z ){ l }" := (EPair l .. (EPair l x y) .. z)
+                                        (in custom oadt at level 0,
+                                            l constr at level 0,
+                                            x custom oadt at level 99,
+                                            y custom oadt at level 99,
+                                            z custom oadt at level 99,
+                                            format "( x ,  y ,  .. ,  z ){ l }").
+Notation "( x , y , .. , z )" := (EPair LPub .. (EPair LPub x y) .. z)
                                    (in custom oadt at level 0,
                                        x custom oadt at level 99,
                                        y custom oadt at level 99,
                                        z custom oadt at level 99).
-Notation "'π@' b e" := (EProj b e) (in custom oadt at level 2,
-                                       b constr at level 0,
-                                       format "π@ b  e").
-Notation "'π1' e" := (EProj true e) (in custom oadt at level 2).
-Notation "'π2' e" := (EProj false e) (in custom oadt at level 2).
+Notation "~( x , y , .. , z )" := (EPair LObliv .. (EPair LObliv x y) .. z)
+                                    (in custom oadt at level 0,
+                                        x custom oadt at level 99,
+                                        y custom oadt at level 99,
+                                        z custom oadt at level 99,
+                                        format "~( x ,  y ,  .. ,  z )").
+Notation "'π{' l '}@' b e" := (EProj l b e) (in custom oadt at level 2,
+                                              l constr at level 0,
+                                              b constr at level 0,
+                                              format "π{ l }@ b  e").
+Notation "'π@' b e" := (EProj LPub b e) (in custom oadt at level 2,
+                                            b constr at level 0,
+                                            format "π@ b  e").
+Notation "'~π@' b e" := (EProj LObliv b e) (in custom oadt at level 2,
+                                               b constr at level 0,
+                                               format "~π@ b  e").
+Notation "'π1' e" := (EProj LPub true e) (in custom oadt at level 2).
+Notation "'π2' e" := (EProj LPub false e) (in custom oadt at level 2).
+Notation "'~π1' e" := (EProj LObliv true e) (in custom oadt at level 2).
+Notation "'~π2' e" := (EProj LObliv false e) (in custom oadt at level 2).
 Notation "'s𝔹' e" := (ESec e) (in custom oadt at level 2).
 Notation "'if{' l '}' e0 'then' e1 'else' e2" := (EIte l e0 e1 e2)
                                                    (in custom oadt at level 89,
@@ -323,9 +352,9 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | <{ X@e }> => <{ X@({k~>s}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k~>s}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k~>s}e0 then {k~>s}e1 else {k~>s}e2 }>
-  | <{ τ1 * τ2 }> => <{ ({k~>s}τ1) * ({k~>s}τ2) }>
-  | <{ (e1, e2) }> => <{ ({k~>s}e1, {k~>s}e2) }>
-  | <{ π@b e }> => <{ π@b ({k~>s}e) }>
+  | <{ τ1 *{l} τ2 }> => <{ ({k~>s}τ1) *{l} ({k~>s}τ2) }>
+  | <{ (e1, e2){l} }> => <{ ({k~>s}e1, {k~>s}e2){l} }>
+  | <{ π{l}@b e }> => <{ π{l}@b ({k~>s}e) }>
   | <{ τ1 +{l} τ2 }> => <{ ({k~>s}τ1) +{l} ({k~>s}τ2) }>
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k~>s}τ)> ({k~>s}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k~>s}e) }>
@@ -348,7 +377,7 @@ Notation "e ^ s" := (open s e) (in custom oadt at level 20).
 Inductive otval : expr -> Prop :=
 | OVUnitT : otval <{ 𝟙 }>
 | OVOBool : otval <{ ~𝔹 }>
-| OVProd ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 * ω2 }>
+| OVProd ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 ~* ω2 }>
 | OVOSum ω1 ω2 : otval ω1 -> otval ω2 -> otval <{ ω1 ~+ ω2 }>
 (* NOTE: Extensions *)
 | OVOInt : otval <{ ~int }>
@@ -358,7 +387,7 @@ Inductive otval : expr -> Prop :=
 Inductive oval : expr -> Prop :=
 | OVUnitV : oval <{ () }>
 | OVBoxedLit b : oval <{ [b] }>
-| OVPair v1 v2 : oval v1 -> oval v2 -> oval <{ (v1, v2) }>
+| OVPair v1 v2 : oval v1 -> oval v2 -> oval <{ ~(v1, v2) }>
 | OVBoxedInj b ω v : otval ω -> oval v -> oval <{ [inj@b<ω> v] }>
 (* NOTE: Extensions *)
 | OVOIntLit n : oval <{ i[n] }>
@@ -366,17 +395,14 @@ Inductive oval : expr -> Prop :=
 
 (** ** Values (v) *)
 Inductive val : expr -> Prop :=
-| VUnitV : val <{ () }>
 | VLit b : val <{ lit b }>
 | VPair v1 v2 : val v1 -> val v2 -> val <{ (v1, v2) }>
 | VAbs l τ e : val <{ \:{l}τ => e }>
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
 | VFold X v : val v -> val <{ fold<X> v }>
-| VBoxedLit b : val <{ [b] }>
-| VBoxedInj b ω v : otval ω -> oval v -> val <{ [inj@b<ω> v] }>
+| VOVal v : oval v -> val v
 (* NOTE: Extensions *)
 | VIntLit n : val <{ i(n) }>
-| VIntBoxedLit n : val <{ i[n] }>
 .
 
 (** ** Local closure and well-formedness of expressions *)
@@ -405,9 +431,9 @@ Inductive lc : expr -> Prop :=
 | LCLit b : lc <{ lit b }>
 | LCSec e : lc e -> lc <{ s𝔹 e }>
 | LCIte l e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ if{l} e0 then e1 else e2 }>
-| LCProd τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 * τ2 }>
-| LCPair e1 e2 : lc e1 -> lc e2 -> lc <{ (e1, e2) }>
-| LCProj b e : lc e -> lc <{ π@b e }>
+| LCProd l τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 *{l} τ2 }>
+| LCPair l e1 e2 : lc e1 -> lc e2 -> lc <{ (e1, e2){l} }>
+| LCProj l b e : lc e -> lc <{ π{l}@b e }>
 | LCSum l τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 +{l} τ2 }>
 | LCInj l b τ e : lc τ -> lc e -> lc <{ inj{l}@b<τ> e }>
 | LCFold X e : lc e -> lc <{ fold<X> e }>
@@ -443,34 +469,26 @@ End syntax_notations.
 
 (** ** Weak values *)
 Inductive wval : expr -> Prop :=
-| WUnitV : wval <{ () }>
 | WLit b : wval <{ lit b }>
 | WPair v1 v2 : wval v1 -> wval v2 -> wval <{ (v1, v2) }>
 | WAbs l τ e : wval <{ \:{l}τ => e }>
 | WInj b τ v : wval v -> wval <{ inj@b<τ> v }>
 | WFold X v : wval v -> wval <{ fold<X> v }>
-| WBoxedLit b : wval <{ [b] }>
-| WBoxedInj b ω v : otval ω -> oval v -> wval <{ [inj@b<ω> v] }>
 | WIte b v1 v2 :
     wval v1 -> wval v2 ->
     wval <{ ~if [b] then v1 else v2 }>
+| WOVal v : oval v -> wval v
 (* NOTE: Extensions *)
 | WIntLit n : wval <{ i(n) }>
-| WBoxedIntLit n : wval <{ i[n] }>
 | WIntRet n : wval <{ r_int i[n] }>
 .
 
 (** ** Weak oblivious values *)
 Inductive woval : expr -> Prop :=
-| OWUnitV : woval <{ () }>
-| OWBoxedLit b : woval <{ [b] }>
-| OWPair v1 v2 : woval v1 -> woval v2 -> woval <{ (v1, v2) }>
-| OWBoxedInj b ω v : otval ω -> oval v -> woval <{ [inj@b<ω> v] }>
 | OWIte b v1 v2 :
     woval v1 -> woval v2 ->
     woval <{ ~if [b] then v1 else v2 }>
-(* NOTE: Extensions *)
-| OWBoxedIntLit n : woval <{ i[n] }>
+| OWOVal v : oval v -> woval v
 .
 
 
@@ -480,7 +498,7 @@ Inductive ovalty : expr -> expr -> Prop :=
 | OTOBool b : ovalty <{ [b] }> <{ ~𝔹 }>
 | OTProd v1 v2 ω1 ω2 :
     ovalty v1 ω1 -> ovalty v2 ω2 ->
-    ovalty <{ (v1, v2) }> <{ ω1 * ω2 }>
+    ovalty <{ ~(v1, v2) }> <{ ω1 ~* ω2 }>
 | OTOSum b v ω1 ω2 :
     ovalty v <{ ite b ω1 ω2 }> ->
     otval <{ ite b ω2 ω1 }> ->
@@ -491,8 +509,8 @@ Inductive ovalty : expr -> expr -> Prop :=
 
 (** ** Evaluation context (ℇ) *)
 Variant ectx : (expr -> expr) -> Prop :=
-| CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 * τ2 }>)
-| CtxProd2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 * τ2 }>)
+| CtxProd1 τ2 : ectx (fun τ1 => <{ τ1 ~* τ2 }>)
+| CtxProd2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~* τ2 }>)
 | CtxOSum1 τ2 : ectx (fun τ1 => <{ τ1 ~+ τ2 }>)
 | CtxOSum2 ω1 : otval ω1 -> ectx (fun τ2 => <{ ω1 ~+ τ2 }>)
 | CtxApp1 e2 : ectx (fun e1 => <{ e1 e2 }>)
@@ -504,9 +522,9 @@ Variant ectx : (expr -> expr) -> Prop :=
 | CtxOIte1 e1 e2 : ectx (fun e0 => <{ ~if e0 then e1 else e2 }>)
 | CtxOIte2 v0 e2 : wval v0 -> ectx (fun e1 => <{ ~if v0 then e1 else e2 }>)
 | CtxOIte3 v0 v1 : wval v0 -> wval v1 -> ectx (fun e2 => <{ ~if v0 then v1 else e2 }>)
-| CtxPair1 e2 : ectx (fun e1 => <{ (e1, e2) }>)
-| CtxPair2 v1 : wval v1 -> ectx (fun e2 => <{ (v1, e2) }>)
-| CtxProj b : ectx (fun e => <{ π@b e }>)
+| CtxPair1 l e2 : ectx (fun e1 => <{ (e1, e2){l} }>)
+| CtxPair2 l v1 : wval v1 -> ectx (fun e2 => <{ (v1, e2){l} }>)
+| CtxProj l b : ectx (fun e => <{ π{l}@b e }>)
 | CtxInj b τ : ectx (fun e => <{ inj@b<τ> e }>)
 | CtxOInj1 b e : ectx (fun τ => <{ ~inj@b<τ> e }>)
 | CtxOInj2 b ω : otval ω -> ectx (fun e => <{ ~inj@b<ω> e }>)
@@ -563,9 +581,9 @@ Inductive step : expr -> expr -> Prop :=
     <{ s𝔹 b }> -->! <{ [b] }>
 | SIte b e1 e2 :
     <{ if b then e1 else e2 }> -->! <{ ite b e1 e2 }>
-| SProj b v1 v2 :
+| SProj l b v1 v2 :
     wval v1 -> wval v2 ->
-    <{ π@b (v1, v2) }> -->! <{ ite b v1 v2 }>
+    <{ π{l}@b (v1, v2){l} }> -->! <{ ite b v1 v2 }>
 | SOInj b ω v :
     otval ω -> oval v ->
     <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>
@@ -586,16 +604,9 @@ Inductive step : expr -> expr -> Prop :=
 | STapeOIte b v1 v2 :
     woval v1 -> woval v2 ->
     <{ tape (~if [b] then v1 else v2) }> -->! <{ mux [b] (tape v1) (tape v2) }>
-| STapePair v1 v2 :
-    woval v1 -> woval v2 ->
-    <{ tape (v1, v2) }> -->! <{ (tape v1, tape v2) }>
-| STapeUnitV :
-    <{ tape () }> -->! <{ () }>
-| STapeBoxedLit b :
-    <{ tape [b] }> -->! <{ [b] }>
-| STapeBoxedInj b ω v :
-    otval ω -> oval v ->
-    <{ tape [inj@b<ω> v] }> -->! <{ [inj@b<ω> v] }>
+| STapeOVal v :
+    oval v ->
+    <{ tape v }> -->! <{ v }>
 (* NOTE: Extensions *)
 | SIntLe m n : <{ i(m) <= i(n) }> -->! <{ lit (leb m n) }>
 | SOIntLe m n : <{ i[m] ~<= i[n] }> -->! <{ [leb m n] }>
@@ -604,7 +615,6 @@ Inductive step : expr -> expr -> Prop :=
 | SIntRetLe1 m n : <{ r_int i[m] <= r_int i[n] }> -->! <{ r𝔹 (i[m] ~<= i[n]) }>
 | SIntRetLe2 m n : <{ r_int i[m] <= i(n) }> -->! <{ r𝔹 (i[m] ~<= s_int i(n)) }>
 | SIntRetLe3 m n : <{ i(m) <= r_int i[n] }> -->! <{ r𝔹 (s_int i(m) ~<= i[n]) }>
-| STapeOInt n : <{ tape i[n] }> -->! <{ i[n] }>
 
 (* Keep these two rules at the end for convenience. *)
 | SOIte b v1 v2 ℇ :
@@ -671,10 +681,10 @@ Inductive pared : expr -> expr -> Prop :=
     (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
     lc τ ->
     <{ (\:{l}τ => e2) e1 }> ⇛ <{ e2'^e1' }>
-| RTApp X τ e1 e2 e1' :
-    Σ !! X = Some (DOADT τ e2) ->
-    e1 ⇛ e1' ->
-    <{ X@e1 }> ⇛ <{ e2^e1' }>
+| RTApp X τ' τ e e' :
+    Σ !! X = Some (DOADT τ' τ) ->
+    e ⇛ e' ->
+    <{ X@e }> ⇛ <{ τ^e' }>
 | RLet e1 e2 e1' e2' L :
     e1 ⇛ e1' ->
     (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
@@ -682,10 +692,10 @@ Inductive pared : expr -> expr -> Prop :=
 | RFun x T e :
     Σ !! x = Some (DFun T e) ->
     <{ gvar x }> ⇛ <{ e }>
-| RProj b e1 e2 e1' e2' :
+| RProj l b e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ π@b (e1, e2) }> ⇛ <{ ite b e1' e2' }>
+    <{ π{l}@b (e1, e2){l} }> ⇛ <{ ite b e1' e2' }>
 | RFold X X' e e' :
     e ⇛ e' ->
     <{ unfold<X> (fold<X'> e) }> ⇛ e'
@@ -756,18 +766,9 @@ Inductive pared : expr -> expr -> Prop :=
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ tape (~if [b] then e1 else e2) }> ⇛ <{ mux [b] (tape e1') (tape e2') }>
-| RTapePair e1 e2 e1' e2' :
-    e1 ⇛ e1' ->
-    e2 ⇛ e2' ->
-    woval e1 -> woval e2 ->
-    <{ tape (e1, e2) }> ⇛ <{ (tape e1', tape e2') }>
-| RTapeUnitV :
-    <{ tape () }> ⇛ <{ () }>
-| RTapeBoxedLit b :
-    <{ tape [b] }> ⇛ <{ [b] }>
-| RTapeBoxedInj b ω v :
-    otval ω -> oval v ->
-    <{ tape [inj@b<ω> v] }> ⇛ <{ [inj@b<ω> v] }>
+| RTapeOVal v :
+    oval v ->
+    <{ tape v }> ⇛ v
 | RCgrPi l τ1 τ2 τ1' τ2' L :
     τ1 ⇛ τ1' ->
     (forall x, x ∉ L -> <{ τ2^x }> ⇛ <{ τ2'^x }>) ->
@@ -795,17 +796,17 @@ Inductive pared : expr -> expr -> Prop :=
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ if{l} e0 then e1 else e2 }> ⇛ <{ if{l} e0' then e1' else e2' }>
-| RCgrProd τ1 τ2 τ1' τ2' :
+| RCgrProd l τ1 τ2 τ1' τ2' :
     τ1 ⇛ τ1' ->
     τ2 ⇛ τ2' ->
-    <{ τ1 * τ2 }> ⇛ <{ τ1' * τ2' }>
-| RCgrPair e1 e2 e1' e2' :
+    <{ τ1 *{l} τ2 }> ⇛ <{ τ1' *{l} τ2' }>
+| RCgrPair l e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ (e1, e2) }> ⇛ <{ (e1', e2') }>
-| RCgrProj b e e' :
+    <{ (e1, e2){l} }> ⇛ <{ (e1', e2'){l} }>
+| RCgrProj l b e e' :
     e ⇛ e' ->
-    <{ π@b e }> ⇛ <{ π@b e' }>
+    <{ π{l}@b e }> ⇛ <{ π{l}@b e' }>
 | RCgrSum l τ1 τ2 τ1' τ2' :
     τ1 ⇛ τ1' ->
     τ2 ⇛ τ2' ->
@@ -941,9 +942,18 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     Γ ⊢ e2 :{l2} τ2 ->
     l = l1 ⊔ l2 ->
     Γ ⊢ (e1, e2) :{l} τ1 * τ2
+| TOPair Γ e1 e2 τ1 τ2 :
+    Γ ⊢ e1 :{⊥} τ1 ->
+    Γ ⊢ e2 :{⊥} τ2 ->
+    Γ ⊢ τ1 :: *@O ->
+    Γ ⊢ τ2 :: *@O ->
+    Γ ⊢ ~(e1, e2) :{⊥} τ1 ~* τ2
 | TProj Γ l b e τ1 τ2 :
     Γ ⊢ e :{l} τ1 * τ2 ->
     Γ ⊢ π@b e :{l} ite b τ1 τ2
+| TOProj Γ b e τ1 τ2 :
+    Γ ⊢ e :{⊥} τ1 ~* τ2 ->
+    Γ ⊢ ~π@b e :{⊥} ite b τ1 τ2
 | TFold Γ l X e τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e :{l} τ ->
@@ -966,6 +976,7 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
 | TBoxedInj Γ b v ω :
     ovalty <{ [inj@b<ω> v] }> ω ->
     Γ ⊢ [inj@b<ω> v] :{⊥} ω
+
 (* NOTE: Extensions *)
 | TIntLit Γ n :
   Γ ⊢ i(n) :{⊥} int
@@ -996,7 +1007,7 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     Γ ⊢ e :{l} τ
 
 with kinding : tctx -> expr -> kind -> Prop :=
-| KVarADT Γ X τ :
+| KGVar Γ X τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ gvar X :: *@P
 | KUnit Γ : Γ ⊢ 𝟙 :: *@A
@@ -1012,7 +1023,11 @@ with kinding : tctx -> expr -> kind -> Prop :=
 | KProd Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
-    Γ ⊢ τ1 * τ2 :: κ
+    Γ ⊢ τ1 * τ2 :: (κ ⊔ *@P)
+| KOProd Γ τ1 τ2 :
+    Γ ⊢ τ1 :: *@O ->
+    Γ ⊢ τ2 :: *@O ->
+    Γ ⊢ τ1 ~* τ2 :: *@O
 | KSum Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
@@ -1190,9 +1205,9 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ X@e }> => <{ X@({k<~x}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k<~x}e) }>
   | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k<~x}e0 then {k<~x}e1 else {k<~x}e2 }>
-  | <{ τ1 * τ2 }> => <{ ({k<~x}τ1) * ({k<~x}τ2) }>
-  | <{ (e1, e2) }> => <{ ({k<~x}e1, {k<~x}e2) }>
-  | <{ π@b e }> => <{ π@b ({k<~x}e) }>
+  | <{ τ1 *{l} τ2 }> => <{ ({k<~x}τ1) *{l} ({k<~x}τ2) }>
+  | <{ (e1, e2){l} }> => <{ ({k<~x}e1, {k<~x}e2){l} }>
+  | <{ π{l}@b e }> => <{ π{l}@b ({k<~x}e) }>
   | <{ τ1 +{l} τ2 }> => <{ ({k<~x}τ1) +{l} ({k<~x}τ2) }>
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k<~x}τ)> ({k<~x}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k<~x}e) }>
@@ -1219,19 +1234,19 @@ Fixpoint fv (e : expr) : aset :=
   (* Congruence rules *)
   | <{ \:{_}τ => e }> | <{ inj{_}@_<τ> e }> | <{ [inj@_<τ> e] }> =>
     fv τ ∪ fv e
-  | <{ Π:{_}τ1, τ2 }> | <{ τ1 * τ2 }> | <{ τ1 +{_} τ2 }> =>
+  | <{ Π:{_}τ1, τ2 }> | <{ τ1 *{_} τ2 }> | <{ τ1 +{_} τ2 }> =>
     fv τ1 ∪ fv τ2
-  | <{ let e1 in e2 }> | <{ (e1, e2) }> | <{ e1 e2 }> =>
+  | <{ let e1 in e2 }> | <{ (e1, e2){_} }> | <{ e1 e2 }> =>
     fv e1 ∪ fv e2
   | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }>
   | <{ mux e0 e1 e2 }> =>
     fv e0 ∪ fv e1 ∪ fv e2
-  | <{ _@e }> | <{ s𝔹 e }> | <{ π@_ e }>
+  | <{ _@e }> | <{ s𝔹 e }> | <{ π{_}@_ e }>
   | <{ fold<_> e }> | <{ unfold<_> e }>
   | <{ tape e }> =>
     fv e
   (* NOTE: Extensions *)
-  | <{ e1 <={l} e2 }> => fv e1 ∪ fv e2
+  | <{ e1 <={_} e2 }> => fv e1 ∪ fv e2
   | <{ s_int e }> | <{ r_int e }> => fv e
   | _ => ∅
   end.
@@ -1259,8 +1274,11 @@ Ltac case_label :=
   | |- context [<{ if{?l} _ then _ else _ }>] => go l
   | |- context [<{ inj{?l}@_<_> _ }>] => go l
   | |- context [<{ case{?l} _ of _ | _ }>] => go l
+  | |- context [<{ (_, _){?l} }>] => go l
+  | |- context [<{ π{?l}@_ _ }>] => go l
   | |- context [<{ 𝔹{?l} }>] => go l
   | |- context [<{ _ +{?l} _ }>] => go l
+  | |- context [<{ _ *{?l} _ }>] => go l
   (* NOTE: Extensions *)
   | |- context [<{ int{?l} }>] => go l
   | |- context [<{ _ <={?l} _ }>] => go l
@@ -1271,6 +1289,8 @@ Ltac safe_inv1 R :=
   match goal with
   | H : R ?e |- _ => safe_inv e H
   end.
+
+Ltac oval_inv := safe_inv1 oval.
 
 Ltac wval_inv := safe_inv1 wval.
 
@@ -1389,11 +1409,18 @@ Proof.
       eauto; fast_set_solver!!.
 Qed.
 
+Lemma otval_well_kinded ω Σ Γ :
+  otval ω ->
+  Σ; Γ ⊢ ω :: *@O.
+Proof.
+  induction 1; eauto using kinding with lattice_naive_solver.
+Qed.
+
 Lemma ovalty_elim v ω:
   ovalty v ω ->
   oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v :{⊥} ω.
 Proof.
-  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing.
+  induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing use: otval_well_kinded.
 Qed.
 
 Lemma otval_lc ω :
@@ -1475,6 +1502,27 @@ Proof.
   by rewrite open_lc by assumption.
 Qed.
 
+Lemma oval_val v :
+  oval v ->
+  val v.
+Proof.
+  eauto using val.
+Qed.
+
+Lemma val_wval v :
+  val v ->
+  wval v.
+Proof.
+  induction 1; eauto using wval.
+Qed.
+
+Lemma oval_wval v :
+  oval v ->
+  wval v.
+Proof.
+  eauto using oval_val, val_wval.
+Qed.
+
 Lemma pared_weakening Σ e e' :
   Σ ⊢ e ⇛ e' ->
   forall Σ', Σ ⊆ Σ' ->
@@ -1549,8 +1597,10 @@ Section dec.
 
 Ltac t :=
   solve [ repeat
-            (try solve [ left; abstract (econstructor; assumption)
-                       | right; abstract (inversion 1; subst; contradiction) ];
+            (try solve [ left; abstract (econstructor; eauto using oval)
+                       | right; abstract (inversion 1; subst;
+                                          try contradiction;
+                                          repeat oval_inv) ];
              try match reverse goal with
                  | H : sumbool _ _ |- _ => destruct H
                  end) ].
@@ -1564,7 +1614,7 @@ Defined.
 #[global]
 Instance oval_dec v : Decision (oval v).
 Proof.
-  hnf. induction v; try t.
+  hnf. induction v; try t; try case_label; try t.
 
   match goal with
   | H : context [ oval ?ω ] |- context [<{ [inj@_<(?ω)> _] }>] =>
@@ -1576,37 +1626,35 @@ Defined.
 Instance wval_dec v : Decision (wval v).
 Proof.
   hnf. induction v; try t; try case_label; try t.
-  - match goal with
-    | H : context [ wval ?v] |- context [<{ ~if ?v then _ else _ }>] =>
+  match goal with
+  | H : context [ wval ?v] |- context [<{ ~if ?v then _ else _ }>] =>
       clear H; destruct v; try t
+  end.
+
+  1-2:
+    match goal with
+    | |- context [ wval ?e ] =>
+        destruct (decide (oval e)); t
     end.
-  - match goal with
-    | H : context [ wval ?ω], H' : context [ wval ?v ] |-
-      context [<{ [inj@_<(?ω)> ?v] }>] =>
-      clear H; clear H';
-        destruct (decide (otval ω)); try t;
-        destruct (decide (oval v)); try t
-    end.
-  - match goal with
-    | |- context [<{ r_int ?v }>] =>
+
+  match goal with
+  | |- context [<{ r_int ?v }>] =>
       clear; destruct v; try t
-    end.
+  end.
 Defined.
 
 #[global]
 Instance woval_dec v : Decision (woval v).
 Proof.
   hnf. induction v; try t; try case_label; try t.
-  - match goal with
-    | H : context [ woval ?v] |- context [<{ ~if ?v then _ else _ }>] =>
+  match goal with
+  | H : context [ woval ?v] |- context [<{ ~if ?v then _ else _ }>] =>
       clear H; destruct v; try t
-    end.
-  - match goal with
-    | H : context [ woval ?ω], H' : context [ woval ?v ] |-
-      context [<{ [inj@_<(?ω)> ?v] }>] =>
-      clear H; clear H';
-        destruct (decide (otval ω)); try t;
-        destruct (decide (oval v)); try t
+  end.
+  all:
+    match goal with
+    | |- context [ woval ?e ] =>
+        destruct (decide (oval e)); t
     end.
 Defined.
 
@@ -1614,13 +1662,11 @@ Defined.
 Instance val_dec v : Decision (val v).
 Proof.
   hnf. induction v; try t; try case_label; try t.
-  match goal with
-  | H : context [ val ?ω], H' : context [ val ?v ] |-
-      context [<{ [inj@_<(?ω)> ?v] }>] =>
-      clear H; clear H';
-      destruct (decide (otval ω)); try t;
-      destruct (decide (oval v)); try t
-  end.
+  all:
+    match goal with
+    | |- context [ val ?e ] =>
+        destruct (decide (oval e)); t
+    end.
 Defined.
 
 End dec.
@@ -1634,9 +1680,8 @@ Fixpoint ovalty_ (ω : expr) : option expr :=
   match ω with
   | <{ 𝟙 }> => mret <{ () }>
   | <{ ~𝔹 }> => mret <{ [true] }>
-  | <{ ω1 * ω2 }> => v1 <- ovalty_ ω1; v2 <- ovalty_ ω2; mret <{ (v1, v2) }>
+  | <{ ω1 ~* ω2 }> => v1 <- ovalty_ ω1; v2 <- ovalty_ ω2; mret <{ ~(v1, v2) }>
   | <{ ω1 ~+ ω2 }> =>
-      (* Notation clash *)
       mguard (otval ω2) (fun _ => v <- ovalty_ ω1; mret <{ [inl<ω1 ~+ ω2> v] }>)
   (* NOTE: Extensions *)
   | <{ ~int }> => mret <{ i[0] }>
@@ -1691,14 +1736,14 @@ Fixpoint step_ (e : expr) : option expr :=
          | _ => None
          end
     else e0' <- step_ e0; mret <{ if e0' then e1 else e2 }>
-  | <{ τ1 * τ2 }> =>
+  | <{ τ1 ~* τ2 }> =>
     if decide (otval τ1)
-    then τ2' <- step_ τ2; mret <{ τ1 * τ2' }>
-    else τ1' <- step_ τ1; mret <{ τ1' * τ2 }>
-  | <{ (e1, e2) }> =>
+    then τ2' <- step_ τ2; mret <{ τ1 ~* τ2' }>
+    else τ1' <- step_ τ1; mret <{ τ1' ~* τ2 }>
+  | <{ (e1, e2){l} }> =>
     if decide (wval e1)
-    then e2' <- step_ e2; mret <{ (e1, e2') }>
-    else e1' <- step_ e1; mret <{ (e1', e2) }>
+    then e2' <- step_ e2; mret <{ (e1, e2'){l} }>
+    else e1' <- step_ e1; mret <{ (e1', e2){l} }>
   | <{ π@b e }> =>
     if decide (wval e)
     then match e with
@@ -1708,6 +1753,13 @@ Fixpoint step_ (e : expr) : option expr :=
          | _ => None
          end
     else e' <- step_ e; mret <{ π@b e' }>
+  | <{ ~π@b e }> =>
+    if decide (wval e)
+    then match e with
+         | <{ ~(v1, v2) }> => mret <{ ite b v1 v2 }>
+         | _ => None
+         end
+    else e' <- step_ e; mret <{ ~π@b e' }>
   | <{ τ1 ~+ τ2 }> =>
     if decide (otval τ1)
     then τ2' <- step_ τ2; mret <{ τ1 ~+ τ2' }>
@@ -1852,14 +1904,14 @@ Proof.
       match goal with
       | H : match ?e with _ => _ end = _ |- _ =>
           sdestruct e; simplify_eq
-      end; try wval_inv; try woval_inv;
+      end; try wval_inv; try woval_inv; try oval_inv;
     repeat
       match goal with
       | IH : forall _, step_ ?e = _ -> _ -->! _ |- _ =>
           assert_fails is_var e; clear IH
       end;
     simplify_option_eq;
-    try solve [ eauto using step | solve_ctx ].
+    try solve [ eauto using step, oval, oval_wval | solve_ctx ].
 
   eauto using step, ovalty_sound.
 Qed.
