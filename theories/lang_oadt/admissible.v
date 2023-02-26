@@ -26,15 +26,15 @@ Lemma typing_kinding_rename_ x y T :
       Γ' ⊢ e :{l} τ ->
       forall Γ,
         Γ' = <[x:=T]>Γ ->
-        x ∉ fv T ∪ dom aset Γ ->
-        y ∉ {[x]} ∪ fv e ∪ fv T ∪ dom aset Γ ->
+        x ∉ fv T ∪ dom Γ ->
+        y ∉ {[x]} ∪ fv e ∪ fv T ∪ dom Γ ->
         <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}e :{l} {x↦y}τ) /\
   (forall Γ' τ κ,
       Γ' ⊢ τ :: κ ->
       forall Γ,
         Γ' = <[x:=T]>Γ ->
-        x ∉ fv T ∪ dom aset Γ ->
-        y ∉ {[x]} ∪ fv τ ∪ fv T ∪ dom aset Γ ->
+        x ∉ fv T ∪ dom Γ ->
+        y ∉ {[x]} ∪ fv τ ∪ fv T ∪ dom Γ ->
         <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}τ :: κ).
 Proof.
   apply typing_kinding_mutind; intros; subst; simpl in *;
@@ -115,8 +115,8 @@ Qed.
 (** We also allow [x=y]. *)
 Lemma typing_rename_ Γ e l τ T x y :
   <[x:=T]>Γ ⊢ e :{l} τ ->
-  x ∉ fv T ∪ dom aset Γ ->
-  y ∉ fv e ∪ fv T ∪ dom aset Γ ->
+  x ∉ fv T ∪ dom Γ ->
+  y ∉ fv e ∪ fv T ∪ dom Γ ->
   <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}e :{l} {x↦y}τ.
 Proof.
   intros.
@@ -127,8 +127,8 @@ Qed.
 
 Lemma kinding_rename_ Γ τ T κ x y :
   <[x:=T]>Γ ⊢ τ :: κ ->
-  x ∉ fv T ∪ dom aset Γ ->
-  y ∉ fv τ ∪ fv T ∪ dom aset Γ ->
+  x ∉ fv T ∪ dom Γ ->
+  y ∉ fv τ ∪ fv T ∪ dom Γ ->
   <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}τ :: κ.
 Proof.
   intros.
@@ -141,8 +141,8 @@ Qed.
 the general version. *)
 Lemma typing_rename_alt Γ e l s τ T x y :
   <[x:=T]>Γ ⊢ e^x :{l} τ^({y↦x}s) ->
-  x ∉ fv T ∪ fv e ∪ fv τ ∪ fv s ∪ dom aset Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv e ∪ dom aset Γ ->
+  x ∉ fv T ∪ fv e ∪ fv τ ∪ fv s ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv T ∪ fv e ∪ dom Γ ->
   <[y:=T]>Γ ⊢ e^y :{l} τ^s.
 Proof.
   intros.
@@ -163,8 +163,8 @@ Qed.
 
 Lemma typing_rename Γ e l τ T x y :
   <[x:=T]>Γ ⊢ e^x :{l} τ^x ->
-  x ∉ fv T ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv e ∪ dom aset Γ ->
+  x ∉ fv T ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv T ∪ fv e ∪ dom Γ ->
   <[y:=T]>Γ ⊢ e^y :{l} τ^y.
 Proof.
   intros.
@@ -176,8 +176,8 @@ Qed.
 
 Lemma kinding_rename Γ τ κ T x y :
   <[x:=T]>Γ ⊢ τ^x :: κ ->
-  x ∉ fv T ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv τ ∪ dom aset Γ ->
+  x ∉ fv T ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv T ∪ fv τ ∪ dom Γ ->
   <[y:=T]>Γ ⊢ τ^y :: κ.
 Proof.
   intros.
@@ -191,8 +191,8 @@ Qed.
 
 Lemma typing_rename_lc Γ e l τ T x y :
   <[x:=T]>Γ ⊢ e^x :{l} τ ->
-  x ∉ fv T ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv e ∪ dom aset Γ ->
+  x ∉ fv T ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv T ∪ fv e ∪ dom Γ ->
   <[y:=T]>Γ ⊢ e^y :{l} τ.
 Proof.
   intros H. intros.
@@ -218,7 +218,7 @@ Ltac typing_intro_solver :=
 Lemma TAbs_intro Γ e l1 l2 τ1 τ2 κ x :
   <[x:=(l2, τ2)]>Γ ⊢ e^x :{l1} τ1^x ->
   Γ ⊢ τ2 :: κ ->
-  x ∉ fv e ∪ fv τ1 ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv e ∪ fv τ1 ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ \:{l2}τ2 => e :{l1} (Π:{l2}τ2, τ1).
 Proof.
   typing_intro_solver.
@@ -227,7 +227,7 @@ Qed.
 Lemma TLet_intro Γ l1 l2 e1 e2 τ1 τ2 x :
   Γ ⊢ e1 :{l1} τ1 ->
   <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x ->
-  x ∉ fv e2 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv e2 ∪ fv τ2 ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ let e1 in e2 :{l2} τ2^e1.
 Proof.
   typing_intro_solver.
@@ -239,7 +239,7 @@ Lemma TCase_intro Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
   <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x) ->
   Γ ⊢ τ^e0 :: κ ->
   l = l1 ⊔ l2 ->
-  x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ case e0 of e1 | e2 :{l} τ^e0.
 Proof.
   typing_intro_solver.
@@ -254,7 +254,7 @@ Lemma TCaseNoDep_intro Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
   <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ ->
   Γ ⊢ τ :: κ ->
   l = l0 ⊔ l1 ⊔ l2 ->
-  x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ case e0 of e1 | e2 :{l} τ.
 Proof.
   typing_intro_solver.
@@ -265,7 +265,7 @@ Lemma TOCase_intro Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ x :
   <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ ->
   <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ ->
   Γ ⊢ τ :: κ ->
-  x ∉ fv e1 ∪ fv e2 ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv e1 ∪ fv e2 ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ.
 Proof.
   typing_intro_solver.
@@ -274,7 +274,7 @@ Qed.
 Lemma KPi_intro Γ l τ1 τ2 κ1 κ2 x :
   <[x:=(l, τ1)]>Γ ⊢ τ2^x :: κ2 ->
   Γ ⊢ τ1 :: κ1 ->
-  x ∉ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ2 ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ (Π:{l}τ1, τ2) :: *@M.
 Proof.
   typing_intro_solver.
@@ -284,7 +284,7 @@ Lemma KCase_intro Γ e0 τ1 τ2 τ1' τ2' x :
   Γ ⊢ e0 :{⊥} τ1' + τ2' ->
   <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O ->
   <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O ->
-  x ∉ fv τ1 ∪ fv τ2 ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ1 ∪ fv τ2 ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ case e0 of τ1 | τ2 :: *@O.
 Proof.
   typing_intro_solver.
@@ -293,7 +293,7 @@ Qed.
 Lemma KLet_intro Γ e τ τ' x :
   Γ ⊢ e :{⊥} τ' ->
   <[x:=(⊥, τ')]>Γ ⊢ τ^x :: *@O ->
-  x ∉ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ let e in τ :: *@O.
 Proof.
   typing_intro_solver.

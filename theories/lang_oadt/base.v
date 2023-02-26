@@ -16,6 +16,7 @@ Opaque aset.
 Opaque is_atom.
 
 Definition aamap := gmap (atom * atom).
+#[global]
 Instance aamap_is_finmap : FinMapPack (atom * atom) aamap.
 Proof.
   esplit.

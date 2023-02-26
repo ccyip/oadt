@@ -1,5 +1,5 @@
 From oadt Require Import base tactics.
-From stdpp Require Import stringmap mapset.
+From stdpp Require Import stringmap.
 
 (** This file contains common definitions for locally nameless representation
 and tactics for automation. *)
@@ -33,7 +33,7 @@ Class Atom A M D := {
   atom_finmap :> FinMap A M | 0;
 
   (* Property about FinMapDom; we do it this way to avoid duplicates. *)
-  atom_elem_of_dom {C} (m : M C) i : i ∈ dom D m <-> is_Some (m !! i);
+  atom_elem_of_dom {C} (m : M C) i : i ∈ dom m <-> is_Some (m !! i);
 
   (* Decision procedure of ∈ can technically be derived from other constrains
   (by applying [elem_of_dec_slow]). But this allows an efficient
@@ -44,6 +44,7 @@ Class Atom A M D := {
   atom_is_fresh (X : D) : fresh X ∉ X;
 }.
 
+#[global]
 Instance atom_dom_spec `{is_atom : Atom A M D} : FinMapDom A M D | 0.
 Proof.
   destruct is_atom. split; first [typeclasses eauto | auto].
@@ -56,10 +57,11 @@ Module atom_instance.
   Definition amap := stringmap.
   Definition aset := stringset.
 
+  #[global]
   Instance is_atom : Atom atom amap aset.
   Proof.
     econstructor; try typeclasses eauto.
-    apply mapset_dom_spec.
+    intros. apply elem_of_dom.
     apply is_fresh.
   Defined.
 

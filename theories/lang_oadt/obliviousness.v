@@ -14,6 +14,7 @@ Coercion EFVar : atom >-> expr.
 Ltac indistinguishable_inv := safe_inv2 indistinguishable.
 
 (** Indistinguishability is an equivalence. *)
+#[global]
 Instance indistinguishable_is_equiv : Equivalence indistinguishable.
 Proof.
   split.

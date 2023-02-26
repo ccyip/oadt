@@ -31,11 +31,13 @@ visualized as follow.
     A
 >>
 *)
+#[global]
 Instance kind_eq : EqDecision kind.
 Proof.
   solve_decision.
 Defined.
 
+#[global]
 Instance kind_join : Join kind :=
   fun κ1 κ2 =>
     match κ1, κ2 with
@@ -45,13 +47,17 @@ Instance kind_join : Join kind :=
     | κ, _ => κ
     end.
 
+#[global]
 Instance kind_le : SqSubsetEq kind :=
   fun κ1 κ2 => κ2 = (κ1 ⊔ κ2).
 
+#[global]
 Instance kind_top : Top kind := KMixed.
+#[global]
 Instance kind_bot : Bottom kind := KAny.
 
 (** [kind] forms a [SemiLattice].  *)
+#[global]
 Instance kind_semilattice : SemiLattice kind.
 Proof.
   split; try reflexivity; repeat intros []; auto.

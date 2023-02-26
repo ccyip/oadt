@@ -148,6 +148,7 @@ Inductive lift_type_wf : list expr -> expr -> Prop :=
     lift_type_wf (τk::τs) <{ Π:{l}τk, τ' }>
 .
 
+#[global]
 Instance list_expr_stale : Stale (list expr) := foldr (fun e S => fv e ∪ S) ∅.
 
 (** ** Equivalence up to revelation *)
@@ -607,6 +608,7 @@ Ltac apply_reval_deterministic :=
 Definition reval_refine (e1 e2 : expr) : Prop :=
   forall v, e1 ↓ v -> e2 ↓ v.
 
+#[global]
 Instance reval_refine_preorder : PreOrder reval_refine.
 Proof.
   split; hnf; unfold reval_refine.
@@ -765,6 +767,7 @@ Proof.
   auto_eapply; eauto; eauto using reval_refine_congr_app1.
 Qed.
 
+#[global]
 Instance expr_simple_requiv_reval_proper' τ τ' :
   Proper (reval_refine ==> reval_refine ==> flip impl)
          (expr_simple_requiv_reval τ τ').
@@ -773,6 +776,7 @@ Proof.
   eauto using expr_simple_requiv_reval_proper.
 Qed.
 
+#[global]
 Instance expr_requiv_reval_proper' τ τ' :
   Proper (reval_refine ==> reval_refine ==> flip impl)
          (expr_requiv_reval τ τ').
@@ -781,6 +785,7 @@ Proof.
   eapply expr_requiv_reval_proper; eauto.
 Qed.
 
+#[global]
 Instance lift_requiv_reval_proper' τs τ τ' :
   Proper (reval_refine ==> reval_refine ==> flip impl)
          (lift_requiv_reval τs τ τ').

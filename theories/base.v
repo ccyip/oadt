@@ -20,7 +20,7 @@ Class FinMapPack K M := {
 (** * Lemmas *)
 
 Lemma insert_fresh_subseteq `{FinMapDom K M D} {A} k (m : M A) v :
-  k ∉ dom D m ->
+  k ∉ dom m ->
   m ⊆ <[k:=v]>m.
 Proof.
   intros. apply insert_subseteq. apply not_elem_of_dom. auto.

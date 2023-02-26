@@ -79,6 +79,7 @@ semantics. *)
 .
 
 (** [expr] has decidable equality. *)
+#[global]
 Instance expr_eq : EqDecision expr.
 Proof.
   solve_decision.

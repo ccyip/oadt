@@ -21,11 +21,11 @@ Set Default Proof Using "Hwf".
 Lemma subst_tctx_typing_kinding_ x s :
   (forall Γ e l τ,
       Γ ⊢ e :{l} τ ->
-      x ∉ fv τ ∪ dom aset Γ ->
+      x ∉ fv τ ∪ dom Γ ->
       ({x↦s} <$> Γ) ⊢ e :{l} τ) /\
   (forall Γ τ κ,
       Γ ⊢ τ :: κ ->
-      x ∉ dom aset Γ ->
+      x ∉ dom Γ ->
       ({x↦s} <$> Γ) ⊢ τ :: κ).
 Proof.
   apply typing_kinding_mutind; intros; subst; simpl in *;
@@ -69,7 +69,7 @@ Qed.
 
 Lemma subst_tctx_typing Γ e l τ x s :
   Γ ⊢ e :{l} τ ->
-  x ∉ fv τ ∪ dom aset Γ ->
+  x ∉ fv τ ∪ dom Γ ->
   ({x↦s} <$> Γ) ⊢ e :{l} τ.
 Proof.
   qauto use: subst_tctx_typing_kinding_.
@@ -83,14 +83,14 @@ Lemma subst_preservation_ x s l' τ' :
       Γ' ⊢ e :{l} τ ->
       forall Γ,
         Γ' = <[x:=(l', τ')]>Γ ->
-        x ∉ fv τ' ∪ dom aset Γ ->
+        x ∉ fv τ' ∪ dom Γ ->
         Γ ⊢ s :{l'} τ' ->
         ({x↦s} <$> Γ) ⊢ {x↦s}e :{l} {x↦s}τ) /\
   (forall Γ' τ κ,
       Γ' ⊢ τ :: κ ->
       forall Γ,
         Γ' = <[x:=(l', τ')]>Γ ->
-        x ∉ fv τ' ∪ dom aset Γ ->
+        x ∉ fv τ' ∪ dom Γ ->
         Γ ⊢ s :{l'} τ' ->
         ({x↦s} <$> Γ) ⊢ {x↦s}τ :: κ).
 Proof.
@@ -178,7 +178,7 @@ Qed.
 Lemma subst_preservation x s l' τ' Γ e l τ :
   <[x:=(l', τ')]>Γ ⊢ e :{l} τ ->
   Γ ⊢ s :{l'} τ' ->
-  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ' ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ {x↦s}e :{l} {x↦s}τ.
 Proof.
   intros.
@@ -190,7 +190,7 @@ Qed.
 Lemma kinding_subst_preservation x s l' τ' Γ τ κ :
   <[x:=(l', τ')]>Γ ⊢ τ :: κ ->
   Γ ⊢ s :{l'} τ' ->
-  x ∉ fv τ' ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ' ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ {x↦s}τ :: κ.
 Proof.
   intros.
@@ -202,7 +202,7 @@ Qed.
 Lemma open_preservation_alt x s l' τ' Γ e l τ :
   <[x:=(l', τ')]>Γ ⊢ e^x :{l} τ ->
   Γ ⊢ s :{l'} τ' ->
-  x ∉ fv τ' ∪ fv e ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ' ∪ fv e ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ e^s :{l} {x↦s}τ.
 Proof.
   intros.
@@ -214,7 +214,7 @@ Qed.
 Lemma open_preservation x s l' τ' Γ e l τ :
   <[x:=(l', τ')]>Γ ⊢ e^x :{l} τ^x ->
   Γ ⊢ s :{l'} τ' ->
-  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ e^s :{l} τ^s.
 Proof.
   intros.
@@ -227,7 +227,7 @@ Qed.
 Lemma kinding_open_preservation x s l' τ' Γ τ κ :
   <[x:=(l', τ')]>Γ ⊢ τ^x :: κ ->
   Γ ⊢ s :{l'} τ' ->
-  x ∉ fv τ' ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ' ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ τ^s :: κ.
 Proof.
   intros.
@@ -239,7 +239,7 @@ Qed.
 Lemma open_preservation_lc x s l' τ' Γ e l τ :
   <[x:=(l', τ')]>Γ ⊢ e^x :{l} τ ->
   Γ ⊢ s :{l'} τ' ->
-  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom aset Γ ∪ tctx_fv Γ ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ e^s :{l} τ.
 Proof.
   intros H. intros.
@@ -278,7 +278,7 @@ Lemma subst_conv_ x l1 l2 τ1 τ2 :
       Γ' ⊢ e :{l} τ ->
       forall Γ κ',
         Γ' = <[x:=(l1, τ1)]>Γ ->
-        x ∉ dom aset Γ ->
+        x ∉ dom Γ ->
         Γ ⊢ τ2 :: κ' ->
         l2 ⊑ l1 ->
         <[x:=(l2, τ2)]>Γ ⊢ e :{l} τ) /\
@@ -286,7 +286,7 @@ Lemma subst_conv_ x l1 l2 τ1 τ2 :
       Γ' ⊢ τ :: κ ->
       forall Γ κ',
         Γ' = <[x:=(l1, τ1)]>Γ ->
-        x ∉ dom aset Γ ->
+        x ∉ dom Γ ->
         Γ ⊢ τ2 :: κ' ->
         l2 ⊑ l1 ->
         <[x:=(l2, τ2)]>Γ ⊢ τ :: κ).
@@ -350,7 +350,7 @@ Lemma subst_conv Γ e l τ κ' x l1 l2 τ1 τ2 :
   Γ ⊢ τ2 :: κ' ->
   τ1 ≡ τ2 ->
   l2 ⊑ l1 ->
-  x ∉ dom aset Γ ->
+  x ∉ dom Γ ->
   <[x:=(l2, τ2)]>Γ ⊢ e :{l} τ.
 Proof.
   hauto use: subst_conv_.
@@ -361,7 +361,7 @@ Lemma kinding_subst_conv Γ τ κ κ' x l1 l2 τ1 τ2 :
   Γ ⊢ τ2 :: κ' ->
   τ1 ≡ τ2 ->
   l2 ⊑ l1 ->
-  x ∉ dom aset Γ ->
+  x ∉ dom Γ ->
   <[x:=(l2, τ2)]>Γ ⊢ τ :: κ.
 Proof.
   hauto use: subst_conv_.

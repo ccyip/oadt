@@ -115,11 +115,16 @@ End theorems.
 
 (** Boolean is also a semilattice. *)
 
+#[global]
 Instance bool_join : Join bool := orb.
+#[global]
 Instance bool_top : Top bool := true.
+#[global]
 Instance bool_bot : Bottom bool := false.
+#[global]
 Instance bool_le : SqSubsetEq bool := implb.
 
+#[global]
 Instance bool_semilattice : SemiLattice bool.
 Proof.
   split; hnf; repeat intros []; easy.

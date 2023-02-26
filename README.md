@@ -16,11 +16,11 @@ types.
 
 ## Requirements
 
-- [coq](https://coq.inria.fr) (8.12-8.13)
-- [coq-stdpp](https://gitlab.mpi-sws.org/iris/stdpp) (>= 1.6.0)
-- [coq-smpl](https://github.com/uds-psl/smpl) (>= 8.12.0.1)
-- [coq-hammer-tactics](https://coqhammer.github.io) (>= 1.3.1+8.12)
-- [coq-idt](https://github.com/ccyip/coq-idt) (>= 1.0.1)
+- [coq](https://coq.inria.fr) (8.16)
+- [coq-stdpp](https://gitlab.mpi-sws.org/iris/stdpp) (>= 1.8)
+- [coq-smpl](https://github.com/uds-psl/smpl) (>= 8.16)
+- [coq-hammer-tactics](https://coqhammer.github.io) (>= 1.3.2)
+- [coq-idt](https://github.com/ccyip/coq-idt) (>= 1.1)
 
 See [`coq-oadt.opam`](./coq-oadt.opam) for more details.
 
@@ -37,3 +37,8 @@ opam install . --deps-only
 ## Building
 
 Run `make` in the top-level directory.
+
+## References
+
+- Qianchuan Ye and Benjamin Delaware. 2022. Oblivious Algebraic Data Types. Proc. ACM Program. Lang. 6, POPL, Article 51 (January 2022), 29 pages. https://doi.org/10.1145/3498713
+- Qianchuan Ye and Benjamin Delaware. 2021. Oblivious Algebraic Data Types: POPL22 Artifact. Zenodo. https://doi.org/10.5281/zenodo.5652106

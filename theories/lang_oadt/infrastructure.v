@@ -76,19 +76,24 @@ Definition tctx_fv : tctx -> aset :=
 
 Definition closed e := fv e ≡ ∅.
 
+#[global]
 Instance atom_stale : @Stale aset atom := singleton.
 Arguments atom_stale /.
 
+#[global]
 Instance aset_stale : Stale aset := id.
 Arguments aset_stale /.
 
+#[global]
 Instance expr_stale : Stale expr := fv.
 Arguments expr_stale /.
 
+#[global]
 Instance lexpr_stale : Stale lexpr := (fun T => fv T.2).
 Arguments lexpr_stale /.
 
-Instance tctx_stale : Stale tctx := fun Γ => dom aset Γ ∪ tctx_fv Γ.
+#[global]
+Instance tctx_stale : Stale tctx := fun Γ => dom Γ ∪ tctx_fv Γ.
 Arguments tctx_stale /.
 
 Arguments stale /.
@@ -669,7 +674,7 @@ Proof.
 Qed.
 
 Lemma tctx_fv_insert Γ x T :
-  x ∉ dom aset Γ ->
+  x ∉ dom Γ ->
   tctx_fv (<[x:=T]>Γ) ≡ fv T ∪ tctx_fv Γ.
 Proof.
   split; intros; try qauto use: tctx_fv_insert_subseteq.
@@ -679,7 +684,7 @@ Proof.
 Qed.
 
 Lemma tctx_stale_inv Γ x :
-  x # Γ -> x ∉ dom aset Γ /\ map_Forall (fun _ T => x # T) Γ.
+  x # Γ -> x ∉ dom Γ /\ map_Forall (fun _ T => x # T) Γ.
 Proof.
   hauto use: tctx_fv_consistent solve: fast_set_solver.
 Qed.
@@ -800,13 +805,13 @@ Qed.
 
 Tactic Notation "fv_rewrite" constr(T) :=
   match T with
-  | context [dom aset (<[_:=_]>_)] =>
+  | context [dom (<[_:=_]>_)] =>
     rewrite dom_insert
   end.
 
 Tactic Notation "fv_rewrite" constr(T) "in" hyp(H) :=
   match T with
-  | context [dom aset (<[_:=_]>_)] =>
+  | context [dom (<[_:=_]>_)] =>
     rewrite dom_insert in H
   end.
 
@@ -915,10 +920,10 @@ Smpl Add simpl_fv_core : fv.
 Lemma typing_kinding_fv Σ :
   (forall Γ e l τ,
       Σ; Γ ⊢ e :{l} τ ->
-      fv e ⊆ dom aset Γ) /\
+      fv e ⊆ dom Γ) /\
   (forall Γ τ κ,
       Σ; Γ ⊢ τ :: κ ->
-      fv τ ⊆ dom aset Γ).
+      fv τ ⊆ dom Γ).
 Proof.
   apply typing_kinding_mutind; intros; simpl in *;
     simpl_cofin?; simpl_fv; fast_set_solver*!.
@@ -926,14 +931,14 @@ Qed.
 
 Lemma typing_fv Σ Γ e l τ :
   Σ; Γ ⊢ e :{l} τ ->
-  fv e ⊆ dom aset Γ.
+  fv e ⊆ dom Γ.
 Proof.
   qauto use: typing_kinding_fv.
 Qed.
 
 Lemma kinding_fv Σ Γ τ κ :
   Σ; Γ ⊢ τ :: κ ->
-  fv τ ⊆ dom aset Γ.
+  fv τ ⊆ dom Γ.
 Proof.
   qauto use: typing_kinding_fv.
 Qed.
@@ -978,7 +983,7 @@ context. *)
 Lemma typing_type_fv Σ Γ e l τ :
   gctx_wf Σ ->
   Σ; Γ ⊢ e :{l} τ ->
-  fv τ ⊆ dom aset Γ.
+  fv τ ⊆ dom Γ.
 Proof.
   intros Hwf.
   induction 1; intros; simpl in *;

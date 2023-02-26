@@ -76,7 +76,7 @@ Qed.
 
 Lemma weakening_insert Σ Γ e l τ τ' x :
   Σ; Γ ⊢ e :{l} τ ->
-  x ∉ dom aset Γ ->
+  x ∉ dom Γ ->
   Σ; <[x:=τ']>Γ ⊢ e :{l} τ.
 Proof.
   eauto using weakening, insert_fresh_subseteq.
@@ -84,7 +84,7 @@ Qed.
 
 Lemma kinding_weakening_insert Σ Γ τ τ' κ x :
   Σ; Γ ⊢ τ :: κ ->
-  x ∉ dom aset Γ ->
+  x ∉ dom Γ ->
   Σ; <[x:=τ']>Γ ⊢ τ :: κ.
 Proof.
   eauto using kinding_weakening, insert_fresh_subseteq.
