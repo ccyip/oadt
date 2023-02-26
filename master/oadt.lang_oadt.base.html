@@ -34,7 +34,7 @@
 <span class="id" title="keyword">From</span> <span class="id" title="var">stdpp</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.gmap.html#"><span class="id" title="library">gmap</span></a>.<br/>
 
 <br/>
-<span class="id" title="keyword">Export</span> <span class="id" title="var">atom_instance</span>.<br/>
+<span class="id" title="keyword">Export</span> <a class="idref" href="oadt.ln.html#atom_instance"><span class="id" title="module">atom_instance</span></a>.<br/>
 
 <br/>
 #[<span class="id" title="var">global</span>]<br/>
@@ -53,8 +53,9 @@
 <span class="id" title="keyword">Opaque</span> <a class="idref" href="oadt.ln.html#atom_instance.is_atom"><span class="id" title="instance">is_atom</span></a>.<br/>
 
 <br/>
-<span class="id" title="keyword">Definition</span> <a id="aamap" class="idref" href="#aamap"><span class="id" title="definition">aamap</span></a> := <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.gmap.html#gmap"><span class="id" title="record">gmap</span></a> (<a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a> <a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a>).<br/>
-<span class="id" title="keyword">Instance</span> <a id="aamap_is_finmap" class="idref" href="#aamap_is_finmap"><span class="id" title="instance">aamap_is_finmap</span></a> : <a class="idref" href="oadt.base.html#FinMapPack"><span class="id" title="class">FinMapPack</span></a> (<a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.2/stdlib//Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a> <a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a>) <a class="idref" href="oadt.lang_oadt.base.html#aamap"><span class="id" title="definition">aamap</span></a>.<br/>
+<span class="id" title="keyword">Definition</span> <a id="aamap" class="idref" href="#aamap"><span class="id" title="definition">aamap</span></a> := <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.gmap.html#gmap"><span class="id" title="record">gmap</span></a> (<a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a> <a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a>).<br/>
+#[<span class="id" title="var">global</span>]<br/>
+<span class="id" title="keyword">Instance</span> <a id="aamap_is_finmap" class="idref" href="#aamap_is_finmap"><span class="id" title="instance">aamap_is_finmap</span></a> : <a class="idref" href="oadt.base.html#FinMapPack"><span class="id" title="class">FinMapPack</span></a> (<a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">*</span></a> <a class="idref" href="oadt.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a>) <a class="idref" href="oadt.lang_oadt.base.html#aamap"><span class="id" title="definition">aamap</span></a>.<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">esplit</span>.<br/>
 &nbsp;&nbsp;<span class="id" title="var">typeclasses</span> <span class="id" title="tactic">eauto</span>.<br/>
