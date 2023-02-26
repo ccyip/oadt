@@ -5,6 +5,9 @@ on:
     branches:
       - master
   pull_request:
+  schedule:
+    # additionally run once per week (At 00:00 on Sunday) to maintain cache
+    - cron: '0 0 * * 0'
 
 jobs:
   build:
@@ -29,9 +32,24 @@ jobs:
         with:
           opam_file: 'coq-oadt.opam'
           custom_image: ${{ matrix.image }}
-          export: 'OPAMWITHDOC'
-        env:
-          OPAMWITHDOC: 'true'
+          before_script: |
+            startGroup "Workaround permission issue"
+              sudo chown -R coq:coq .
+            endGroup
+          script: |
+            startGroup "Build project"
+              opam exec -- make -j2
+            endGroup
+          after_script: |
+            startGroup "Build documentation"
+              opam exec -- make html
+            endGroup
+          uninstall: ''
+
+      - name: Revert permissions
+        # to avoid a warning at cleanup time
+        if: ${{ always() }}
+        run: sudo chown -R 1001:116 .
 
       - name: Deploy documentation
         if: |-
