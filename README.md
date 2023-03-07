@@ -1,18 +1,8 @@
-# Oblivious Algebraic Data Type
+# Oblivious Algebraic Data Type (adapted to Taype)
 
-[![Build status][action-badge]][action-link]
-[![coqdoc][doc-badge]][doc-link]
-
-[action-badge]: https://github.com/ccyip/oadt/actions/workflows/build.yml/badge.svg?branch=master
-[action-link]: https://github.com/ccyip/oadt/actions
-
-[doc-badge]: https://img.shields.io/badge/docs-coqdoc-blue.svg
-[doc-link]: https://ccyip.github.io/oadt
-
-This is the Coq formalization of the core calculus for oblivious algebraic data
-types.
-
-[The coqdoc documentation](https://ccyip.github.io/oadt)
+This is the Coq formalization of the core calculus of Taype, a variant of
+oblivious algebraic data types. It adds serveral features: oblivious product,
+label promotion, explicit and uniform label checking.
 
 ## Requirements
 
