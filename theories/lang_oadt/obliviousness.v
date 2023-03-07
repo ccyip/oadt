@@ -90,6 +90,17 @@ Proof.
   induction 1; intros; repeat oval_inv; repeat lc_inv; eauto using oval.
 Qed.
 
+Lemma indistinguishable_val v v' :
+  v ≈ v' ->
+  val v ->
+  lc v' ->
+  val v'.
+Proof.
+  induction 1; intros;
+    repeat val_inv; repeat oval_inv; repeat lc_inv;
+    eauto using val, oval, indistinguishable_oval.
+Qed.
+
 Lemma indistinguishable_wval_ v v' :
   v ≈ v' ->
   wval v ->
@@ -98,7 +109,7 @@ Lemma indistinguishable_wval_ v v' :
 Proof.
   induction 1; intros;
     repeat wval_inv; repeat oval_inv; repeat lc_inv;
-    eauto using wval, oval, indistinguishable_oval.
+    eauto using wval, oval, indistinguishable_oval, indistinguishable_val.
 
   qauto ctrs: wval, oval inv: indistinguishable.
 Qed.
@@ -221,7 +232,7 @@ Ltac val_step_absurd :=
     | solve [ eauto using wval
             | eapply indistinguishable_wval;
               [ solve [ eassumption | symmetry; eassumption ]
-              | eauto using wval
+              | eauto using wval, val_wval
               | eauto ] ] ]
   end.
 
@@ -258,7 +269,7 @@ Proof.
            (* Discharge the impossible cases *)
            [ val_step_absurd
            (* Solve the trivial cases *)
-           | eauto using indistinguishable, indistinguishable_open
+           | try case_split; eauto using indistinguishable, indistinguishable_open
            (* Solve the inductive cases. *)
            | econstructor; eauto; auto_eapply; eauto 10 using kinding ]);
     (* Solve other less trivial cases *)

@@ -67,6 +67,8 @@ be leaky. *)
 (* Introduction and elimination of ADTs *)
 | EFold (X : atom) (e : expr)
 | EUnfold (X : atom) (e : expr)
+(* Promotion *)
+| EProm (e : expr)
 (* Tape the leakage. *)
 | ETape (e : expr)
 (* Oblivious conditional, i.e. MUX. Technically we do not need this in the
@@ -311,6 +313,7 @@ Notation "'fold' < X > e" := (EFold X e) (in custom oadt at level 2,
 Notation "'unfold' < X > e" := (EUnfold X e) (in custom oadt at level 2,
                                                  X custom oadt at level 0,
                                                  format "unfold < X >  e").
+Notation "'↑' e" := (EProm e) (in custom oadt at level 2).
 Notation "'tape' e" := (ETape e) (in custom oadt at level 2).
 Notation "'mux' e0 e1 e2" := (EMux e0 e1 e2) (in custom oadt at level 2,
                                                  e0 custom oadt at level 0,
@@ -377,6 +380,7 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k~>s}τ)> ({k~>s}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k~>s}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({k~>s}e) }>
+  | <{ ↑e }> => <{ ↑({k~>s}e) }>
   | <{ tape e }> => <{ tape ({k~>s}e) }>
   | <{ mux e0 e1 e2 }> => <{ mux ({k~>s}e0) ({k~>s}e1) ({k~>s}e2) }>
   | _ => e
@@ -409,6 +413,7 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {x↦s}e0 of {x↦s}e1 | {x↦s}e2 }>
   | <{ fold<X> e }> => <{ fold<X> ({x↦s}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({x↦s}e) }>
+  | <{ ↑e }> => <{ ↑({x↦s}e) }>
   | <{ tape e }> => <{ tape ({x↦s}e) }>
   | <{ mux e0 e1 e2 }> => <{ mux ({x↦s}e0) ({x↦s}e1) ({x↦s}e2) }>
   | _ => e
@@ -477,6 +482,7 @@ Inductive lc : expr -> Prop :=
 | LCInj l b τ e : lc τ -> lc e -> lc <{ inj{l}@b<τ> e }>
 | LCFold X e : lc e -> lc <{ fold<X> e }>
 | LCUnfold X e : lc e -> lc <{ unfold<X> e }>
+| LCProm e : lc e -> lc <{ ↑e }>
 | LCTape e : lc e -> lc <{ tape e }>
 | LCMux e0 e1 e2 : lc e0 -> lc e1 -> lc e2 -> lc <{ mux e0 e1 e2 }>
 | LCBoxedLit b : lc <{ [b] }>

@@ -15,6 +15,7 @@ Inductive wval : expr -> Prop :=
 | WIte b v1 v2 :
     wval v1 -> wval v2 ->
     wval <{ ~if [b] then v1 else v2 }>
+| WProm v : val v -> wval <{ ↑v }>
 | WOVal v : oval v -> wval v
 .
 
@@ -23,6 +24,8 @@ Inductive woval : expr -> Prop :=
 | OWIte b v1 v2 :
     woval v1 -> woval v2 ->
     woval <{ ~if [b] then v1 else v2 }>
+| OWProm v : oval v -> woval <{ ↑v }>
+(* TODO: not sure *)
 | OWOVal v : oval v -> woval v
 .
 
@@ -73,6 +76,7 @@ Variant ectx : (expr -> expr) -> Prop :=
 | CtxOCase e1 e2: ectx (fun e0 => <{ ~case e0 of e1 | e2 }>)
 | CtxFold X : ectx (fun e => <{ fold<X> e }>)
 | CtxUnfold X : ectx (fun e => <{ unfold<X> e }>)
+| CtxProm : ectx (fun e => <{ ↑e }>)
 | CtxTape : ectx (fun e => <{ tape e }>)
 | CtxMux1 e1 e2 : ectx (fun e0 => <{ mux e0 e1 e2 }>)
 | CtxMux2 v0 e2 : wval v0 -> ectx (fun e1 => <{ mux v0 e1 e2 }>)
@@ -136,13 +140,28 @@ Inductive step : expr -> expr -> Prop :=
 | SMux b v1 v2 :
     wval v1 -> wval v2 ->
     <{ mux [b] v1 v2 }> -->! <{ ite b v1 v2 }>
+| SPromApp l τ e v :
+    wval v ->
+    <{ (↑(\:{l}τ => e)) v }> -->! <{ ↑(e^v) }>
+| SPromSec b :
+    <{ s𝔹 (↑b) }> -->! <{ ↑[b] }>
+| SPromIte b e1 e2 :
+    <{ if ↑b then e1 else e2 }> -->! <{ ite b e1 e2 }>
+| SPromProj b v1 v2 :
+    val v1 -> val v2 ->
+    <{ π@b (↑(v1, v2)) }> -->! <{ ite b (↑v1) (↑v2) }>
+| SPromCase b τ v e1 e2 :
+    val v ->
+    <{ case ↑(inj@b<τ> v) of e1 | e2 }> -->! <{ ite b (e1^(↑v)) (e2^(↑v)) }>
+| SPromUnfold X X' v :
+    val v ->
+    <{ unfold<X> (↑(fold <X'> v)) }> -->! <{ ↑v }>
 | STapeOIte b v1 v2 :
     woval v1 -> woval v2 ->
     <{ tape (~if [b] then v1 else v2) }> -->! <{ mux [b] (tape v1) (tape v2) }>
-(* [tape v] is a no-op if [v] is an oblivious value. *)
-| STapeOVal v :
+| STapeProm v :
     oval v ->
-    <{ tape v }> -->! <{ v }>
+    <{ tape (↑v) }> -->! v
 | SOIte b v1 v2 ℇ :
     lectx ℇ ->
     wval v1 -> wval v2 ->

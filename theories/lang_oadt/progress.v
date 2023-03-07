@@ -45,6 +45,23 @@ Proof.
     eauto using pared_obliv_preservation_inv, pared_kinding_preservation.
 Qed.
 
+Lemma val_oval Γ v l τ :
+  Γ ⊢ v :{l} τ ->
+  Γ ⊢ τ :: *@O ->
+  val v ->
+  oval v.
+Proof.
+  induction 1; intros; try val_inv; try oval_inv;
+    kind_inv; simplify_eq;
+      try hauto lq: on ctrs: oval; try easy.
+
+  (* TConv *)
+  apply_regularity.
+  auto_apply; eauto.
+  eapply pared_equiv_obliv_preservation; eauto.
+  equiv_naive_solver.
+Qed.
+
 Lemma wval_woval Γ v l τ :
   Γ ⊢ v :{l} τ ->
   Γ ⊢ τ :: *@O ->
@@ -55,24 +72,15 @@ Proof.
     kind_inv; simplify_eq;
       try hauto lq: on ctrs: woval, oval; try easy.
 
+  (* Promotion *)
+  econstructor.
+  eauto using val_oval.
+
   (* TConv *)
   apply_regularity.
   auto_apply; eauto.
   eapply pared_equiv_obliv_preservation; eauto.
   equiv_naive_solver.
-Qed.
-
-Lemma val_oval Γ v l τ :
-  Γ ⊢ v :{l} τ ->
-  Γ ⊢ τ :: *@O ->
-  val v ->
-  oval v.
-Proof.
-  intros Ht Hk Hv.
-  pose proof Hv.
-  apply val_wval in Hv.
-  eapply wval_woval in Hv; eauto.
-  sinvert Hv; eauto. val_inv. oval_inv.
 Qed.
 
 (** * Canonical forms *)
@@ -167,58 +175,82 @@ Qed.
 
 (** * Canonical forms for weak values *)
 
+Tactic Notation "canonical_form_weak_solver" "using" constr(lem) :=
+  inversion 1; intros; subst;
+  try select (oval _) (fun H => sinvert H);
+  eauto;
+  apply_regularity;
+  type_inv;
+  kind_inv;
+  try simpl_whnf_equiv;
+  simplify_eq;
+  eauto 10;
+  match goal with
+  | H : val _ |- _ =>
+      eapply lem in H;
+      [ qauto
+      | simpl_cofin?; typing_intro; eauto with equiv_naive_solver;
+        kinding_intro; eauto; fast_set_solver!! ]
+  end.
+
 Lemma canonical_form_weak_unit Γ l e :
   wval e ->
   Γ ⊢ e :{l} 𝟙 ->
   e = <{ () }> \/
+  e = <{ ↑() }> \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_solver.
+  canonical_form_weak_solver using canonical_form_unit.
 Qed.
 
 Lemma canonical_form_weak_abs Γ l1 l2 e τ2 τ1 :
   wval e ->
   Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
   (exists e' τ, e = <{ \:{l2}τ => e' }>) \/
+  (exists e' τ, e = <{ ↑(\:{l2}τ => e') }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_solver.
+  canonical_form_weak_solver using canonical_form_abs.
 Qed.
 
 Lemma canonical_form_weak_bool Γ l e :
   wval e ->
   Γ ⊢ e :{l} 𝔹 ->
   (exists b, e = <{ b }>) \/
+  (exists b, e = <{ ↑b }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_solver.
+  canonical_form_weak_solver using canonical_form_bool.
 Qed.
 
 Lemma canonical_form_weak_prod Γ l e τ1 τ2 :
   wval e ->
   Γ ⊢ e :{l} τ1 * τ2 ->
   (exists v1 v2, wval v1 /\ wval v2 /\ e = <{ (v1, v2) }>) \/
+  (exists v1 v2, val v1 /\ val v2 /\ e = <{ ↑(v1, v2) }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_solver.
+  canonical_form_weak_solver using canonical_form_prod.
 Qed.
 
 Lemma canonical_form_weak_sum Γ l e τ1 τ2 :
   wval e ->
   Γ ⊢ e :{l} τ1 + τ2 ->
   (exists b v τ, wval v /\ e = <{ inj@b<τ> v }>) \/
+  (exists b v τ, val v /\ e = <{ ↑(inj@b<τ> v) }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  canonical_form_solver.
+  canonical_form_weak_solver using canonical_form_sum.
 Qed.
 
 Lemma canonical_form_weak_fold Γ l e X :
   wval e ->
   Γ ⊢ e :{l} gvar X ->
   (exists v X', wval v /\ e = <{ fold<X'> v }>) \/
+  (exists v X', val v /\ e = <{ ↑(fold<X'> v) }>) \/
   (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
 Proof.
-  inversion 1; canonical_form_solver.
+  inversion 1; canonical_form_weak_solver using canonical_form_fold.
 Qed.
 
 End fix_gctx.
@@ -255,7 +287,7 @@ Ltac apply_canonical_form_weak :=
   | Hw : wval ?e, Ht : _; _ ⊢ ?e :{_} ?τ |- _ =>
       let lem := apply_canonical_form_weak_lem τ in
       eapply lem in Hw; [ | solve [ eauto ] | solve [ eauto ] ];
-      destruct Hw; try simp_hyp Hw; subst
+      destruct Hw as [ | [ | ] ]; try simp_hyp Hw; subst
   end.
 
 
@@ -324,9 +356,14 @@ Proof.
   (* Oblivious pair. *)
   left. eauto 10 using wval, oval, val_oval, wval_val.
 
+  (* Promotion. *)
+  left. qauto use: wval_val ctrs: wval.
+
   (* Tape. *)
   right.
-  hauto use: wval_woval ctrs: step inv: woval.
+  select (wval _) (fun H => eapply wval_woval in H; eauto; sinvert H);
+    eauto using step.
+  select (_ ⊢ _ : _) (fun H => apply oval_safe in H); easy.
 
   (* Boxed injection. *)
   left. qauto use: ovalty_elim ctrs: wval.

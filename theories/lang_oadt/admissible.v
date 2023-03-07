@@ -233,12 +233,11 @@ Proof.
   typing_intro_solver.
 Qed.
 
-Lemma TCase_intro Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
+Lemma TCase_intro Γ l e0 e1 e2 τ1 τ2 τ κ x :
   Γ ⊢ e0 :{⊥} τ1 + τ2 ->
-  <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x) ->
-  <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x) ->
+  <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l} τ^(inl<τ1 + τ2> x) ->
+  <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l} τ^(inr<τ1 + τ2> x) ->
   Γ ⊢ τ^e0 :: κ ->
-  l = l1 ⊔ l2 ->
   x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ case e0 of e1 | e2 :{l} τ^e0.
 Proof.
@@ -248,22 +247,22 @@ Proof.
     rewrite !subst_fresh by fast_set_solver!!; eauto.
 Qed.
 
-Lemma TCaseNoDep_intro Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
+Lemma TCaseNoDep_intro Γ l0 l e0 e1 e2 τ1 τ2 τ κ x :
   Γ ⊢ e0 :{l0} τ1 + τ2 ->
-  <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ ->
-  <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ ->
+  <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l} τ ->
+  <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l} τ ->
   Γ ⊢ τ :: κ ->
-  l = l0 ⊔ l1 ⊔ l2 ->
+  l0 ⊑ l ->
   x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ case e0 of e1 | e2 :{l} τ.
 Proof.
   typing_intro_solver.
 Qed.
 
-Lemma TOCase_intro Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ x :
+Lemma TOCase_intro Γ e0 e1 e2 τ1 τ2 τ κ x :
   Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
-  <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ ->
-  <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ ->
+  <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{⊤} τ ->
+  <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{⊤} τ ->
   Γ ⊢ τ :: κ ->
   x ∉ fv e1 ∪ fv e2 ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ.
@@ -340,6 +339,7 @@ Ltac typing_intro_ :=
   | |- _ ⊢ if _ then _ else _ : _ => eapply TIteNoDep
   | H : _ ⊢ ?e :{⊥} _ |- _; _ ⊢ case ?e of _ | _ : _ => eapply TCase_intro
   | |- _ ⊢ case _ of _ | _ : _ => eapply TCaseNoDep_intro
+  | |- _ ⊢ ↑_ : _ => eapply TProm
   | |- _ ⊢ tape _ : _ => eapply TTape
   | |- _ ⊢ mux _ _ _ : _ => eapply TMux
   | |- _ ⊢ [_] : _ => eapply TBoxedLit

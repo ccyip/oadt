@@ -39,6 +39,7 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ fold<X> e }> => <{ fold<X> ({k<~x}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({k<~x}e) }>
   | <{ mux e0 e1 e2 }> => <{ mux ({k<~x}e0) ({k<~x}e1) ({k<~x}e2) }>
+  | <{ ↑e }> => <{ ↑({k<~x}e) }>
   | <{ tape e }> => <{ tape ({k<~x}e) }>
   | _ => e
   end
@@ -65,7 +66,7 @@ Fixpoint fv (e : expr) : aset :=
     fv e0 ∪ fv e1 ∪ fv e2
   | <{ _@e }> | <{ s𝔹 e }> | <{ π{_}@_ e }>
   | <{ fold<_> e }> | <{ unfold<_> e }>
-  | <{ tape e }> =>
+  | <{ tape e }> | <{ ↑e }> =>
     fv e
   | _ => ∅
   end.

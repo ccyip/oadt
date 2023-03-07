@@ -42,7 +42,7 @@ Inductive pared : expr -> expr -> Prop :=
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ π{l}@b (e1, e2){l} }> ⇛ <{ ite b e1' e2' }>
-| RFold X X' e e' :
+| RUnfold X X' e e' :
     e ⇛ e' ->
     <{ unfold<X> (fold<X'> e) }> ⇛ e'
 | RIte b e1 e2 e1' e2' :
@@ -78,6 +78,31 @@ not needed because they are not involved in type-level computation. *)
 | ROInj b ω v :
     otval ω -> oval v ->
     <{ ~inj@b<ω> v }> ⇛ <{ [inj@b<ω> v] }>
+(* Rules related to promotion *)
+| RPromSec b :
+    <{ s𝔹 (↑b) }> ⇛ <{ ↑[b] }>
+| RPromApp l τ e1 e2 e1' e2' L :
+    e1 ⇛ e1' ->
+    (forall x, x ∉ L -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    lc τ ->
+    <{ (↑(\:{l}τ => e2)) e1 }> ⇛ <{ ↑(e2'^e1') }>
+| RPromProj b e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ π@b (↑(e1, e2)) }> ⇛ <{ ite b (↑e1') (↑e2') }>
+| RPromUnfold X X' e e' :
+    e ⇛ e' ->
+    <{ unfold<X> (↑(fold<X'> e)) }> ⇛ <{ ↑e' }>
+| RPromIte b e1 e2 e1' e2' :
+    e1 ⇛ e1' ->
+    e2 ⇛ e2' ->
+    <{ if ↑b then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
+| RPromCase b τ e0 e1 e2 e0' e1' e2' L1 L2 :
+    e0 ⇛ e0' ->
+    (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
+    (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
+    lc τ ->
+    <{ case ↑(inj@b<τ> e0) of e1 | e2 }> ⇛ <{ ite b (e1'^(↑e0')) (e2'^(↑e0')) }>
 (* Unfortunately I have to spell out all the cases corresponding to [SOIte] for
 proof convenience. *)
 | ROIteApp b e1 e2 e e1' e2' e' :
@@ -117,9 +142,9 @@ proof convenience. *)
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ tape (~if [b] then e1 else e2) }> ⇛ <{ mux [b] (tape e1') (tape e2') }>
-| RTapeOVal v :
+| RTapeProm v :
     oval v ->
-    <{ tape v }> ⇛ v
+    <{ tape (↑v) }> ⇛ v
 (* Congruence rules *)
 | RCgrPi l τ1 τ2 τ1' τ2' L :
     τ1 ⇛ τ1' ->
@@ -183,6 +208,9 @@ proof convenience. *)
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     <{ mux e0 e1 e2 }> ⇛ <{ mux e0' e1' e2' }>
+| RCgrProm e e' :
+    e ⇛ e' ->
+    <{ ↑e }> ⇛ <{ ↑e' }>
 | RCgrTape e e' :
     e ⇛ e' ->
     <{ tape e }> ⇛ <{ tape e' }>
@@ -255,23 +283,22 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
 | TSec Γ l e :
     Γ ⊢ e :{l} 𝔹 ->
     Γ ⊢ s𝔹 e :{l} ~𝔹
-| TIte Γ l1 l2 l e0 e1 e2 τ κ :
+| TIte Γ l e0 e1 e2 τ κ :
     Γ ⊢ e0 :{⊥} 𝔹 ->
-    Γ ⊢ e1 :{l1} τ^(lit true) ->
-    Γ ⊢ e2 :{l2} τ^(lit false) ->
+    Γ ⊢ e1 :{l} τ^(lit true) ->
+    Γ ⊢ e2 :{l} τ^(lit false) ->
     Γ ⊢ τ^e0 :: κ ->
-    l = l1 ⊔ l2 ->
     Γ ⊢ if e0 then e1 else e2 :{l} τ^e0
-| TIteNoDep Γ l0 l1 l2 l e0 e1 e2 τ :
+| TIteNoDep Γ l0 l e0 e1 e2 τ :
     Γ ⊢ e0 :{l0} 𝔹 ->
-    Γ ⊢ e1 :{l1} τ ->
-    Γ ⊢ e2 :{l2} τ ->
-    l = l0 ⊔ l1 ⊔ l2 ->
+    Γ ⊢ e1 :{l} τ ->
+    Γ ⊢ e2 :{l} τ ->
+    l0 ⊑ l ->
     Γ ⊢ if e0 then e1 else e2 :{l} τ
-| TOIte Γ l1 l2 e0 e1 e2 τ κ :
+| TOIte Γ e0 e1 e2 τ κ :
     Γ ⊢ e0 :{⊥} ~𝔹 ->
-    Γ ⊢ e1 :{l1} τ ->
-    Γ ⊢ e2 :{l2} τ ->
+    Γ ⊢ e1 :{⊤} τ ->
+    Γ ⊢ e2 :{⊤} τ ->
     Γ ⊢ τ :: κ ->
     Γ ⊢ ~if e0 then e1 else e2 :{⊤} τ
 | TInj Γ l b e τ1 τ2 κ :
@@ -282,30 +309,28 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     Γ ⊢ e :{⊥} ite b τ1 τ2 ->
     Γ ⊢ τ1 ~+ τ2 :: *@O ->
     Γ ⊢ ~inj@b<τ1 ~+ τ2> e :{⊥} τ1 ~+ τ2
-| TCase Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+| TCase Γ l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     Γ ⊢ e0 :{⊥} τ1 + τ2 ->
-    (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x)) ->
-    (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x)) ->
+    (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l} τ^(inl<τ1 + τ2> x)) ->
+    (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l} τ^(inr<τ1 + τ2> x)) ->
     Γ ⊢ τ^e0 :: κ ->
-    l = l1 ⊔ l2 ->
     Γ ⊢ case e0 of e1 | e2 :{l} τ^e0
-| TCaseNoDep Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+| TCaseNoDep Γ l0 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     Γ ⊢ e0 :{l0} τ1 + τ2 ->
-    (forall x, x ∉ L1 -> <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ) ->
-    (forall x, x ∉ L2 -> <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ) ->
+    (forall x, x ∉ L1 -> <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l} τ) ->
+    (forall x, x ∉ L2 -> <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l} τ) ->
     Γ ⊢ τ :: κ ->
-    l = l0 ⊔ l1 ⊔ l2 ->
+    l0 ⊑ l ->
     Γ ⊢ case e0 of e1 | e2 :{l} τ
-| TOCase Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+| TOCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
-    (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ) ->
-    (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ) ->
+    (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{⊤} τ) ->
+    (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{⊤} τ) ->
     Γ ⊢ τ :: κ ->
     Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ
-| TPair Γ l1 l2 l e1 e2 τ1 τ2 :
-    Γ ⊢ e1 :{l1} τ1 ->
-    Γ ⊢ e2 :{l2} τ2 ->
-    l = l1 ⊔ l2 ->
+| TPair Γ l e1 e2 τ1 τ2 :
+    Γ ⊢ e1 :{l} τ1 ->
+    Γ ⊢ e2 :{l} τ2 ->
     Γ ⊢ (e1, e2) :{l} τ1 * τ2
 | TOPair Γ e1 e2 τ1 τ2 :
     Γ ⊢ e1 :{⊥} τ1 ->
@@ -333,8 +358,11 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     Γ ⊢ e2 :{⊥} τ ->
     Γ ⊢ τ :: *@O ->
     Γ ⊢ mux e0 e1 e2 :{⊥} τ
-| TTape Γ l e τ :
-    Γ ⊢ e :{l} τ ->
+| TProm Γ e τ :
+    Γ ⊢ e :{⊥} τ ->
+    Γ ⊢ ↑e :{⊤} τ
+| TTape Γ e τ :
+    Γ ⊢ e :{⊤} τ ->
     Γ ⊢ τ :: *@O ->
     Γ ⊢ tape e :{⊥} τ
 (* Typing for runtime expressions is for metatheories. These expressions do not
@@ -345,11 +373,10 @@ since they are "encrypted" values. *)
     ovalty <{ [inj@b<ω> v] }> ω ->
     Γ ⊢ [inj@b<ω> v] :{⊥} ω
 (* Type conversion *)
-| TConv Γ l l' e τ τ' κ :
-    Γ ⊢ e :{l'} τ' ->
+| TConv Γ l e τ τ' κ :
+    Γ ⊢ e :{l} τ' ->
     τ' ≡ τ ->
     Γ ⊢ τ :: κ ->
-    l' ⊑ l ->
     Γ ⊢ e :{l} τ
 
 with kinding : tctx -> expr -> kind -> Prop :=

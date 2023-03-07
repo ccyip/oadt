@@ -96,8 +96,16 @@ Proof.
   remember ⊥.
   induction 1; subst; intros;
     try wval_inv; eauto using val, (bot_inv (A:=bool)).
-  select (⊥ = _ ⊔ _) (fun H => symmetry in H; apply join_bot_iff in H).
-  hauto ctrs: val.
+Qed.
+
+Lemma oval_safe Σ Γ v l τ :
+  gctx_wf Σ ->
+  Γ ⊢ v :{l} τ ->
+  oval v ->
+  l = ⊥.
+Proof.
+  intros Hwf Ht Hv.
+  sinvert Hv; type_inv; eauto.
 Qed.
 
 Lemma val_wval v :
@@ -136,6 +144,11 @@ Proof.
   simp_hyps.
   repeat esplit; eauto using typing, otval, otval_well_kinded.
   apply_pared_equiv_congr; eauto with lc.
+
+  (* Promotion *)
+  select! (woval _ -> _) (fun H => feed specialize H; eauto using woval).
+  simp_hyps.
+  repeat esplit; eauto using typing.
 Qed.
 
 Lemma woval_wval v :
@@ -179,7 +192,7 @@ Lemma wval_step v e :
   False.
 Proof.
   induction 1; intros; repeat ectx_inv;
-    repeat wval_inv; repeat oval_inv; try step_inv; eauto using oval_wval.
+    repeat wval_inv; repeat oval_inv; try step_inv; eauto using oval_wval, val_wval.
 Qed.
 
 Lemma otval_step ω e :

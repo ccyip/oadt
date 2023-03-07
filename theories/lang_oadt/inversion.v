@@ -74,25 +74,23 @@ Context (Σ : gctx).
 
 (** [TIte] and [TCase] require special rules. *)
 Inductive typing_inv : tctx -> expr -> llabel -> expr -> Prop :=
-| ITIte Γ l0 l1 l2 l e0 e1 e2 τ :
+| ITIte Γ l0 l e0 e1 e2 τ :
     Γ ⊢ e0 :{l0} 𝔹 ->
-    Γ ⊢ e1 :{l1} τ^(lit true) ->
-    Γ ⊢ e2 :{l2} τ^(lit false) ->
-    l = l0 ⊔ l1 ⊔ l2 ->
-    forall l' τ',
-      l ⊑ l' ->
+    Γ ⊢ e1 :{l} τ^(lit true) ->
+    Γ ⊢ e2 :{l} τ^(lit false) ->
+    l0 ⊑ l ->
+    forall τ',
       τ' ≡ <{ τ^e0 }> ->
-      typing_inv Γ <{ if e0 then e1 else e2 }> l' τ'
-| ITCase Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
+      typing_inv Γ <{ if e0 then e1 else e2 }> l τ'
+| ITCase Γ l0 l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     Γ ⊢ e0 :{l0} τ1 + τ2 ->
-    (forall x, x ∉ L1 -> Σ; <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x)) ->
-    (forall x, x ∉ L2 -> Σ; <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x)) ->
+    (forall x, x ∉ L1 -> Σ; <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l} τ^(inl<τ1 + τ2> x)) ->
+    (forall x, x ∉ L2 -> Σ; <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l} τ^(inr<τ1 + τ2> x)) ->
     Γ ⊢ τ^e0 :: κ ->
-    l = l0 ⊔ l1 ⊔ l2 ->
-    forall l' τ',
-      l ⊑ l' ->
+    l0 ⊑ l ->
+    forall τ',
       τ' ≡ <{ τ^e0 }> ->
-      typing_inv Γ <{ case e0 of e1 | e2 }> l' τ'
+      typing_inv Γ <{ case e0 of e1 | e2 }> l τ'
 .
 
 End fix_gctx.
@@ -113,15 +111,9 @@ Ltac tsf_typing ctor typing_inv :=
         | forall e : ?T, _ =>
             refine (forall e : T, _ : Prop); specialize (H e)
         | ?Σ; ?Γ ⊢ ?e :{?l} ?τ =>
-            let l' := fresh "l'" in
             let τ' := fresh "τ'" in
-            refine (forall (l' : llabel) (τ' : expr), _ : Prop);
-            lazymatch l with
-            | ⊤ => refine (l' = ⊤ -> _ : Prop)
-            | ⊥ => idtac
-            | _ => refine (l ⊑ l' -> _ : Prop)
-            end;
-            exact (Σ ⊢ τ' ≡ τ -> typing_inv Σ Γ e l' τ')
+            refine (forall (τ' : expr), _ : Prop);
+            exact (Σ ⊢ τ' ≡ τ -> typing_inv Σ Γ e l τ')
         end
   end.
 

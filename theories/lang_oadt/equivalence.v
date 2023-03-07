@@ -52,12 +52,12 @@ Lemma pared_woval ω τ :
   woval τ.
 Proof.
   intros H. revert τ.
-  induction H; intros.
-  - repeat match goal with
-           | H : ?e ⇛ _ |- _ => head_constructor e; sinvert H
-           end; subst;
-      try case_split; eauto using woval.
-  - econstructor. hauto use: pared_oval.
+  induction H; intros;
+    repeat match goal with
+      | H : ?e ⇛ _ |- _ => head_constructor e; sinvert H
+      end; subst;
+    try case_split; eauto using woval;
+    econstructor; hauto use: pared_oval.
 Qed.
 
 (** ** Substitution lemmas *)
@@ -192,6 +192,16 @@ Proof.
   intro_solver.
 Qed.
 
+Lemma RPromApp_intro l τ e1 e2 e1' e2' x :
+  e1 ⇛ e1' ->
+  <{ e2^x }> ⇛ <{ e2'^x }> ->
+  lc τ ->
+  x ∉ fv e2 ∪ fv e2' ->
+  <{ (↑(\:{l}τ => e2)) e1 }> ⇛ <{ ↑(e2'^e1') }>.
+Proof.
+  intro_solver.
+Qed.
+
 Lemma RLet_intro e1 e2 e1' e2' x :
   e1 ⇛ e1' ->
   <{ e2^x }> ⇛ <{ e2'^x }> ->
@@ -208,6 +218,17 @@ Lemma RCase_intro b τ e0 e1 e2 e0' e1' e2' x:
   lc τ ->
   x ∉ fv e1 ∪ fv e1' ∪ fv e2 ∪ fv e2' ->
   <{ case inj@b<τ> e0 of e1 | e2 }> ⇛ <{ ite b (e1'^e0') (e2'^e0') }>.
+Proof.
+  intro_solver.
+Qed.
+
+Lemma RPromCase_intro b τ e0 e1 e2 e0' e1' e2' x:
+  e0 ⇛ e0' ->
+  <{ e1^x }> ⇛ <{ e1'^x }> ->
+  <{ e2^x }> ⇛ <{ e2'^x }> ->
+  lc τ ->
+  x ∉ fv e1 ∪ fv e1' ∪ fv e2 ∪ fv e2' ->
+  <{ case ↑(inj@b<τ> e0) of e1 | e2 }> ⇛ <{ ite b (e1'^(↑e0')) (e2'^(↑e0')) }>.
 Proof.
   intro_solver.
 Qed.
@@ -308,14 +329,25 @@ Proof.
   inv_solver.
 Qed.
 
+Lemma pared_inv_prom e t :
+  <{ ↑e }> ⇛ <{ t }> ->
+  exists e',
+    t = <{ ↑e' }> /\
+    e ⇛ e'.
+Proof.
+  inv_solver.
+Qed.
+
 End equivalence.
 
 Ltac pared_intro_ e :=
   match e with
   | <{ (\:{_}_ => _) _ }> => eapply RApp_intro
+  | <{ (↑(\:{_}_ => _)) _ }> => eapply RPromApp_intro
   | <{ ~case [inj@_<_> _] of _ | _ }> => eapply ROCase_intro
   | <{ let _ in _ }> => eapply RLet_intro
   | <{ case inj@_<_> _ of _ | _ }> => eapply RCase_intro
+  | <{ case ↑(inj@_<_> _) of _ | _ }> => eapply RPromCase_intro
   | <{ case (~if _ then _ else _) of _ | _ }> => eapply ROIteCase_intro
   | <{ Π:{_}_, _ }> => eapply RCgrPi_intro
   | <{ \:{_}_ => _ }> => eapply RCgrAbs_intro
@@ -326,7 +358,7 @@ Ltac pared_intro_ e :=
 Ltac pared_intro :=
   match goal with
   | |- <{ tape <{ ~if _ then _ else _ }> }> ⇛ _ => econstructor
-  | H : oval ?e |- <{ tape ?e }> ⇛ _ => eapply RTapeOVal
+  | H : oval ?e |- <{ tape (↑?e) }> ⇛ _ => eapply RTapeProm
   | |- <{ tape ?e }> ⇛ _ => eapply RCgrTape
   | |- ?e ⇛ _ => pared_intro_ e
   end.
@@ -337,6 +369,7 @@ Ltac pared_inv_ e H :=
   | <{ (_, _){_} }> => apply pared_inv_pair in H; try simp_hyp H
   | <{ fold<_> _ }> => apply pared_inv_fold in H; try simp_hyp H
   | <{ inj@_<_> _ }> => apply pared_inv_inj in H; try simp_hyp H
+  | <{ ↑_ }> => apply pared_inv_prom in H; try simp_hyp H
   | _ => head_constructor e; sinvert H
   end.
 
@@ -420,9 +453,10 @@ Proof using Hwf.
               let H2 := fresh "H" in
               edestruct H as [e [H1 H2]]; [
                 (* Discharge assumptions in the induction hypotheses. *)
-                try match goal with
-                    | |- ?e ⇛ _ => head_constructor e; pared_intro
-                    end;
+                repeat
+                  match goal with
+                  | |- ?e ⇛ _ => head_constructor e; pared_intro
+                  end;
                 (* Be careful to not generate the useless induction
                 hypotheses. *)
                 try match goal with
@@ -490,6 +524,25 @@ Proof using Hwf.
   repeat pared_inv.
   simpl_cofin.
   repeat esplit; [ pared_intro | eapply pared_open ];
+    eauto; set_shelve.
+
+  (* Application of promoted abstraction. *)
+  match goal with
+  | H : context [exists _, <{ ↑(\:{_}_ => ?e) }> ⇛ _ /\ _] |- _ =>
+    (* Avoid generating useless hypothesis. *)
+    match goal with
+    | H : _ ⇛ ?e' |- _ =>
+      lazymatch e' with
+      | context [e] => clear H
+      end
+    end;
+      edestruct H as [? [??]]; [
+        repeat (pared_intro; eauto); set_shelve
+       |]
+  end.
+  repeat pared_inv.
+  simpl_cofin.
+  repeat esplit; [ pared_intro | pared_intro; eapply pared_open ];
     eauto; set_shelve.
 
   (* OADT application. *)
