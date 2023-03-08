@@ -414,7 +414,7 @@ Proof.
                      lazymatch goal with
                      | |- ?e ⇛ _ =>
                        first [ lazymatch e with
-                               | <{ ~if _ then _ else _ }> =>
+                               | <{ `if _ then _ else _ }> =>
                                  eapply RCgrIte
                                end
                              | match goal with

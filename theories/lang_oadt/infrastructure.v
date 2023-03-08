@@ -218,7 +218,7 @@ Ltac apply_SOIte :=
   match goal with
   | |- _ ⊨ ?e -->! _ =>
     match e with
-    | context E [<{ ~if ?b then ?v1 else ?v2 }>] =>
+    | context E [<{ `if ?b then ?v1 else ?v2 }>] =>
       let ℇ' := constr:(fun t : expr =>
                  ltac:(let t := context E [t] in exact t)) in
       apply SOIte with (ℇ := ℇ')

@@ -38,7 +38,7 @@ Proof.
     try qauto l: on ctrs: typing, kinding;
     try qauto l: on use: lookup_weaken ctrs: typing, kinding;
     try qauto l: on use: insert_mono ctrs: typing, kinding;
-    (* For the [case]/[~case] cases and the [TConv] case. *)
+    (* For the [case]/[`case] cases and the [TConv] case. *)
     econstructor; eauto using insert_mono; qauto use: pared_equiv_weakening.
 Qed.
 

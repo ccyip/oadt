@@ -65,19 +65,19 @@ not needed because they are not involved in type-level computation. *)
 | ROIte b e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ ~if [b] then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
+    <{ `if [b] then e1 else e2 }> ⇛ <{ ite b e1' e2' }>
 | ROCase b ω1 ω2 v v1 v2 e1 e2 e1' e2' L1 L2 :
     oval v ->
     ovalty v1 ω1 -> ovalty v2 ω2 ->
     (forall x, x ∉ L1 -> <{ e1^x }> ⇛ <{ e1'^x }>) ->
     (forall x, x ∉ L2 -> <{ e2^x }> ⇛ <{ e2'^x }>) ->
-    <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ⇛
-      <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>
+    <{ `case [inj@b<ω1 `+ ω2> v] of e1 | e2 }> ⇛
+      <{ `if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>
 | RSec b :
     <{ s𝔹 b }> ⇛ <{ [b] }>
 | ROInj b ω v :
     otval ω -> oval v ->
-    <{ ~inj@b<ω> v }> ⇛ <{ [inj@b<ω> v] }>
+    <{ `inj@b<ω> v }> ⇛ <{ [inj@b<ω> v] }>
 (* Rules related to promotion *)
 | RPromSec b :
     <{ s𝔹 (↑b) }> ⇛ <{ ↑[b] }>
@@ -109,39 +109,39 @@ proof convenience. *)
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     e ⇛ e' ->
-    <{ (~if [b] then e1 else e2) e }> ⇛ <{ ~if [b] then e1' e' else e2' e' }>
+    <{ (`if [b] then e1 else e2) e }> ⇛ <{ `if [b] then e1' e' else e2' e' }>
 | ROIteSec b e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ s𝔹 (~if [b] then e1 else e2) }> ⇛ <{ ~if [b] then s𝔹 e1' else s𝔹 e2' }>
+    <{ s𝔹 (`if [b] then e1 else e2) }> ⇛ <{ `if [b] then s𝔹 e1' else s𝔹 e2' }>
 | ROIteIte b e1 e2 e3 e4 e1' e2' e3' e4' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     e3 ⇛ e3' ->
     e4 ⇛ e4' ->
-    <{ if (~if [b] then e1 else e2) then e3 else e4 }> ⇛
-      <{ ~if [b] then (if e1' then e3' else e4') else (if e2' then e3' else e4') }>
+    <{ if (`if [b] then e1 else e2) then e3 else e4 }> ⇛
+      <{ `if [b] then (if e1' then e3' else e4') else (if e2' then e3' else e4') }>
 | ROIteProj b b' e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ π@b' (~if [b] then e1 else e2) }> ⇛
-      <{ ~if [b] then π@b' e1' else π@b' e2' }>
+    <{ π@b' (`if [b] then e1 else e2) }> ⇛
+      <{ `if [b] then π@b' e1' else π@b' e2' }>
 | ROIteCase b e1 e2 e3 e4 e1' e2' e3' e4' L1 L2 :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
     (forall x, x ∉ L1 -> <{ e3^x }> ⇛ <{ e3'^x }>) ->
     (forall x, x ∉ L2 -> <{ e4^x }> ⇛ <{ e4'^x }>) ->
-    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ⇛
-      <{ ~if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>
+    <{ case (`if [b] then e1 else e2) of e3 | e4 }> ⇛
+      <{ `if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>
 | ROIteUnfold X b e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ unfold<X> (~if [b] then e1 else e2) }> ⇛
-      <{ ~if [b] then unfold<X> e1' else unfold<X> e2' }>
+    <{ unfold<X> (`if [b] then e1 else e2) }> ⇛
+      <{ `if [b] then unfold<X> e1' else unfold<X> e2' }>
 | RTapeOIte b e1 e2 e1' e2' :
     e1 ⇛ e1' ->
     e2 ⇛ e2' ->
-    <{ tape (~if [b] then e1 else e2) }> ⇛ <{ mux [b] (tape e1') (tape e2') }>
+    <{ tape (`if [b] then e1 else e2) }> ⇛ <{ mux [b] (tape e1') (tape e2') }>
 | RTapeProm v :
     oval v ->
     <{ tape (↑v) }> ⇛ v
@@ -282,7 +282,7 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
 | TLit Γ b : Γ ⊢ lit b :{⊥} 𝔹
 | TSec Γ l e :
     Γ ⊢ e :{l} 𝔹 ->
-    Γ ⊢ s𝔹 e :{l} ~𝔹
+    Γ ⊢ s𝔹 e :{l} `𝔹
 | TIte Γ l e0 e1 e2 τ κ :
     Γ ⊢ e0 :{⊥} 𝔹 ->
     Γ ⊢ e1 :{l} τ^(lit true) ->
@@ -296,19 +296,19 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     l0 ⊑ l ->
     Γ ⊢ if e0 then e1 else e2 :{l} τ
 | TOIte Γ e0 e1 e2 τ κ :
-    Γ ⊢ e0 :{⊥} ~𝔹 ->
+    Γ ⊢ e0 :{⊥} `𝔹 ->
     Γ ⊢ e1 :{⊤} τ ->
     Γ ⊢ e2 :{⊤} τ ->
     Γ ⊢ τ :: κ ->
-    Γ ⊢ ~if e0 then e1 else e2 :{⊤} τ
+    Γ ⊢ `if e0 then e1 else e2 :{⊤} τ
 | TInj Γ l b e τ1 τ2 κ :
     Γ ⊢ e :{l} ite b τ1 τ2 ->
     Γ ⊢ τ1 + τ2 :: κ ->
     Γ ⊢ inj@b<τ1 + τ2> e :{l} τ1 + τ2
 | TOInj Γ b e τ1 τ2 :
     Γ ⊢ e :{⊥} ite b τ1 τ2 ->
-    Γ ⊢ τ1 ~+ τ2 :: *@O ->
-    Γ ⊢ ~inj@b<τ1 ~+ τ2> e :{⊥} τ1 ~+ τ2
+    Γ ⊢ τ1 `+ τ2 :: *@O ->
+    Γ ⊢ `inj@b<τ1 `+ τ2> e :{⊥} τ1 `+ τ2
 | TCase Γ l e0 e1 e2 τ1 τ2 τ κ L1 L2 :
     Γ ⊢ e0 :{⊥} τ1 + τ2 ->
     (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l} τ^(inl<τ1 + τ2> x)) ->
@@ -323,11 +323,11 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     l0 ⊑ l ->
     Γ ⊢ case e0 of e1 | e2 :{l} τ
 | TOCase Γ e0 e1 e2 τ1 τ2 τ κ L1 L2 :
-    Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
+    Γ ⊢ e0 :{⊥} τ1 `+ τ2 ->
     (forall x, x ∉ L1 -> <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{⊤} τ) ->
     (forall x, x ∉ L2 -> <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{⊤} τ) ->
     Γ ⊢ τ :: κ ->
-    Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ
+    Γ ⊢ `case e0 of e1 | e2 :{⊤} τ
 | TPair Γ l e1 e2 τ1 τ2 :
     Γ ⊢ e1 :{l} τ1 ->
     Γ ⊢ e2 :{l} τ2 ->
@@ -337,13 +337,13 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     Γ ⊢ e2 :{⊥} τ2 ->
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
-    Γ ⊢ ~(e1, e2) :{⊥} τ1 ~* τ2
+    Γ ⊢ `(e1, e2) :{⊥} τ1 `* τ2
 | TProj Γ l b e τ1 τ2 :
     Γ ⊢ e :{l} τ1 * τ2 ->
     Γ ⊢ π@b e :{l} ite b τ1 τ2
 | TOProj Γ b e τ1 τ2 :
-    Γ ⊢ e :{⊥} τ1 ~* τ2 ->
-    Γ ⊢ ~π@b e :{⊥} ite b τ1 τ2
+    Γ ⊢ e :{⊥} τ1 `* τ2 ->
+    Γ ⊢ `π@b e :{⊥} ite b τ1 τ2
 | TFold Γ l X e τ :
     Σ !! X = Some (DADT τ) ->
     Γ ⊢ e :{l} τ ->
@@ -353,7 +353,7 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
     Γ ⊢ e :{l} gvar X ->
     Γ ⊢ unfold<X> e :{l} τ
 | TMux Γ e0 e1 e2 τ :
-    Γ ⊢ e0 :{⊥} ~𝔹 ->
+    Γ ⊢ e0 :{⊥} `𝔹 ->
     Γ ⊢ e1 :{⊥} τ ->
     Γ ⊢ e2 :{⊥} τ ->
     Γ ⊢ τ :: *@O ->
@@ -368,7 +368,7 @@ Inductive typing : tctx -> expr -> llabel -> expr -> Prop :=
 (* Typing for runtime expressions is for metatheories. These expressions do not
 appear in source programs. Plus, it is not possible to type them at runtime
 since they are "encrypted" values. *)
-| TBoxedLit Γ b : Γ ⊢ [b] :{⊥} ~𝔹
+| TBoxedLit Γ b : Γ ⊢ [b] :{⊥} `𝔹
 | TBoxedInj Γ b v ω :
     ovalty <{ [inj@b<ω> v] }> ω ->
     Γ ⊢ [inj@b<ω> v] :{⊥} ω
@@ -400,7 +400,7 @@ with kinding : tctx -> expr -> kind -> Prop :=
 | KOProd Γ τ1 τ2 :
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
-    Γ ⊢ τ1 ~* τ2 :: *@O
+    Γ ⊢ τ1 `* τ2 :: *@O
 | KSum Γ τ1 τ2 κ :
     Γ ⊢ τ1 :: κ ->
     Γ ⊢ τ2 :: κ ->
@@ -408,7 +408,7 @@ with kinding : tctx -> expr -> kind -> Prop :=
 | KOSum Γ τ1 τ2 :
     Γ ⊢ τ1 :: *@O ->
     Γ ⊢ τ2 :: *@O ->
-    Γ ⊢ τ1 ~+ τ2 :: *@O
+    Γ ⊢ τ1 `+ τ2 :: *@O
 | KIte Γ e0 τ1 τ2 :
     Γ ⊢ e0 :{⊥} 𝔹 ->
     Γ ⊢ τ1 :: *@O ->

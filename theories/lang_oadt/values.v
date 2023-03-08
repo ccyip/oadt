@@ -73,7 +73,7 @@ Lemma ovalty_inhabited ω :
   exists v, ovalty v ω.
 Proof.
   induction 1; try qauto ctrs: ovalty.
-  (* Case [~+]: we choose left injection as inhabitant. *)
+  (* Case [`+]: we choose left injection as inhabitant. *)
   sfirstorder use: (OTOSum true).
 Qed.
 

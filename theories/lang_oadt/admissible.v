@@ -260,12 +260,12 @@ Proof.
 Qed.
 
 Lemma TOCase_intro Γ e0 e1 e2 τ1 τ2 τ κ x :
-  Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
+  Γ ⊢ e0 :{⊥} τ1 `+ τ2 ->
   <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{⊤} τ ->
   <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{⊤} τ ->
   Γ ⊢ τ :: κ ->
   x ∉ fv e1 ∪ fv e2 ∪ dom Γ ∪ tctx_fv Γ ->
-  Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ.
+  Γ ⊢ `case e0 of e1 | e2 :{⊤} τ.
 Proof.
   typing_intro_solver.
 Qed.
@@ -326,13 +326,13 @@ Ltac typing_intro_ :=
   | |- _ ⊢ lit _ : _ => eapply TLit
   | |- _ ⊢ s𝔹 _ : _ => eapply TSec
   | |- _ ⊢ (_, _) : _ => eapply TPair
-  | |- _ ⊢ ~(_, _) : _ => eapply TOPair
-  | |- _ ⊢ ~if _ then _ else _ : _ => eapply TOIte
+  | |- _ ⊢ `(_, _) : _ => eapply TOPair
+  | |- _ ⊢ `if _ then _ else _ : _ => eapply TOIte
   | |- _ ⊢ π@_ _ : _ => eapply TProj
-  | |- _ ⊢ ~π@_ _ : _ => eapply TOProj
+  | |- _ ⊢ `π@_ _ : _ => eapply TOProj
   | |- _ ⊢ inj@_<_> _ : _ => eapply TInj
-  | |- _ ⊢ ~inj@_<_> _ : _ => eapply TOInj
-  | |- _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
+  | |- _ ⊢ `inj@_<_> _ : _ => eapply TOInj
+  | |- _ ⊢ `case _ of _ | _ : _ => eapply TOCase_intro
   | |- _ ⊢ fold<_> _ : _ => eapply TFold
   | |- _ ⊢ unfold<_> _ : _ => eapply TUnfold
   | H : _ ⊢ ?e :{⊥} _ |- _; _ ⊢ if ?e then _ else _ : _ => eapply TIte
@@ -355,9 +355,9 @@ Ltac kinding_intro_ :=
   | |- _ ⊢ Π:{_}_, _ :: _ => eapply KPi_intro
   | |- _ ⊢ _@_ :: _ => eapply KApp
   | |- _ ⊢ _ * _ :: _ => eapply KProd_intro
-  | |- _ ⊢ _ ~* _ :: _ => eapply KOProd
+  | |- _ ⊢ _ `* _ :: _ => eapply KOProd
   | |- _ ⊢ _ + _ :: _ => eapply KSum
-  | |- _ ⊢ _ ~+ _ :: _ => eapply KOSum
+  | |- _ ⊢ _ `+ _ :: _ => eapply KOSum
   | |- _ ⊢ if _ then _ else _ :: _ => eapply KIte
   | |- _ ⊢ case _ of _ | _ :: _ => eapply KCase_intro
   | |- _ ⊢ let _ in _ :: _ => eapply KLet_intro

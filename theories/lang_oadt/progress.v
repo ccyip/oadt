@@ -120,7 +120,7 @@ Qed.
 
 Lemma canonical_form_obool Γ l e :
   val e ->
-  Γ ⊢ e :{l} ~𝔹 ->
+  Γ ⊢ e :{l} `𝔹 ->
   exists b, e = <{ [b] }>.
 Proof.
   canonical_form_solver.
@@ -136,8 +136,8 @@ Qed.
 
 Lemma canonical_form_oprod Γ l e τ1 τ2 :
   val e ->
-  Γ ⊢ e :{l} τ1 ~* τ2 ->
-  exists v1 v2, oval v1 /\ oval v2 /\ e = <{ ~(v1, v2) }>.
+  Γ ⊢ e :{l} τ1 `* τ2 ->
+  exists v1 v2, oval v1 /\ oval v2 /\ e = <{ `(v1, v2) }>.
 Proof.
   canonical_form_solver.
 Qed.
@@ -152,9 +152,9 @@ Qed.
 
 Lemma canonical_form_osum Γ l e τ1 τ2 :
   val e ->
-  Γ ⊢ e :{l} τ1 ~+ τ2 ->
+  Γ ⊢ e :{l} τ1 `+ τ2 ->
   exists b v ω1 ω2, oval v /\ otval ω1 /\ otval ω2 /\
-               e = <{ [inj@b<ω1 ~+ ω2> v] }>.
+               e = <{ [inj@b<ω1 `+ ω2> v] }>.
 Proof.
   canonical_form_solver.
 
@@ -198,7 +198,7 @@ Lemma canonical_form_weak_unit Γ l e :
   Γ ⊢ e :{l} 𝟙 ->
   e = <{ () }> \/
   e = <{ ↑() }> \/
-  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ `if [b] then v1 else v2 }>).
 Proof.
   canonical_form_weak_solver using canonical_form_unit.
 Qed.
@@ -208,7 +208,7 @@ Lemma canonical_form_weak_abs Γ l1 l2 e τ2 τ1 :
   Γ ⊢ e :{l1} Π:{l2}τ2, τ1 ->
   (exists e' τ, e = <{ \:{l2}τ => e' }>) \/
   (exists e' τ, e = <{ ↑(\:{l2}τ => e') }>) \/
-  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ `if [b] then v1 else v2 }>).
 Proof.
   canonical_form_weak_solver using canonical_form_abs.
 Qed.
@@ -218,7 +218,7 @@ Lemma canonical_form_weak_bool Γ l e :
   Γ ⊢ e :{l} 𝔹 ->
   (exists b, e = <{ b }>) \/
   (exists b, e = <{ ↑b }>) \/
-  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ `if [b] then v1 else v2 }>).
 Proof.
   canonical_form_weak_solver using canonical_form_bool.
 Qed.
@@ -228,7 +228,7 @@ Lemma canonical_form_weak_prod Γ l e τ1 τ2 :
   Γ ⊢ e :{l} τ1 * τ2 ->
   (exists v1 v2, wval v1 /\ wval v2 /\ e = <{ (v1, v2) }>) \/
   (exists v1 v2, val v1 /\ val v2 /\ e = <{ ↑(v1, v2) }>) \/
-  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ `if [b] then v1 else v2 }>).
 Proof.
   canonical_form_weak_solver using canonical_form_prod.
 Qed.
@@ -238,7 +238,7 @@ Lemma canonical_form_weak_sum Γ l e τ1 τ2 :
   Γ ⊢ e :{l} τ1 + τ2 ->
   (exists b v τ, wval v /\ e = <{ inj@b<τ> v }>) \/
   (exists b v τ, val v /\ e = <{ ↑(inj@b<τ> v) }>) \/
-  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ `if [b] then v1 else v2 }>).
 Proof.
   canonical_form_weak_solver using canonical_form_sum.
 Qed.
@@ -248,7 +248,7 @@ Lemma canonical_form_weak_fold Γ l e X :
   Γ ⊢ e :{l} gvar X ->
   (exists v X', wval v /\ e = <{ fold<X'> v }>) \/
   (exists v X', val v /\ e = <{ ↑(fold<X'> v) }>) \/
-  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ ~if [b] then v1 else v2 }>).
+  (exists b v1 v2, wval v1 /\ wval v2 /\ e = <{ `if [b] then v1 else v2 }>).
 Proof.
   inversion 1; canonical_form_weak_solver using canonical_form_fold.
 Qed.
@@ -258,9 +258,9 @@ End fix_gctx.
 Ltac apply_canonical_form_lem τ :=
   lazymatch τ with
   | <{ 𝟙 }> => canonical_form_unit
-  | <{ ~𝔹 }> => canonical_form_obool
-  | <{ _ ~* _ }> => canonical_form_oprod
-  | <{ _ ~+ _ }> => canonical_form_osum
+  | <{ `𝔹 }> => canonical_form_obool
+  | <{ _ `* _ }> => canonical_form_oprod
+  | <{ _ `+ _ }> => canonical_form_osum
   end.
 
 Ltac apply_canonical_form :=

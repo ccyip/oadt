@@ -239,8 +239,8 @@ Lemma ROCase_intro b ω1 ω2 v v1 v2 e1 e2 e1' e2' x :
   oval v ->
   ovalty v1 ω1 -> ovalty v2 ω2 ->
   x ∉ fv e1 ∪ fv e1' ∪ fv e2 ∪ fv e2' ->
-  <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ⇛
-    <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>.
+  <{ `case [inj@b<ω1 `+ ω2> v] of e1 | e2 }> ⇛
+    <{ `if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>.
 Proof.
   intro_solver.
 Qed.
@@ -251,8 +251,8 @@ Lemma ROIteCase_intro b e1 e2 e3 e4 e1' e2' e3' e4' x :
     <{ e3^x }> ⇛ <{ e3'^x }> ->
     <{ e4^x }> ⇛ <{ e4'^x }> ->
     x ∉ fv e3 ∪ fv e3' ∪ fv e4 ∪ fv e4' ->
-    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ⇛
-      <{ ~if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>.
+    <{ case (`if [b] then e1 else e2) of e3 | e4 }> ⇛
+      <{ `if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>.
 Proof.
   intro_solver.
 Qed.
@@ -344,11 +344,11 @@ Ltac pared_intro_ e :=
   match e with
   | <{ (\:{_}_ => _) _ }> => eapply RApp_intro
   | <{ (↑(\:{_}_ => _)) _ }> => eapply RPromApp_intro
-  | <{ ~case [inj@_<_> _] of _ | _ }> => eapply ROCase_intro
+  | <{ `case [inj@_<_> _] of _ | _ }> => eapply ROCase_intro
   | <{ let _ in _ }> => eapply RLet_intro
   | <{ case inj@_<_> _ of _ | _ }> => eapply RCase_intro
   | <{ case ↑(inj@_<_> _) of _ | _ }> => eapply RPromCase_intro
-  | <{ case (~if _ then _ else _) of _ | _ }> => eapply ROIteCase_intro
+  | <{ case (`if _ then _ else _) of _ | _ }> => eapply ROIteCase_intro
   | <{ Π:{_}_, _ }> => eapply RCgrPi_intro
   | <{ \:{_}_ => _ }> => eapply RCgrAbs_intro
   | <{ case{_} _ of _ | _ }> => eapply RCgrCase_intro
@@ -357,7 +357,7 @@ Ltac pared_intro_ e :=
 
 Ltac pared_intro :=
   match goal with
-  | |- <{ tape <{ ~if _ then _ else _ }> }> ⇛ _ => econstructor
+  | |- <{ tape <{ `if _ then _ else _ }> }> ⇛ _ => econstructor
   | H : oval ?e |- <{ tape (↑?e) }> ⇛ _ => eapply RTapeProm
   | |- <{ tape ?e }> ⇛ _ => eapply RCgrTape
   | |- ?e ⇛ _ => pared_intro_ e
