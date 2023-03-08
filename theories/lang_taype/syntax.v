@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import base.
+From taype.lang_taype Require Import base.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
@@ -125,222 +125,222 @@ Coercion ELit : bool >-> expr.
 Coercion lexpr_expr : lexpr >-> expr.
 
 (** Quote *)
-Notation "<{ e }>" := e (e custom oadt at level 99).
+Notation "<{ e }>" := e (e custom taype at level 99).
 (** Lispy unquote *)
-Notation "',(' e ')'" := e (in custom oadt at level 0,
+Notation "',(' e ')'" := e (in custom taype at level 0,
                                e constr at level 0).
 
-Notation "( x )" := x (in custom oadt, x at level 99).
-Notation "x" := x (in custom oadt at level 0, x constr at level 0).
-Notation "'bvar' x" := (EBVar x) (in custom oadt at level 0, x constr at level 0).
-Notation "'fvar' x" := (EFVar x) (in custom oadt at level 0, x constr at level 0,
+Notation "( x )" := x (in custom taype, x at level 99).
+Notation "x" := x (in custom taype at level 0, x constr at level 0).
+Notation "'bvar' x" := (EBVar x) (in custom taype at level 0, x constr at level 0).
+Notation "'fvar' x" := (EFVar x) (in custom taype at level 0, x constr at level 0,
                                      only parsing).
-Notation "'gvar' x" := (EGVar x) (in custom oadt at level 0, x constr at level 0).
-Notation "'lit' b" := (ELit b) (in custom oadt at level 0, b constr at level 0,
+Notation "'gvar' x" := (EGVar x) (in custom taype at level 0, x constr at level 0).
+Notation "'lit' b" := (ELit b) (in custom taype at level 0, b constr at level 0,
                                    only parsing).
-Notation "'𝟙'" := EUnitT (in custom oadt at level 0).
-Notation "'Unit'" := EUnitT (in custom oadt at level 0, only parsing).
-Notation "'𝔹{' l '}'" := (EBool l) (in custom oadt at level 0,
+Notation "'𝟙'" := EUnitT (in custom taype at level 0).
+Notation "'Unit'" := EUnitT (in custom taype at level 0, only parsing).
+Notation "'𝔹{' l '}'" := (EBool l) (in custom taype at level 0,
                                        l constr at level 0,
                                        format "'𝔹{' l '}'").
-Notation "'𝔹'" := (EBool LPub) (in custom oadt at level 0).
-Notation "'Bool'" := (EBool LPub) (in custom oadt at level 0, only parsing).
-Notation "'`𝔹'" := (EBool LObliv) (in custom oadt at level 0).
-Notation "'`Bool'" := (EBool LObliv) (in custom oadt at level 0, only parsing).
-Notation "τ1 '*{' l '}' τ2" := (EProd l τ1 τ2) (in custom oadt at level 3,
+Notation "'𝔹'" := (EBool LPub) (in custom taype at level 0).
+Notation "'Bool'" := (EBool LPub) (in custom taype at level 0, only parsing).
+Notation "'`𝔹'" := (EBool LObliv) (in custom taype at level 0).
+Notation "'`Bool'" := (EBool LObliv) (in custom taype at level 0, only parsing).
+Notation "τ1 '*{' l '}' τ2" := (EProd l τ1 τ2) (in custom taype at level 3,
                                                    l constr at level 0,
-                                                   τ1 custom oadt,
-                                                   τ2 custom oadt at level 0,
+                                                   τ1 custom taype,
+                                                   τ2 custom taype at level 0,
                                                   format "τ1  '*{' l '}'  τ2").
-Notation "τ1 * τ2" := (EProd LPub τ1 τ2) (in custom oadt at level 3,
-                                             τ1 custom oadt,
-                                             τ2 custom oadt at level 0).
-Notation "τ1 `* τ2" := (EProd LObliv τ1 τ2) (in custom oadt at level 3,
-                                                τ1 custom oadt,
-                                                τ2 custom oadt at level 0).
-Notation "τ1 '+{' l '}' τ2" := (ESum l τ1 τ2) (in custom oadt at level 4,
+Notation "τ1 * τ2" := (EProd LPub τ1 τ2) (in custom taype at level 3,
+                                             τ1 custom taype,
+                                             τ2 custom taype at level 0).
+Notation "τ1 `* τ2" := (EProd LObliv τ1 τ2) (in custom taype at level 3,
+                                                τ1 custom taype,
+                                                τ2 custom taype at level 0).
+Notation "τ1 '+{' l '}' τ2" := (ESum l τ1 τ2) (in custom taype at level 4,
                                                   l constr at level 0,
                                                   left associativity,
                                                   format "τ1  '+{' l '}'  τ2").
-Notation "τ1 + τ2" := (ESum LPub τ1 τ2) (in custom oadt at level 4,
+Notation "τ1 + τ2" := (ESum LPub τ1 τ2) (in custom taype at level 4,
                                             left associativity).
-Notation "τ1 `+ τ2" := (ESum LObliv τ1 τ2) (in custom oadt at level 4,
+Notation "τ1 `+ τ2" := (ESum LObliv τ1 τ2) (in custom taype at level 4,
                                                left associativity).
 Notation "'Π' :{ l } τ1 , τ2" := (EPi l τ1 τ2)
-                                   (in custom oadt at level 50,
+                                   (in custom taype at level 50,
                                        right associativity,
                                        format "Π :{ l } τ1 ,  τ2").
 Notation "'Π' !: τ1 , τ2" := (EPi LSafe τ1 τ2)
-                               (in custom oadt at level 50,
+                               (in custom taype at level 50,
                                    right associativity,
                                    format "Π !: τ1 ,  τ2").
 Notation "'Π' : τ1 , τ2" := (EPi LLeak τ1 τ2)
-                              (in custom oadt at level 50,
+                              (in custom taype at level 50,
                                   right associativity,
                                   format "Π : τ1 ,  τ2").
 Notation "\ :{ l } τ '=>' e" := (EAbs l τ e)
-                                  (in custom oadt at level 90,
-                                      τ custom oadt at level 99,
-                                      e custom oadt at level 99,
+                                  (in custom taype at level 90,
+                                      τ custom taype at level 99,
+                                      e custom taype at level 99,
                                       left associativity,
                                       format "\ :{ l } τ  =>  e").
 Notation "\ : τ '=>' e" := (EAbs LLeak τ e)
-                             (in custom oadt at level 90,
-                                 τ custom oadt at level 99,
-                                 e custom oadt at level 99,
+                             (in custom taype at level 90,
+                                 τ custom taype at level 99,
+                                 e custom taype at level 99,
                                  left associativity,
                                  format "\ : τ  =>  e").
-Notation "e1 e2" := (EApp e1 e2) (in custom oadt at level 2, left associativity).
-Notation "X @ e" := (ETApp X e) (in custom oadt at level 2,
+Notation "e1 e2" := (EApp e1 e2) (in custom taype at level 2, left associativity).
+Notation "X @ e" := (ETApp X e) (in custom taype at level 2,
                                     format "X @ e").
-Notation "()" := EUnitV (in custom oadt at level 0).
+Notation "()" := EUnitV (in custom taype at level 0).
 Notation "( x , y , .. , z ){ l }" := (EPair l .. (EPair l x y) .. z)
-                                        (in custom oadt at level 0,
+                                        (in custom taype at level 0,
                                             l constr at level 0,
-                                            x custom oadt at level 99,
-                                            y custom oadt at level 99,
-                                            z custom oadt at level 99,
+                                            x custom taype at level 99,
+                                            y custom taype at level 99,
+                                            z custom taype at level 99,
                                             format "( x ,  y ,  .. ,  z ){ l }").
 Notation "( x , y , .. , z )" := (EPair LPub .. (EPair LPub x y) .. z)
-                                   (in custom oadt at level 0,
-                                       x custom oadt at level 99,
-                                       y custom oadt at level 99,
-                                       z custom oadt at level 99).
+                                   (in custom taype at level 0,
+                                       x custom taype at level 99,
+                                       y custom taype at level 99,
+                                       z custom taype at level 99).
 Notation "`( x , y , .. , z )" := (EPair LObliv .. (EPair LObliv x y) .. z)
-                                    (in custom oadt at level 0,
-                                        x custom oadt at level 99,
-                                        y custom oadt at level 99,
-                                        z custom oadt at level 99,
+                                    (in custom taype at level 0,
+                                        x custom taype at level 99,
+                                        y custom taype at level 99,
+                                        z custom taype at level 99,
                                         format "`( x ,  y ,  .. ,  z )").
-Notation "'π{' l '}@' b e" := (EProj l b e) (in custom oadt at level 2,
+Notation "'π{' l '}@' b e" := (EProj l b e) (in custom taype at level 2,
                                               l constr at level 0,
                                               b constr at level 0,
                                               format "π{ l }@ b  e").
-Notation "'π@' b e" := (EProj LPub b e) (in custom oadt at level 2,
+Notation "'π@' b e" := (EProj LPub b e) (in custom taype at level 2,
                                             b constr at level 0,
                                             format "π@ b  e").
-Notation "'`π@' b e" := (EProj LObliv b e) (in custom oadt at level 2,
+Notation "'`π@' b e" := (EProj LObliv b e) (in custom taype at level 2,
                                                b constr at level 0,
                                                format "`π@ b  e").
-Notation "'π1' e" := (EProj LPub true e) (in custom oadt at level 2).
-Notation "'π2' e" := (EProj LPub false e) (in custom oadt at level 2).
-Notation "'`π1' e" := (EProj LObliv true e) (in custom oadt at level 2).
-Notation "'`π2' e" := (EProj LObliv false e) (in custom oadt at level 2).
-Notation "'s𝔹' e" := (ESec e) (in custom oadt at level 2).
+Notation "'π1' e" := (EProj LPub true e) (in custom taype at level 2).
+Notation "'π2' e" := (EProj LPub false e) (in custom taype at level 2).
+Notation "'`π1' e" := (EProj LObliv true e) (in custom taype at level 2).
+Notation "'`π2' e" := (EProj LObliv false e) (in custom taype at level 2).
+Notation "'s𝔹' e" := (ESec e) (in custom taype at level 2).
 Notation "'if{' l '}' e0 'then' e1 'else' e2" := (EIte l e0 e1 e2)
-                                                   (in custom oadt at level 89,
+                                                   (in custom taype at level 89,
                                                        l constr at level 0,
-                                                       e0 custom oadt at level 99,
-                                                       e1 custom oadt at level 99,
-                                                       e2 custom oadt at level 99,
+                                                       e0 custom taype at level 99,
+                                                       e1 custom taype at level 99,
+                                                       e2 custom taype at level 99,
                                                        left associativity,
                                                        format "'if{' l '}'  e0  'then'  e1  'else'  e2").
 Notation "'if' e0 'then' e1 'else' e2" := (EIte LPub e0 e1 e2)
-                                            (in custom oadt at level 89,
-                                                e0 custom oadt at level 99,
-                                                e1 custom oadt at level 99,
-                                                e2 custom oadt at level 99,
+                                            (in custom taype at level 89,
+                                                e0 custom taype at level 99,
+                                                e1 custom taype at level 99,
+                                                e2 custom taype at level 99,
                                                 left associativity).
 Notation "'`if' e0 'then' e1 'else' e2" := (EIte LObliv e0 e1 e2)
-                                             (in custom oadt at level 89,
-                                                 e0 custom oadt at level 99,
-                                                 e1 custom oadt at level 99,
-                                                 e2 custom oadt at level 99).
+                                             (in custom taype at level 89,
+                                                 e0 custom taype at level 99,
+                                                 e1 custom taype at level 99,
+                                                 e2 custom taype at level 99).
 Notation "'let' e1 'in' e2" := (ELet e1 e2)
-                                 (in custom oadt at level 0,
-                                     e1 custom oadt at level 99,
-                                     e2 custom oadt at level 99).
-Notation "'inj{' l '}@' b < τ > e" := (EInj l b τ e) (in custom oadt at level 2,
+                                 (in custom taype at level 0,
+                                     e1 custom taype at level 99,
+                                     e2 custom taype at level 99).
+Notation "'inj{' l '}@' b < τ > e" := (EInj l b τ e) (in custom taype at level 2,
                                                          l constr at level 0,
                                                          b constr at level 0,
-                                                         τ custom oadt at level 0,
+                                                         τ custom taype at level 0,
                                                          format "'inj{' l '}@' b < τ >  e").
-Notation "'inl{' l '}' < τ > e" := (EInj l true τ e) (in custom oadt at level 2,
-                                                         τ custom oadt at level 0,
+Notation "'inl{' l '}' < τ > e" := (EInj l true τ e) (in custom taype at level 2,
+                                                         τ custom taype at level 0,
                                                          format "inl{ l } < τ >  e").
-Notation "'inr{' l '}' < τ > e" := (EInj l false τ e) (in custom oadt at level 2,
-                                                          τ custom oadt at level 0,
+Notation "'inr{' l '}' < τ > e" := (EInj l false τ e) (in custom taype at level 2,
+                                                          τ custom taype at level 0,
                                                           format "inr{ l } < τ >  e").
-Notation "'inj@' b < τ > e" := (EInj LPub b τ e) (in custom oadt at level 2,
+Notation "'inj@' b < τ > e" := (EInj LPub b τ e) (in custom taype at level 2,
                                                      b constr at level 0,
-                                                     τ custom oadt at level 0,
+                                                     τ custom taype at level 0,
                                                      format "inj@ b < τ >  e").
-Notation "'inl' < τ > e" := (EInj LPub true τ e) (in custom oadt at level 2,
-                                                     τ custom oadt at level 0,
+Notation "'inl' < τ > e" := (EInj LPub true τ e) (in custom taype at level 2,
+                                                     τ custom taype at level 0,
                                                      format "inl < τ >  e").
-Notation "'inr' < τ > e" := (EInj LPub false τ e) (in custom oadt at level 2,
-                                                      τ custom oadt at level 0,
+Notation "'inr' < τ > e" := (EInj LPub false τ e) (in custom taype at level 2,
+                                                      τ custom taype at level 0,
                                                       format "inr < τ >  e").
-Notation "'`inj@' b < τ > e" := (EInj LObliv b τ e) (in custom oadt at level 2,
+Notation "'`inj@' b < τ > e" := (EInj LObliv b τ e) (in custom taype at level 2,
                                                         b constr at level 0,
-                                                        τ custom oadt at level 0,
+                                                        τ custom taype at level 0,
                                                         format "`inj@ b < τ >  e").
-Notation "'`inl' < τ > e" := (EInj LObliv true τ e) (in custom oadt at level 2,
-                                                        τ custom oadt at level 0,
+Notation "'`inl' < τ > e" := (EInj LObliv true τ e) (in custom taype at level 2,
+                                                        τ custom taype at level 0,
                                                         format "`inl < τ >  e").
-Notation "'`inr' < τ > e" := (EInj LObliv false τ e) (in custom oadt at level 2,
-                                                         τ custom oadt at level 0,
+Notation "'`inr' < τ > e" := (EInj LObliv false τ e) (in custom taype at level 2,
+                                                         τ custom taype at level 0,
                                                          format "`inr < τ >  e").
 Notation "'case{' l '}' e0 'of' e1 '|' e2" :=
-  (ECase l e0 e1 e2) (in custom oadt at level 89,
+  (ECase l e0 e1 e2) (in custom taype at level 89,
                          l constr at level 0,
-                         e0 custom oadt at level 99,
-                         e1 custom oadt at level 99,
-                         e2 custom oadt at level 99,
+                         e0 custom taype at level 99,
+                         e1 custom taype at level 99,
+                         e2 custom taype at level 99,
                          left associativity,
                          format "'case{' l '}'  e0  'of'  e1  '|'  e2").
 Notation "'case' e0 'of' e1 '|' e2" :=
-  (ECase LPub e0 e1 e2) (in custom oadt at level 89,
-                            e0 custom oadt at level 99,
-                            e1 custom oadt at level 99,
-                            e2 custom oadt at level 99,
+  (ECase LPub e0 e1 e2) (in custom taype at level 89,
+                            e0 custom taype at level 99,
+                            e1 custom taype at level 99,
+                            e2 custom taype at level 99,
                             left associativity).
 Notation "'`case' e0 'of' e1 '|' e2" :=
-  (ECase LObliv e0 e1 e2) (in custom oadt at level 89,
-                              e0 custom oadt at level 99,
-                              e1 custom oadt at level 99,
-                              e2 custom oadt at level 99,
+  (ECase LObliv e0 e1 e2) (in custom taype at level 89,
+                              e0 custom taype at level 99,
+                              e1 custom taype at level 99,
+                              e2 custom taype at level 99,
                               left associativity).
-Notation "'fold' < X > e" := (EFold X e) (in custom oadt at level 2,
-                                             X custom oadt at level 0,
+Notation "'fold' < X > e" := (EFold X e) (in custom taype at level 2,
+                                             X custom taype at level 0,
                                              format "fold < X >  e").
-Notation "'unfold' < X > e" := (EUnfold X e) (in custom oadt at level 2,
-                                                 X custom oadt at level 0,
+Notation "'unfold' < X > e" := (EUnfold X e) (in custom taype at level 2,
+                                                 X custom taype at level 0,
                                                  format "unfold < X >  e").
-Notation "'↑' e" := (EProm e) (in custom oadt at level 2).
-Notation "'tape' e" := (ETape e) (in custom oadt at level 2).
-Notation "'mux' e0 e1 e2" := (EMux e0 e1 e2) (in custom oadt at level 2,
-                                                 e0 custom oadt at level 0,
-                                                 e1 custom oadt at level 0,
-                                                 e2 custom oadt at level 0).
+Notation "'↑' e" := (EProm e) (in custom taype at level 2).
+Notation "'tape' e" := (ETape e) (in custom taype at level 2).
+Notation "'mux' e0 e1 e2" := (EMux e0 e1 e2) (in custom taype at level 2,
+                                                 e0 custom taype at level 0,
+                                                 e1 custom taype at level 0,
+                                                 e2 custom taype at level 0).
 
-Notation "[ b ]" := (EBoxedLit b) (in custom oadt at level 0,
+Notation "[ b ]" := (EBoxedLit b) (in custom taype at level 0,
                                       b constr at level 0).
 Notation "[ 'inj@' b < τ > e ]" := (EBoxedInj b τ e)
-                                     (in custom oadt at level 0,
+                                     (in custom taype at level 0,
                                          b constr at level 0,
-                                         τ custom oadt at level 0,
-                                         e custom oadt at level 0,
+                                         τ custom taype at level 0,
+                                         e custom taype at level 0,
                                          format "[ inj@ b < τ >  e ]").
 Notation "[ 'inl' < τ > e ]" := (EBoxedInj true τ e)
-                                  (in custom oadt at level 0,
-                                      τ custom oadt at level 0,
-                                      e custom oadt at level 0,
+                                  (in custom taype at level 0,
+                                      τ custom taype at level 0,
+                                      e custom taype at level 0,
                                       format "[ inl < τ >  e ]").
 Notation "[ 'inr' < τ > e ]" := (EBoxedInj false τ e)
-                                  (in custom oadt at level 0,
-                                      τ custom oadt at level 0,
-                                      e custom oadt at level 0,
+                                  (in custom taype at level 0,
+                                      τ custom taype at level 0,
+                                      e custom taype at level 0,
                                       format "[ inr < τ >  e ]").
 
 Notation "'ite' e0 e1 e2" := (if e0 then e1 else e2)
-                               (in custom oadt at level 2,
+                               (in custom taype at level 2,
                                    e0 constr at level 0,
-                                   e1 custom oadt at level 0,
-                                   e2 custom oadt at level 0).
+                                   e1 custom taype at level 0,
+                                   e2 custom taype at level 0).
 
 (** Boolean retraction. *)
-Notation "'r𝔹' e" := <{ `if e then true else false }> (in custom oadt at level 2).
+Notation "'r𝔹' e" := <{ `if e then true else false }> (in custom taype at level 2).
 
 End expr_notations.
 
@@ -353,7 +353,7 @@ Import expr_notations.
 Coercion EFVar : atom >-> expr.
 
 (** ** Variable opening  *)
-Reserved Notation "'{' k '~>' s '}' e" (in custom oadt at level 20, k constr).
+Reserved Notation "'{' k '~>' s '}' e" (in custom taype at level 20, k constr).
 
 Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   match e with
@@ -380,13 +380,13 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | _ => e
   end
 
-where "'{' k '~>' s '}' e" := (open_ k s e) (in custom oadt).
+where "'{' k '~>' s '}' e" := (open_ k s e) (in custom taype).
 
 Definition open s e := open_ 0 s e.
-Notation "e ^ s" := (open s e) (in custom oadt at level 20).
+Notation "e ^ s" := (open s e) (in custom taype at level 20).
 
 (** ** Substitution *)
-Reserved Notation "'{' x '↦' s '}' e" (in custom oadt at level 20, x constr).
+Reserved Notation "'{' x '↦' s '}' e" (in custom taype at level 20, x constr).
 
 Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   match e with
@@ -413,7 +413,7 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   | _ => e
   end
 
-where "'{' x '↦' s '}' e" := (subst x s e) (in custom oadt).
+where "'{' x '↦' s '}' e" := (subst x s e) (in custom taype).
 
 Definition lexpr_subst x s (T : lexpr) := (T.1, subst x s T.2).
 
@@ -493,11 +493,11 @@ Module notations.
 Export expr_notations.
 
 Notation "'{' k '~>' s '}' e" := (open_ k s e)
-                                   (in custom oadt at level 20, k constr).
-Notation "e ^ s" := (open s e) (in custom oadt at level 20).
+                                   (in custom taype at level 20, k constr).
+Notation "e ^ s" := (open s e) (in custom taype at level 20).
 
 Notation "'{' x '↦' s '}' e" := (subst x s e)
-                                  (in custom oadt at level 20, x constr).
+                                  (in custom taype at level 20, x constr).
 (* This notation is supposed to be applied to a typing context. *)
 Notation "{ x '↦' s }" := (lexpr_subst x s) (at level 20).
 

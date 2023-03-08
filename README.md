@@ -12,7 +12,7 @@ label promotion, explicit and uniform label checking.
 - [coq-hammer-tactics](https://coqhammer.github.io) (>= 1.3.2)
 - [coq-idt](https://github.com/ccyip/coq-idt) (>= 1.1)
 
-See [`coq-oadt.opam`](./coq-oadt.opam) for more details.
+See [`coq-taype.opam`](./coq-taype.opam) for more details.
 
 The easiest way to install the dependencies and build the project is via
 [OPAM](https://opam.ocaml.org/doc/Install.html).
@@ -20,7 +20,7 @@ The easiest way to install the dependencies and build the project is via
 ``` sh
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam update
-cd path/to/oadt
+cd path/to/taype-theories
 opam install . --deps-only
 ```
 

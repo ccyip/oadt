@@ -1,5 +1,5 @@
 (** Admissible rules for semantics, typing and kinding. *)
-From oadt.lang_oadt Require Import
+From taype.lang_taype Require Import
      base syntax semantics typing infrastructure
      equivalence.
 Import syntax.notations semantics.notations typing.notations equivalence.notations.

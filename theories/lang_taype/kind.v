@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import base.
+From taype.lang_taype Require Import base.
 
 (** * Definitions *)
 
@@ -66,10 +66,10 @@ Qed.
 (** * Notations *)
 Module notations.
 
-Notation "*@A" := (KAny) (in custom oadt at level 0).
-Notation "*@P" := (KPublic) (in custom oadt at level 0).
-Notation "*@O" := (KObliv) (in custom oadt at level 0).
-Notation "*@M" := (KMixed) (in custom oadt at level 0).
-Infix "⊔" := (⊔) (in custom oadt at level 50).
+Notation "*@A" := (KAny) (in custom taype at level 0).
+Notation "*@P" := (KPublic) (in custom taype at level 0).
+Notation "*@O" := (KObliv) (in custom taype at level 0).
+Notation "*@M" := (KMixed) (in custom taype at level 0).
+Infix "⊔" := (⊔) (in custom taype at level 50).
 
 End notations.

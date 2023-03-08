@@ -1,5 +1,5 @@
 (** Properties of various value definitions. *)
-From oadt.lang_oadt Require Import
+From taype.lang_taype Require Import
      base syntax semantics typing infrastructure
      equivalence inversion.
 Import syntax.notations semantics.notations typing.notations equivalence.notations.

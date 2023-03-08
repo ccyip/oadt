@@ -1,4 +1,4 @@
-From oadt Require Export prelude.
+From taype Require Export prelude.
 From stdpp Require Import gmap.
 
 Export atom_instance.
@@ -29,5 +29,5 @@ Opaque aamap.
 #[global]
 Opaque aamap_is_finmap.
 
-Declare Custom Entry oadt.
-Declare Custom Entry oadt_def.
+Declare Custom Entry taype.
+Declare Custom Entry taype_def.

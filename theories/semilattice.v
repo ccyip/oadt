@@ -1,4 +1,4 @@
-From oadt Require Import base tactics.
+From taype Require Import base tactics.
 
 (** * Semi-lattice *)
 

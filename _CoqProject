@@ -1,23 +1,23 @@
--Q theories oadt
+-Q theories taype
 
 theories/base.v
 theories/tactics.v
 theories/ln.v
 theories/semilattice.v
 theories/prelude.v
-theories/lang_oadt/base.v
-theories/lang_oadt/syntax.v
-theories/lang_oadt/semantics.v
-theories/lang_oadt/kind.v
-theories/lang_oadt/typing.v
-theories/lang_oadt/indistinguishable.v
-theories/lang_oadt/infrastructure.v
-theories/lang_oadt/equivalence.v
-theories/lang_oadt/admissible.v
-theories/lang_oadt/inversion.v
-theories/lang_oadt/values.v
-theories/lang_oadt/weakening.v
-theories/lang_oadt/preservation.v
-theories/lang_oadt/progress.v
-theories/lang_oadt/obliviousness.v
-theories/lang_oadt/metatheories.v
+theories/lang_taype/base.v
+theories/lang_taype/syntax.v
+theories/lang_taype/semantics.v
+theories/lang_taype/kind.v
+theories/lang_taype/typing.v
+theories/lang_taype/indistinguishable.v
+theories/lang_taype/infrastructure.v
+theories/lang_taype/equivalence.v
+theories/lang_taype/admissible.v
+theories/lang_taype/inversion.v
+theories/lang_taype/values.v
+theories/lang_taype/weakening.v
+theories/lang_taype/preservation.v
+theories/lang_taype/progress.v
+theories/lang_taype/obliviousness.v
+theories/lang_taype/metatheories.v

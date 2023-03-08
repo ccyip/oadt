@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import base syntax.
+From taype.lang_taype Require Import base syntax.
 Import syntax.notations.
 
 Implicit Types (b : bool).
@@ -180,19 +180,19 @@ End step.
 Module notations.
 
 Notation "Σ '⊨' e '-->!' e'" := (step Σ e e') (at level 40,
-                                                e custom oadt at level 99,
-                                                e' custom oadt at level 99).
+                                                e custom taype at level 99,
+                                                e' custom taype at level 99).
 
 Notation "Σ '⊨' e '-->*' e'" := (rtc (step Σ) e e')
                                   (at level 40,
-                                   e custom oadt at level 99,
-                                   e' custom oadt at level 99).
+                                   e custom taype at level 99,
+                                   e' custom taype at level 99).
 
 Notation "Σ '⊨' e '-->{' n '}' e'" := (nsteps (step Σ) n e e')
                                         (at level 40,
-                                         e custom oadt at level 99,
+                                         e custom taype at level 99,
                                          n constr at level 99,
-                                         e' custom oadt at level 99,
+                                         e' custom taype at level 99,
                                          format "Σ  '⊨'  e  '-->{' n '}'  e'").
 
 Notation "e '-->!' e'" := (step _ e e') (at level 40).

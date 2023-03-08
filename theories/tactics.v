@@ -1,4 +1,4 @@
-From oadt Require Import base.
+From taype Require Import base.
 
 (** * Fold over hypotheses *)
 

@@ -1,6 +1,6 @@
 (** Common tactics and lemmas, and definitions related to locally nameless
 representation and free variables. *)
-From oadt.lang_oadt Require Import base syntax semantics typing.
+From taype.lang_taype Require Import base syntax semantics typing.
 Import syntax.notations semantics.notations typing.notations.
 
 Implicit Types (b : bool) (x X y Y z : atom) (L : aset) (T : lexpr).
@@ -17,7 +17,7 @@ Definition body (e : expr) : Prop :=
 (** ** Variable closing *)
 Section close.
 
-Reserved Notation "'{' k '<~' x '}' e" (in custom oadt at level 20, k constr).
+Reserved Notation "'{' k '<~' x '}' e" (in custom taype at level 20, k constr).
 
 Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   match e with
@@ -44,7 +44,7 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | _ => e
   end
 
-where "'{' k '<~' x '}' e" := (close_ k x e) (in custom oadt).
+where "'{' k '<~' x '}' e" := (close_ k x e) (in custom taype).
 
 End close.
 

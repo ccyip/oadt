@@ -1,5 +1,5 @@
 (** Lemmas about parallel reduction and equivalence. *)
-From oadt.lang_oadt Require Import base syntax semantics typing infrastructure.
+From taype.lang_taype Require Import base syntax semantics typing infrastructure.
 Import syntax.notations semantics.notations typing.notations.
 
 Module Import notations.

@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import
+From taype.lang_taype Require Import
      base syntax semantics typing indistinguishable infrastructure
      values preservation progress obliviousness.
 Import syntax.notations semantics.notations typing.notations

@@ -1,5 +1,5 @@
 From idt Require Import all.
-From oadt.lang_oadt Require Import base syntax.
+From taype.lang_taype Require Import base syntax.
 Import syntax.notations.
 
 (** * Indistinguishability *)
