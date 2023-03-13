@@ -21,3 +21,4 @@ theories/lang_taype/preservation.v
 theories/lang_taype/progress.v
 theories/lang_taype/obliviousness.v
 theories/lang_taype/metatheories.v
+theories/lang_taype/bonus.v
