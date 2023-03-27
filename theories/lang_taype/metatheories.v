@@ -47,14 +47,15 @@ Definition trace_indistinguishable Σ e1 e2 : Prop :=
 
 (** Essentially a noninterference theorem. Indistinguishable well-typed
 expressions produce indistinguishable traces. *)
-Theorem obliviousness Σ e1 e2 τ1 τ2 :
-  Σ; e1 ▷ τ1 ->
-  Σ; e2 ▷ τ2 ->
+Theorem obliviousness Σ e1 e2 τ1 τ2 l1 l2 :
+  gctx_typing Σ ->
+  Σ; ∅ ⊢ e1 :{l1} τ1 ->
+  Σ; ∅ ⊢ e2 :{l2} τ2 ->
   e1 ≈ e2 ->
   trace_indistinguishable Σ e1 e2.
 Proof.
   unfold trace_indistinguishable.
-  intros [Hd Ht1] [_ Ht1']. apply gdefs_typing_wf in Hd.
+  intros Hd Ht1 Ht1'. apply gdefs_typing_wf in Hd.
   intros ??? H. revert dependent e2.
   induction H; intros.
   - hauto ctrs: nsteps inv: nsteps.
@@ -63,6 +64,17 @@ Proof.
     + hauto ctrs: nsteps use: preservation.
     + select (_ ⊨ _ -->{_} _) (fun H => sinvert H).
       qauto use: preservation.
+Qed.
+
+(** This is a variant of [obliviousness] using program typing. *)
+Corollary obliviousness' Σ e1 e2 τ1 τ2 :
+  Σ; e1 ▷ τ1 ->
+  Σ; e2 ▷ τ2 ->
+  e1 ≈ e2 ->
+  trace_indistinguishable Σ e1 e2.
+Proof.
+  intros [? ?] [_ ?].
+  eauto using obliviousness.
 Qed.
 
 (** This is a corollary for open programs. An open (partial) program can be
@@ -81,7 +93,7 @@ Proof.
   intros.
   eapply obliviousness; eauto.
 
-  1-2: split; eauto;
+  1-2: eauto;
   eapply subst_preservation;
   eauto using gdefs_typing_wf; fast_set_solver!!.
 
