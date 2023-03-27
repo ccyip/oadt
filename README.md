@@ -1,8 +1,16 @@
 # Oblivious Algebraic Data Type (adapted to Taype)
 
-This is the Coq formalization of the core calculus of Taype, a variant of
-oblivious algebraic data types. It adds serveral features: oblivious product,
-label promotion, explicit and uniform label checking.
+This is the Coq formalization of the core calculus of Taype, an extension of
+oblivious algebraic data types. It adds serveral features to help with the
+compilation: oblivious product, label promotion, explicit and uniform label
+checking. For simplicity, this calculus differs slightly from the one presented
+in the Taype paper. First, similar to Ye and Delaware 2022, we do not include
+integers as a base type. Second, the mechanization includes `fold` and `unfold`
+operations for recursive ADTs, instead of the ML-style ADTs. The equivalence
+between these two styles are well-known. Third, the mechanization has a negative
+elimination form for product types (i.e. projection) instead of positive
+elimination forms (i.e. case analysis). These two styles are also well-known to
+be equivalent in nonlinear type systems.
 
 ## Requirements
 
