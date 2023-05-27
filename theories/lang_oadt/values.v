@@ -29,19 +29,19 @@ Qed.
 
 Lemma ovalty_elim_alt v ω:
   ovalty v ω ->
-  val v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v :{⊥} ω.
+  val v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
 Proof.
   hauto use: ovalty_elim, oval_val.
 Qed.
 
-Lemma ovalty_intro v ω l Σ Γ :
+Lemma ovalty_intro v ω Σ Γ :
   gctx_wf Σ ->
   oval v ->
   otval ω ->
-  Σ; Γ ⊢ v :{l} ω ->
+  Σ; Γ ⊢ v : ω ->
   ovalty v ω.
 Proof.
-  intros Hwf H. revert ω l.
+  intros Hwf H. revert ω.
   induction H; inversion 1; intros; subst;
     type_inv;
     simpl_whnf_equiv;
@@ -55,11 +55,11 @@ Proof.
     qauto l: on use: ovalty_elim inv: otval.
 Qed.
 
-Lemma ovalty_intro_alt v ω l Σ Γ :
+Lemma ovalty_intro_alt v ω Σ Γ :
   gctx_wf Σ ->
   val v ->
   otval ω ->
-  Σ; Γ ⊢ v :{l} ω ->
+  Σ; Γ ⊢ v : ω ->
   ovalty v ω.
 Proof.
   destruct 2; eauto using ovalty_intro; inversion 1; intros; subst;
@@ -88,84 +88,12 @@ Proof.
   - eauto using bot_inv.
 Qed.
 
-Lemma wval_val Σ Γ τ v :
-  Σ; Γ ⊢ v :{⊥} τ ->
-  wval v ->
-  val v.
-Proof.
-  remember ⊥.
-  induction 1; subst; intros;
-    try wval_inv; eauto using val, (bot_inv (A:=bool)).
-  select (⊥ = _ ⊔ _) (fun H => symmetry in H; apply join_bot_iff in H).
-  hauto ctrs: val.
-Qed.
-
-Lemma val_wval v :
-  val v ->
-  wval v.
-Proof.
-  induction 1; eauto using wval.
-Qed.
-
-Lemma oval_wval v :
-  oval v ->
-  wval v.
-Proof.
-  eauto using oval_val, val_wval.
-Qed.
-
-Lemma woval_otval Σ Γ v l τ :
-  gctx_wf Σ ->
-  Σ; Γ ⊢ v :{l} τ ->
-  woval v ->
-  exists ω, Σ; Γ ⊢ v :{l} ω /\ otval ω /\ Σ ⊢ ω ≡ τ.
-Proof.
-  intros Hwf.
-  induction 1; intros Hv;
-    try woval_inv; try oval_inv; simp_hyps;
-    try solve [ repeat esplit; eauto;
-                try lazymatch goal with
-                    | |- _ ⊢ _ : _ =>
-                        eauto using typing, otval_well_kinded with equiv_naive_solver
-                    | |- _ ≡ _ => equiv_naive_solver
-                    | |- otval _ => eauto using otval
-                    end ].
-
-  (* Oblivious pair *)
-  select! (woval _ -> _) (fun H => feed specialize H; eauto using woval).
-  simp_hyps.
-  repeat esplit; eauto using typing, otval, otval_well_kinded.
-  apply_pared_equiv_congr; eauto with lc.
-Qed.
-
-Lemma woval_wval v :
-  woval v ->
-  wval v.
-Proof.
-  induction 1; eauto using wval, val_wval, oval_val.
-Qed.
-
-Lemma oval_woval v :
-  oval v ->
-  woval v.
-Proof.
-  eauto using woval.
-Qed.
-
-Lemma wval_otval v :
-  wval v ->
-  otval v ->
-  False.
-Proof.
-  inversion 1; inversion 1; subst; oval_inv.
-Qed.
-
 Lemma val_otval v :
   val v ->
   otval v ->
   False.
 Proof.
-  eauto using wval_otval, val_wval.
+  induction 2; intros; try val_inv; try oval_inv; eauto.
 Qed.
 
 Section fix_gctx.
@@ -173,13 +101,13 @@ Section fix_gctx.
 Context (Σ : gctx).
 Set Default Proof Using "Type".
 
-Lemma wval_step v e :
+Lemma val_step v e :
   v -->! e ->
-  wval v ->
+  val v ->
   False.
 Proof.
   induction 1; intros; repeat ectx_inv;
-    repeat wval_inv; repeat oval_inv; try step_inv; eauto using oval_wval.
+    repeat val_inv; repeat oval_inv; try step_inv; eauto using oval_val.
 Qed.
 
 Lemma otval_step ω e :
@@ -190,19 +118,11 @@ Proof.
   induction 1; intros; repeat ectx_inv; repeat otval_inv; try step_inv; eauto.
 Qed.
 
-Lemma val_step v e :
-  v -->! e ->
+Lemma val_is_nf v :
   val v ->
-  False.
-Proof.
-  eauto using wval_step, val_wval.
-Qed.
-
-Lemma wval_is_nf v :
-  wval v ->
   nf (step Σ) v.
 Proof.
-  sfirstorder use: wval_step.
+  sfirstorder use: val_step.
 Qed.
 
 Lemma otval_is_nf ω :
@@ -210,13 +130,6 @@ Lemma otval_is_nf ω :
   nf (step Σ) ω.
 Proof.
   sfirstorder use: otval_step.
-Qed.
-
-Lemma val_is_nf v :
-  val v ->
-  nf (step Σ) v.
-Proof.
-  sfirstorder use: val_step.
 Qed.
 
 End fix_gctx.

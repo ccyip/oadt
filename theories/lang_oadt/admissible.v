@@ -4,7 +4,7 @@ From oadt.lang_oadt Require Import
      equivalence.
 Import syntax.notations semantics.notations typing.notations equivalence.notations.
 
-Implicit Types (b : bool) (x X y Y : atom) (L : aset) (T : lexpr).
+Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
@@ -21,21 +21,21 @@ Set Default Proof Using "Hwf".
 
 (** * Renaming lemmas *)
 
-Lemma typing_kinding_rename_ x y T :
-  (forall Γ' e l τ,
-      Γ' ⊢ e :{l} τ ->
+Lemma typing_kinding_rename_ x y τ' :
+  (forall Γ' e τ,
+      Γ' ⊢ e : τ ->
       forall Γ,
-        Γ' = <[x:=T]>Γ ->
-        x ∉ fv T ∪ dom Γ ->
-        y ∉ {[x]} ∪ fv e ∪ fv T ∪ dom Γ ->
-        <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}e :{l} {x↦y}τ) /\
+        Γ' = <[x:=τ']>Γ ->
+        x ∉ fv τ' ∪ dom Γ ->
+        y ∉ {[x]} ∪ fv e ∪ fv τ' ∪ dom Γ ->
+        <[y:=τ']>({x↦y} <$> Γ) ⊢ {x↦y}e : {x↦y}τ) /\
   (forall Γ' τ κ,
       Γ' ⊢ τ :: κ ->
       forall Γ,
-        Γ' = <[x:=T]>Γ ->
-        x ∉ fv T ∪ dom Γ ->
-        y ∉ {[x]} ∪ fv τ ∪ fv T ∪ dom Γ ->
-        <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}τ :: κ).
+        Γ' = <[x:=τ']>Γ ->
+        x ∉ fv τ' ∪ dom Γ ->
+        y ∉ {[x]} ∪ fv τ ∪ fv τ' ∪ dom Γ ->
+        <[y:=τ']>({x↦y} <$> Γ) ⊢ {x↦y}τ :: κ).
 Proof.
   apply typing_kinding_mutind; intros; subst; simpl in *;
     (* First we normalize the typing and kinding judgments so they are ready
@@ -113,11 +113,11 @@ Proof.
 Qed.
 
 (** We also allow [x=y]. *)
-Lemma typing_rename_ Γ e l τ T x y :
-  <[x:=T]>Γ ⊢ e :{l} τ ->
-  x ∉ fv T ∪ dom Γ ->
-  y ∉ fv e ∪ fv T ∪ dom Γ ->
-  <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}e :{l} {x↦y}τ.
+Lemma typing_rename_ Γ e τ τ' x y :
+  <[x:=τ']>Γ ⊢ e : τ ->
+  x ∉ fv τ' ∪ dom Γ ->
+  y ∉ fv e ∪ fv τ' ∪ dom Γ ->
+  <[y:=τ']>({x↦y} <$> Γ) ⊢ {x↦y}e : {x↦y}τ.
 Proof.
   intros.
   destruct (decide (y = x)); subst.
@@ -125,11 +125,11 @@ Proof.
   - qauto use: typing_kinding_rename_ solve: fast_set_solver!!.
 Qed.
 
-Lemma kinding_rename_ Γ τ T κ x y :
-  <[x:=T]>Γ ⊢ τ :: κ ->
-  x ∉ fv T ∪ dom Γ ->
-  y ∉ fv τ ∪ fv T ∪ dom Γ ->
-  <[y:=T]>({x↦y} <$> Γ) ⊢ {x↦y}τ :: κ.
+Lemma kinding_rename_ Γ τ τ' κ x y :
+  <[x:=τ']>Γ ⊢ τ :: κ ->
+  x ∉ fv τ' ∪ dom Γ ->
+  y ∉ fv τ ∪ fv τ' ∪ dom Γ ->
+  <[y:=τ']>({x↦y} <$> Γ) ⊢ {x↦y}τ :: κ.
 Proof.
   intros.
   destruct (decide (y = x)); subst.
@@ -139,11 +139,11 @@ Qed.
 
 (** The actual renaming lemmas. The side conditions are slightly different than
 the general version. *)
-Lemma typing_rename_alt Γ e l s τ T x y :
-  <[x:=T]>Γ ⊢ e^x :{l} τ^({y↦x}s) ->
-  x ∉ fv T ∪ fv e ∪ fv τ ∪ fv s ∪ dom Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv e ∪ dom Γ ->
-  <[y:=T]>Γ ⊢ e^y :{l} τ^s.
+Lemma typing_rename_alt Γ e s τ τ' x y :
+  <[x:=τ']>Γ ⊢ e^x : τ^({y↦x}s) ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ fv s ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv e ∪ dom Γ ->
+  <[y:=τ']>Γ ⊢ e^y : τ^s.
 Proof.
   intros.
   destruct (decide (y = x)); subst.
@@ -161,11 +161,11 @@ Proof.
     eauto.
 Qed.
 
-Lemma typing_rename Γ e l τ T x y :
-  <[x:=T]>Γ ⊢ e^x :{l} τ^x ->
-  x ∉ fv T ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv e ∪ dom Γ ->
-  <[y:=T]>Γ ⊢ e^y :{l} τ^y.
+Lemma typing_rename Γ e τ τ' x y :
+  <[x:=τ']>Γ ⊢ e^x : τ^x ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv e ∪ dom Γ ->
+  <[y:=τ']>Γ ⊢ e^y : τ^y.
 Proof.
   intros.
   destruct (decide (y = x)); subst; eauto.
@@ -174,11 +174,11 @@ Proof.
   fast_set_solver!!.
 Qed.
 
-Lemma kinding_rename Γ τ κ T x y :
-  <[x:=T]>Γ ⊢ τ^x :: κ ->
-  x ∉ fv T ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv τ ∪ dom Γ ->
-  <[y:=T]>Γ ⊢ τ^y :: κ.
+Lemma kinding_rename Γ τ κ τ' x y :
+  <[x:=τ']>Γ ⊢ τ^x :: κ ->
+  x ∉ fv τ' ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv τ ∪ dom Γ ->
+  <[y:=τ']>Γ ⊢ τ^y :: κ.
 Proof.
   intros.
   destruct (decide (y = x)); subst; eauto.
@@ -189,11 +189,11 @@ Proof.
   simpl_fv. fast_set_solver!!.
 Qed.
 
-Lemma typing_rename_lc Γ e l τ T x y :
-  <[x:=T]>Γ ⊢ e^x :{l} τ ->
-  x ∉ fv T ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
-  y ∉ fv T ∪ fv e ∪ dom Γ ->
-  <[y:=T]>Γ ⊢ e^y :{l} τ.
+Lemma typing_rename_lc Γ e τ τ' x y :
+  <[x:=τ']>Γ ⊢ e^x : τ ->
+  x ∉ fv τ' ∪ fv e ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
+  y ∉ fv τ' ∪ fv e ∪ dom Γ ->
+  <[y:=τ']>Γ ⊢ e^y : τ.
 Proof.
   intros H. intros.
   erewrite <- (open_lc_intro τ y) by eauto using typing_type_lc.
@@ -215,32 +215,31 @@ Ltac typing_intro_solver :=
         | |- _ ∉ _ => try fast_set_solver!!; simpl_fv; fast_set_solver!!
         end.
 
-Lemma TAbs_intro Γ e l1 l2 τ1 τ2 κ x :
-  <[x:=(l2, τ2)]>Γ ⊢ e^x :{l1} τ1^x ->
+Lemma TAbs_intro Γ e τ1 τ2 κ x :
+  <[x:=τ2]>Γ ⊢ e^x : τ1^x ->
   Γ ⊢ τ2 :: κ ->
   x ∉ fv e ∪ fv τ1 ∪ dom Γ ∪ tctx_fv Γ ->
-  Γ ⊢ \:{l2}τ2 => e :{l1} (Π:{l2}τ2, τ1).
+  Γ ⊢ \:τ2 => e : (Π:τ2, τ1).
 Proof.
   typing_intro_solver.
 Qed.
 
-Lemma TLet_intro Γ l1 l2 e1 e2 τ1 τ2 x :
-  Γ ⊢ e1 :{l1} τ1 ->
-  <[x:=(l1, τ1)]>Γ ⊢ e2^x :{l2} τ2^x ->
+Lemma TLet_intro Γ e1 e2 τ1 τ2 x :
+  Γ ⊢ e1 : τ1 ->
+  <[x:=τ1]>Γ ⊢ e2^x : τ2^x ->
   x ∉ fv e2 ∪ fv τ2 ∪ dom Γ ∪ tctx_fv Γ ->
-  Γ ⊢ let e1 in e2 :{l2} τ2^e1.
+  Γ ⊢ let e1 in e2 : τ2^e1.
 Proof.
   typing_intro_solver.
 Qed.
 
-Lemma TCase_intro Γ l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
-  Γ ⊢ e0 :{⊥} τ1 + τ2 ->
-  <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ^(inl<τ1 + τ2> x) ->
-  <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ^(inr<τ1 + τ2> x) ->
+Lemma TCase_intro Γ e0 e1 e2 τ1 τ2 τ κ x :
+  Γ ⊢ e0 : τ1 + τ2 ->
+  <[x:=τ1]>Γ ⊢ e1^x : τ^(inl<τ1 + τ2> x) ->
+  <[x:=τ2]>Γ ⊢ e2^x : τ^(inr<τ1 + τ2> x) ->
   Γ ⊢ τ^e0 :: κ ->
-  l = l1 ⊔ l2 ->
   x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
-  Γ ⊢ case e0 of e1 | e2 :{l} τ^e0.
+  Γ ⊢ case e0 of e1 | e2 : τ^e0.
 Proof.
   typing_intro_solver.
 
@@ -248,42 +247,30 @@ Proof.
     rewrite !subst_fresh by fast_set_solver!!; eauto.
 Qed.
 
-Lemma TCaseNoDep_intro Γ l0 l1 l2 l e0 e1 e2 τ1 τ2 τ κ x :
-  Γ ⊢ e0 :{l0} τ1 + τ2 ->
-  <[x:=(l0, τ1)]>Γ ⊢ e1^x :{l1} τ ->
-  <[x:=(l0, τ2)]>Γ ⊢ e2^x :{l2} τ ->
-  Γ ⊢ τ :: κ ->
-  l = l0 ⊔ l1 ⊔ l2 ->
-  x ∉ fv e1 ∪ fv e2 ∪ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
-  Γ ⊢ case e0 of e1 | e2 :{l} τ.
-Proof.
-  typing_intro_solver.
-Qed.
-
-Lemma TOCase_intro Γ l1 l2 e0 e1 e2 τ1 τ2 τ κ x :
-  Γ ⊢ e0 :{⊥} τ1 ~+ τ2 ->
-  <[x:=(⊥, τ1)]>Γ ⊢ e1^x :{l1} τ ->
-  <[x:=(⊥, τ2)]>Γ ⊢ e2^x :{l2} τ ->
-  Γ ⊢ τ :: κ ->
+Lemma TOCase_intro Γ e0 e1 e2 τ1 τ2 τ x :
+  Γ ⊢ e0 : τ1 ~+ τ2 ->
+  <[x:=τ1]>Γ ⊢ e1^x : τ ->
+  <[x:=τ2]>Γ ⊢ e2^x : τ ->
+  Γ ⊢ τ :: *@O ->
   x ∉ fv e1 ∪ fv e2 ∪ dom Γ ∪ tctx_fv Γ ->
-  Γ ⊢ ~case e0 of e1 | e2 :{⊤} τ.
+  Γ ⊢ ~case e0 of e1 | e2 : τ.
 Proof.
   typing_intro_solver.
 Qed.
 
-Lemma KPi_intro Γ l τ1 τ2 κ1 κ2 x :
-  <[x:=(l, τ1)]>Γ ⊢ τ2^x :: κ2 ->
+Lemma KPi_intro Γ τ1 τ2 κ1 κ2 x :
+  <[x:=τ1]>Γ ⊢ τ2^x :: κ2 ->
   Γ ⊢ τ1 :: κ1 ->
   x ∉ fv τ2 ∪ dom Γ ∪ tctx_fv Γ ->
-  Γ ⊢ (Π:{l}τ1, τ2) :: *@M.
+  Γ ⊢ (Π:τ1, τ2) :: *@M.
 Proof.
   typing_intro_solver.
 Qed.
 
 Lemma KCase_intro Γ e0 τ1 τ2 τ1' τ2' x :
-  Γ ⊢ e0 :{⊥} τ1' + τ2' ->
-  <[x:=(⊥, τ1')]>Γ ⊢ τ1^x :: *@O ->
-  <[x:=(⊥, τ2')]>Γ ⊢ τ2^x :: *@O ->
+  Γ ⊢ e0 : τ1' + τ2' ->
+  <[x:=τ1']>Γ ⊢ τ1^x :: *@O ->
+  <[x:=τ2']>Γ ⊢ τ2^x :: *@O ->
   x ∉ fv τ1 ∪ fv τ2 ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ case e0 of τ1 | τ2 :: *@O.
 Proof.
@@ -291,8 +278,8 @@ Proof.
 Qed.
 
 Lemma KLet_intro Γ e τ τ' x :
-  Γ ⊢ e :{⊥} τ' ->
-  <[x:=(⊥, τ')]>Γ ⊢ τ^x :: *@O ->
+  Γ ⊢ e : τ' ->
+  <[x:=τ']>Γ ⊢ τ^x :: *@O ->
   x ∉ fv τ ∪ dom Γ ∪ tctx_fv Γ ->
   Γ ⊢ let e in τ :: *@O.
 Proof.
@@ -320,7 +307,7 @@ Ltac typing_intro_ :=
   lazymatch goal with
   | |- _ ⊢ fvar _ : _ => eapply TFVar
   | |- _ ⊢ gvar _ : _ => eapply TGVar
-  | |- _ ⊢ \:{_}_ => _ : _ => eapply TAbs_intro
+  | |- _ ⊢ \:_ => _ : _ => eapply TAbs_intro
   | |- _ ⊢ let _ in _ : _ => eapply TLet_intro
   | |- _ ⊢ _ _ : _ => eapply TApp
   | |- _ ⊢ () : _ => eapply TUnit
@@ -328,7 +315,6 @@ Ltac typing_intro_ :=
   | |- _ ⊢ s𝔹 _ : _ => eapply TSec
   | |- _ ⊢ (_, _) : _ => eapply TPair
   | |- _ ⊢ ~(_, _) : _ => eapply TOPair
-  | |- _ ⊢ ~if _ then _ else _ : _ => eapply TOIte
   | |- _ ⊢ π@_ _ : _ => eapply TProj
   | |- _ ⊢ ~π@_ _ : _ => eapply TOProj
   | |- _ ⊢ inj@_<_> _ : _ => eapply TInj
@@ -336,11 +322,8 @@ Ltac typing_intro_ :=
   | |- _ ⊢ ~case _ of _ | _ : _ => eapply TOCase_intro
   | |- _ ⊢ fold<_> _ : _ => eapply TFold
   | |- _ ⊢ unfold<_> _ : _ => eapply TUnfold
-  | H : _ ⊢ ?e :{⊥} _ |- _; _ ⊢ if ?e then _ else _ : _ => eapply TIte
-  | |- _ ⊢ if _ then _ else _ : _ => eapply TIteNoDep
-  | H : _ ⊢ ?e :{⊥} _ |- _; _ ⊢ case ?e of _ | _ : _ => eapply TCase_intro
-  | |- _ ⊢ case _ of _ | _ : _ => eapply TCaseNoDep_intro
-  | |- _ ⊢ tape _ : _ => eapply TTape
+  | |- _ ⊢ if _ then _ else _ : _ => eapply TIte
+  | |- _ ⊢ case _ of _ | _ : _ => eapply TCase_intro
   | |- _ ⊢ mux _ _ _ : _ => eapply TMux
   | |- _ ⊢ [_] : _ => eapply TBoxedLit
   | |- _ ⊢ [inj@_<_> _] : _ => eapply TBoxedInj
@@ -352,7 +335,7 @@ Ltac kinding_intro_ :=
   | |- _ ⊢ gvar _ :: _ => eapply KGVar
   | |- _ ⊢ 𝟙 :: _ => eapply KUnit
   | |- _ ⊢ 𝔹{_} :: _ => eapply KBool
-  | |- _ ⊢ Π:{_}_, _ :: _ => eapply KPi_intro
+  | |- _ ⊢ Π:_, _ :: _ => eapply KPi_intro
   | |- _ ⊢ _@_ :: _ => eapply KApp
   | |- _ ⊢ _ * _ :: _ => eapply KProd_intro
   | |- _ ⊢ _ ~* _ :: _ => eapply KOProd

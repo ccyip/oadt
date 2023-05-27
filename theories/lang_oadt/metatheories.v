@@ -69,12 +69,12 @@ Qed.
 instantiated with indistinguishable expressions, and the resulting programs
 produce indistinguishable traces. As a consequence, a type-checked function does
 not leak when it is applied to concrete arguments. *)
-Corollary obliviousness_open Σ x l τ' e τ s1 s2 :
+Corollary obliviousness_open Σ x τ' e τ s1 s2 :
   gctx_typing Σ ->
-  Σ; ({[x:=(l, τ')]}) ⊢ e :{⊥} τ ->
+  Σ; ({[x:=τ']}) ⊢ e : τ ->
   x ∉ fv τ' ->
-  Σ; ∅ ⊢ s1 :{l} τ' ->
-  Σ; ∅ ⊢ s2 :{l} τ' ->
+  Σ; ∅ ⊢ s1 : τ' ->
+  Σ; ∅ ⊢ s2 : τ' ->
   s1 ≈ s2 ->
   trace_indistinguishable Σ <{ {x↦s1}e }> <{ {x↦s2}e }>.
 Proof.
@@ -91,12 +91,12 @@ Qed.
 (** This is another corollary. Two expressions that only differ in an oblivious
 value in it produce indistinguishable traces, meaning that an attacker can not
 infer the oblivious value by analyzing the execution trace. *)
-Corollary obliviousness_open_obliv_val Σ x l τ' e τ v1 v2 :
+Corollary obliviousness_open_obliv_val Σ x τ' e τ v1 v2 :
   gctx_typing Σ ->
-  Σ; ({[x:=(l, τ')]}) ⊢ e :{⊥} τ ->
+  Σ; ({[x:=τ']}) ⊢ e : τ ->
   x ∉ fv τ' ->
-  Σ; ∅ ⊢ v1 :{l} τ' ->
-  Σ; ∅ ⊢ v2 :{l} τ' ->
+  Σ; ∅ ⊢ v1 : τ' ->
+  Σ; ∅ ⊢ v2 : τ' ->
   Σ; ∅ ⊢ τ' :: *@O ->
   val v1 -> val v2 ->
   trace_indistinguishable Σ <{ {x↦v1}e }> <{ {x↦v2}e }>.

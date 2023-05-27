@@ -90,26 +90,24 @@ Proof.
   induction 1; intros; repeat oval_inv; repeat lc_inv; eauto using oval.
 Qed.
 
-Lemma indistinguishable_wval_ v v' :
+Lemma indistinguishable_val_ v v' :
   v ≈ v' ->
-  wval v ->
+  val v ->
   lc v' ->
-  wval v'.
+  val v'.
 Proof.
   induction 1; intros;
-    repeat wval_inv; repeat oval_inv; repeat lc_inv;
-    eauto using wval, oval, indistinguishable_oval.
-
-  qauto ctrs: wval, oval inv: indistinguishable.
+    repeat val_inv; repeat oval_inv; repeat lc_inv;
+    eauto using val, oval, indistinguishable_oval.
 Qed.
 
-Lemma indistinguishable_wval v v' Σ Γ l τ :
+Lemma indistinguishable_val v v' Σ Γ τ :
   v ≈ v' ->
-  wval v ->
-  Σ; Γ ⊢ v' :{l} τ ->
-  wval v'.
+  val v ->
+  Σ; Γ ⊢ v' : τ ->
+  val v'.
 Proof.
-  qauto use: indistinguishable_wval_, typing_lc.
+  qauto use: indistinguishable_val_, typing_lc.
 Qed.
 
 Section fix_gctx.
@@ -123,15 +121,15 @@ Set Default Proof Using "Hwf".
 (** [indistinguishable_obliv_val] and [indistinguishable_val_type] are two of
 the most important lemmas. *)
 
-Lemma indistinguishable_obliv_val Γ v v' l l' τ :
-  Γ ⊢ v :{l} τ ->
-  Γ ⊢ v' :{l'} τ ->
+Lemma indistinguishable_obliv_val Γ v v' τ :
+  Γ ⊢ v : τ ->
+  Γ ⊢ v' : τ ->
   val v ->
   val v' ->
   Γ ⊢ τ :: *@O ->
   v ≈ v'.
 Proof.
-  intros H. revert v' l'.
+  intros H. revert v'.
   induction H; intros;
     repeat val_inv;
     repeat oval_inv;
@@ -160,15 +158,15 @@ Proof.
     eapply pared_equiv_obliv_preservation; eauto; equiv_naive_solver.
 Qed.
 
-Lemma indistinguishable_val_obliv_type_equiv Γ v v' l l' τ τ' :
-  Γ ⊢ v :{l} τ ->
-  Γ ⊢ v' :{l'} τ' ->
+Lemma indistinguishable_val_obliv_type_equiv Γ v v' τ τ' :
+  Γ ⊢ v : τ ->
+  Γ ⊢ v' : τ' ->
   Γ ⊢ τ :: *@O ->
   val v ->
   v ≈ v' ->
   τ ≡ τ'.
 Proof.
-  intros H. revert v' l' τ'.
+  intros H. revert v' τ'.
   induction H; intros;
     try indistinguishable_inv;
     repeat val_inv;
@@ -192,13 +190,13 @@ Qed.
 (* This lemma can be strengthened so that we drop the typing assumption for
 [v']. In order for that, we have to prove [v'] can be typed which should be
 provable. But this version is good enough for the main theorem. *)
-Lemma indistinguishable_val_type Γ v v' l l' τ τ' :
-  Γ ⊢ v :{l} τ ->
-  Γ ⊢ v' :{l'} τ' ->
+Lemma indistinguishable_val_type Γ v v' τ τ' :
+  Γ ⊢ v : τ ->
+  Γ ⊢ v' : τ' ->
   Γ ⊢ τ :: *@O ->
   val v ->
   v ≈ v' ->
-  Γ ⊢ v' :{l'} τ.
+  Γ ⊢ v' : τ.
 Proof.
   intros.
   eapply TConv; eauto.
@@ -216,32 +214,32 @@ Ltac val_step_absurd :=
               [ solve [ eassumption | symmetry; eassumption ]
               | eauto using otval ] ] ]
   | H : _ -->! _ |- _ =>
-    exfalso; eapply wval_step;
+    exfalso; eapply val_step;
     [ apply H
-    | solve [ eauto using wval
-            | eapply indistinguishable_wval;
+    | solve [ eauto using val
+            | eapply indistinguishable_val;
               [ solve [ eassumption | symmetry; eassumption ]
-              | eauto using wval
+              | eauto using val
               | eauto ] ] ]
   end.
 
 (** * Obliviousness theorem *)
 
-Lemma indistinguishable_step e1 e1' e2 l1 l2 τ1 τ2 :
+Lemma indistinguishable_step e1 e1' e2 τ1 τ2 :
   e1 -->! e1' ->
   e1 ≈ e2 ->
-  ∅ ⊢ e1 :{l1} τ1 ->
-  ∅ ⊢ e2 :{l2} τ2 ->
+  ∅ ⊢ e1 : τ1 ->
+  ∅ ⊢ e2 : τ2 ->
   exists e2', e2 -->! e2'.
 Proof.
-  qauto use: progress_weak solve: val_step_absurd.
+  qauto use: progress solve: val_step_absurd.
 Qed.
 
 Lemma indistinguishable_deterministic e1 e1' e2 e2' :
   e1 -->! e1' ->
   e2 -->! e2' ->
   e1 ≈ e2 ->
-  ((exists τ1 τ2 l1 l2, ∅ ⊢ e1 :{l1} τ1 /\ ∅ ⊢ e2 :{l2} τ2) \/
+  ((exists τ1 τ2, ∅ ⊢ e1 : τ1 /\ ∅ ⊢ e2 : τ2) \/
    (exists κ1 κ2, ∅ ⊢ e1 :: κ1 /\ ∅ ⊢ e2 :: κ2)) ->
   e1' ≈ e2'.
 Proof.
@@ -252,8 +250,7 @@ Proof.
       (repeat indistinguishable_inv;
        try (select (_ \/ _) (fun H => destruct H); simp_hyps);
        type_inv; kind_inv; simplify_eq;
-       try step_inv; try oval_inv;
-       try select! (woval _) (fun H => apply woval_wval in H);
+       try step_inv;
        try solve
            (* Discharge the impossible cases *)
            [ val_step_absurd
@@ -280,7 +277,6 @@ Proof.
 
   (* Step from mux *)
   - case_splitting;
-      select! (wval _) (fun H => eapply wval_val in H; [ | solve [eauto] ]); eauto;
       eauto using indistinguishable_obliv_val, indistinguishable_val_type.
 Qed.
 
@@ -289,11 +285,11 @@ theorem. Two indistinguishable well-typed expressions always step to
 indistinguishable new expressions, or they both can not take any more step. It
 is important that if one of them takes step, another one also takes step.
 Otherwise the adversaries can distinguish them by this mismatched behavior. *)
-Corollary obliviousness_step e1 e1' e2 l1 l2 τ1 τ2 :
+Corollary obliviousness_step e1 e1' e2 τ1 τ2 :
   e1 -->! e1' ->
   e1 ≈ e2 ->
-  ∅ ⊢ e1 :{l1} τ1 ->
-  ∅ ⊢ e2 :{l2} τ2 ->
+  ∅ ⊢ e1 : τ1 ->
+  ∅ ⊢ e2 : τ2 ->
   (exists e2', e2 -->! e2') /\
   (forall e2', e2 -->! e2' -> e1' ≈ e2').
 Proof.

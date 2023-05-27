@@ -46,20 +46,6 @@ Proof.
   induction H; intros ?; inversion 1; intros; subst; eauto; hauto.
 Qed.
 
-Lemma pared_woval ω τ :
-  woval ω ->
-  ω ⇛ τ ->
-  woval τ.
-Proof.
-  intros H. revert τ.
-  induction H; intros.
-  - repeat match goal with
-           | H : ?e ⇛ _ |- _ => head_constructor e; sinvert H
-           end; subst;
-      try case_split; eauto using woval.
-  - econstructor. hauto use: pared_oval.
-Qed.
-
 (** ** Substitution lemmas *)
 
 (* Technically [lc e1] should imply [lc e1'], but I have this assumption for
@@ -104,10 +90,6 @@ Proof.
     repeat match goal with
            | H : oval ?v |- _ =>
              rewrite !(subst_fresh v) by shelve
-           | H : woval ?v, H' : ?v ⇛ ?u |- _ =>
-             assert (woval u) by eauto using pared_woval;
-               rewrite !(subst_fresh v) by shelve;
-               rewrite !(subst_fresh u) by shelve
            | H : otval ?ω |- _ =>
              rewrite !(subst_fresh ω) by shelve
            end;
@@ -182,12 +164,12 @@ Ltac intro_solver :=
   intros; econstructor; eauto; simpl_cofin;
     eapply pared_rename; eauto; try fast_set_solver!!.
 
-Lemma RApp_intro l τ e1 e2 e1' e2' x :
+Lemma RApp_intro τ e1 e2 e1' e2' x :
   e1 ⇛ e1' ->
   <{ e2^x }> ⇛ <{ e2'^x }> ->
   lc τ ->
   x ∉ fv e2 ∪ fv e2' ->
-  <{ (\:{l}τ => e2) e1 }> ⇛ <{ e2'^e1' }>.
+  <{ (\:τ => e2) e1 }> ⇛ <{ e2'^e1' }>.
 Proof.
   intro_solver.
 Qed.
@@ -219,37 +201,25 @@ Lemma ROCase_intro b ω1 ω2 v v1 v2 e1 e2 e1' e2' x :
   ovalty v1 ω1 -> ovalty v2 ω2 ->
   x ∉ fv e1 ∪ fv e1' ∪ fv e2 ∪ fv e2' ->
   <{ ~case [inj@b<ω1 ~+ ω2> v] of e1 | e2 }> ⇛
-    <{ ~if [b] then (ite b (e1'^v) (e1'^v1)) else (ite b (e2'^v2) (e2'^v)) }>.
+    <{ mux [b] (ite b (e1'^v) (e1'^v1)) (ite b (e2'^v2) (e2'^v)) }>.
 Proof.
   intro_solver.
 Qed.
 
-Lemma ROIteCase_intro b e1 e2 e3 e4 e1' e2' e3' e4' x :
-    e1 ⇛ e1' ->
-    e2 ⇛ e2' ->
-    <{ e3^x }> ⇛ <{ e3'^x }> ->
-    <{ e4^x }> ⇛ <{ e4'^x }> ->
-    x ∉ fv e3 ∪ fv e3' ∪ fv e4 ∪ fv e4' ->
-    <{ case (~if [b] then e1 else e2) of e3 | e4 }> ⇛
-      <{ ~if [b] then (case e1' of e3' | e4') else (case e2' of e3' | e4') }>.
-Proof.
-  intro_solver.
-Qed.
-
-Lemma RCgrPi_intro l τ1 τ2 τ1' τ2' x :
+Lemma RCgrPi_intro τ1 τ2 τ1' τ2' x :
   τ1 ⇛ τ1' ->
   <{ τ2^x }> ⇛ <{ τ2'^x }> ->
   x ∉ fv τ2 ∪ fv τ2' ->
-  <{ Π:{l}τ1, τ2 }> ⇛ <{ Π:{l}τ1', τ2' }>.
+  <{ Π:τ1, τ2 }> ⇛ <{ Π:τ1', τ2' }>.
 Proof.
   intro_solver.
 Qed.
 
-Lemma RCgrAbs_intro l τ e τ' e' x :
+Lemma RCgrAbs_intro τ e τ' e' x :
   τ ⇛ τ' ->
   <{ e^x }> ⇛ <{ e'^x }> ->
   x ∉ fv e ∪ fv e' ->
-  <{ \:{l}τ => e }> ⇛ <{ \:{l}τ' => e' }>.
+  <{ \:τ => e }> ⇛ <{ \:τ' => e' }>.
 Proof.
   intro_solver.
 Qed.
@@ -269,10 +239,10 @@ Qed.
 Ltac inv_solver :=
   inversion 1; subst; try lc_inv; repeat esplit; eauto using pared.
 
-Lemma pared_inv_abs l τ e t :
-  <{ \:{l}τ => e }> ⇛ t ->
+Lemma pared_inv_abs τ e t :
+  <{ \:τ => e }> ⇛ t ->
   exists τ' e' L,
-    t = <{ \:{l}τ' => e' }> /\
+    t = <{ \:τ' => e' }> /\
     τ ⇛ τ' /\
     (forall x, x ∉ L -> <{ e^x }> ⇛ <{ e'^x }>).
 Proof.
@@ -312,28 +282,24 @@ End equivalence.
 
 Ltac pared_intro_ e :=
   match e with
-  | <{ (\:{_}_ => _) _ }> => eapply RApp_intro
+  | <{ (\:_ => _) _ }> => eapply RApp_intro
   | <{ ~case [inj@_<_> _] of _ | _ }> => eapply ROCase_intro
   | <{ let _ in _ }> => eapply RLet_intro
   | <{ case inj@_<_> _ of _ | _ }> => eapply RCase_intro
-  | <{ case (~if _ then _ else _) of _ | _ }> => eapply ROIteCase_intro
-  | <{ Π:{_}_, _ }> => eapply RCgrPi_intro
-  | <{ \:{_}_ => _ }> => eapply RCgrAbs_intro
+  | <{ Π:_, _ }> => eapply RCgrPi_intro
+  | <{ \:_ => _ }> => eapply RCgrAbs_intro
   | <{ case{_} _ of _ | _ }> => eapply RCgrCase_intro
   | _ => econstructor
   end.
 
 Ltac pared_intro :=
   match goal with
-  | |- <{ tape <{ ~if _ then _ else _ }> }> ⇛ _ => econstructor
-  | H : oval ?e |- <{ tape ?e }> ⇛ _ => eapply RTapeOVal
-  | |- <{ tape ?e }> ⇛ _ => eapply RCgrTape
   | |- ?e ⇛ _ => pared_intro_ e
   end.
 
 Ltac pared_inv_ e H :=
   match e with
-  | <{ \:{_}_ => _ }> => apply pared_inv_abs in H; try simp_hyp H
+  | <{ \:_ => _ }> => apply pared_inv_abs in H; try simp_hyp H
   | <{ (_, _){_} }> => apply pared_inv_pair in H; try simp_hyp H
   | <{ fold<_> _ }> => apply pared_inv_fold in H; try simp_hyp H
   | <{ inj@_<_> _ }> => apply pared_inv_inj in H; try simp_hyp H
@@ -466,8 +432,6 @@ Proof using Hwf.
           | |- _ ∉ _ => shelve
           | |- lc _ =>
             eauto using lc, typing_lc, kinding_lc
-          (* | |- woval _ => *)
-          (*   eauto using pared_woval with lc *)
           end
     in try case_split;
          try solve [ repeat esplit; cycle 1; repeat go; relax_pared; repeat go
@@ -475,7 +439,7 @@ Proof using Hwf.
 
   (* Application of abstraction. *)
   match goal with
-  | H : context [exists _, <{ \:{_}_ => ?e }> ⇛ _ /\ _] |- _ =>
+  | H : context [exists _, <{ \:_ => ?e }> ⇛ _ /\ _] |- _ =>
     (* Avoid generating useless hypothesis. *)
     match goal with
     | H : _ ⇛ ?e' |- _ =>
@@ -563,7 +527,7 @@ expressions later. *)
 Inductive whnf : expr -> Prop :=
 | WUnitT : whnf <{ 𝟙 }>
 | WBool{l} : whnf <{ 𝔹{l} }>
-| WPi l τ1 τ2 : whnf <{ Π:{l}τ1, τ2 }>
+| WPi τ1 τ2 : whnf <{ Π:τ1, τ2 }>
 | WProd l τ1 τ2 : whnf <{ τ1 *{l} τ2 }>
 | WSum l τ1 τ2 : whnf <{ τ1 +{l} τ2 }>
 | WADT X τ :
@@ -576,10 +540,10 @@ always assumes that the two arguments are already in [whnf]. *)
 Inductive whnf_equiv : expr -> expr -> Prop :=
 | WQUnitT : whnf_equiv <{ 𝟙 }> <{ 𝟙 }>
 | WQBool l : whnf_equiv <{ 𝔹{l} }> <{ 𝔹{l} }>
-| WQPi l τ1 τ2 τ1' τ2' L :
+| WQPi τ1 τ2 τ1' τ2' L :
     τ1 ≡ τ1' ->
     (forall x, x ∉ L -> <{ τ2^x }> ≡ <{ τ2'^x }>) ->
-    whnf_equiv <{ Π:{l}τ1, τ2 }> <{ Π:{l}τ1', τ2' }>
+    whnf_equiv <{ Π:τ1, τ2 }> <{ Π:τ1', τ2' }>
 | WQProd l τ1 τ2 τ1' τ2' :
     τ1 ≡ τ1' ->
     τ2 ≡ τ2' ->
@@ -810,10 +774,10 @@ Proof.
 Qed.
 
 (** This is good enough for our purposes though it is weaker than it could be. *)
-Lemma pared_equiv_congr_pi l τ1 τ1' τ2 x :
+Lemma pared_equiv_congr_pi τ1 τ1' τ2 x :
   τ1 ≡ τ1' ->
   lc <{ τ2^x }> ->
-  <{ Π:{l}τ1, τ2 }> ≡ <{ Π:{l}τ1', τ2 }>.
+  <{ Π:τ1, τ2 }> ≡ <{ Π:τ1', τ2 }>.
 Proof.
   intros H; intros.
   induction H;
@@ -845,7 +809,7 @@ Ltac simpl_whnf_equiv :=
 
 Ltac apply_pared_equiv_congr :=
   lazymatch goal with
-  | |- _ ⊢ Π:{_}_, _ ≡ Π:{_}_, _ => eapply pared_equiv_congr_pi
+  | |- _ ⊢ Π:_, _ ≡ Π:_, _ => eapply pared_equiv_congr_pi
   | |- _ ⊢ _ *{_} _ ≡ _ *{_} _ => eapply pared_equiv_congr_prod
   | |- _ ⊢ _ +{_} _ ≡ _ +{_} _ => eapply pared_equiv_congr_sum
   | |- _ ⊢ inj{_}@_<_> _ ≡ inj{_}@_<_> _ => eapply pared_equiv_congr_inj

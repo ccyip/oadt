@@ -21,12 +21,12 @@ Proof.
 Qed.
 
 Lemma weakening_ Σ :
-  (forall Γ e l τ,
-    Σ; Γ ⊢ e :{l} τ ->
+  (forall Γ e τ,
+    Σ; Γ ⊢ e : τ ->
     forall Σ' Γ',
       Σ ⊆ Σ' ->
       Γ ⊆ Γ' ->
-      Σ'; Γ' ⊢ e :{l} τ) /\
+      Σ'; Γ' ⊢ e : τ) /\
   (forall Γ τ κ,
     Σ; Γ ⊢ τ :: κ ->
     forall Σ' Γ',
@@ -42,11 +42,11 @@ Proof.
     econstructor; eauto using insert_mono; qauto use: pared_equiv_weakening.
 Qed.
 
-Lemma weakening Σ Γ Σ' Γ' e l τ :
-  Σ; Γ ⊢ e :{l} τ ->
+Lemma weakening Σ Γ Σ' Γ' e τ :
+  Σ; Γ ⊢ e : τ ->
   Σ ⊆ Σ' ->
   Γ ⊆ Γ' ->
-  Σ'; Γ' ⊢ e :{l} τ.
+  Σ'; Γ' ⊢ e : τ.
 Proof.
   hauto use: weakening_.
 Qed.
@@ -60,9 +60,9 @@ Proof.
   hauto use: weakening_.
 Qed.
 
-Lemma weakening_empty Σ Γ e l τ :
-  Σ; ∅ ⊢ e :{l} τ ->
-  Σ; Γ ⊢ e :{l} τ.
+Lemma weakening_empty Σ Γ e τ :
+  Σ; ∅ ⊢ e : τ ->
+  Σ; Γ ⊢ e : τ.
 Proof.
   eauto using weakening, map_empty_subseteq.
 Qed.
@@ -74,10 +74,10 @@ Proof.
   eauto using kinding_weakening, map_empty_subseteq.
 Qed.
 
-Lemma weakening_insert Σ Γ e l τ τ' x :
-  Σ; Γ ⊢ e :{l} τ ->
+Lemma weakening_insert Σ Γ e τ τ' x :
+  Σ; Γ ⊢ e : τ ->
   x ∉ dom Γ ->
-  Σ; <[x:=τ']>Γ ⊢ e :{l} τ.
+  Σ; <[x:=τ']>Γ ⊢ e : τ.
 Proof.
   eauto using weakening, insert_fresh_subseteq.
 Qed.

@@ -3,7 +3,7 @@ representation and free variables. *)
 From oadt.lang_oadt Require Import base syntax semantics typing.
 Import syntax.notations semantics.notations typing.notations.
 
-Implicit Types (b : bool) (x X y Y z : atom) (L : aset) (T : lexpr).
+Implicit Types (b : bool) (x X y Y z : atom) (L : aset).
 
 #[local]
 Coercion EFVar : atom >-> expr.
@@ -22,15 +22,15 @@ Reserved Notation "'{' k '<~' x '}' e" (in custom oadt at level 20, k constr).
 Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   match e with
   | <{ fvar y }> => if decide (x = y) then <{ bvar k }> else e
-  | <{ Π:{l}τ1, τ2 }> => <{ Π:{l}({k<~x}τ1), {S k<~x}τ2 }>
-  | <{ \:{l}τ => e }> => <{ \:{l}({k<~x}τ) => {S k<~x}e }>
+  | <{ Π:τ1, τ2 }> => <{ Π:({k<~x}τ1), {S k<~x}τ2 }>
+  | <{ \:τ => e }> => <{ \:({k<~x}τ) => {S k<~x}e }>
   | <{ let e1 in e2 }> => <{ let {k<~x}e1 in {S k<~x}e2 }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {k<~x}e0 of {S k<~x}e1 | {S k<~x}e2 }>
   (* Congruence rules *)
   | <{ e1 e2 }> => <{ ({k<~x}e1) ({k<~x}e2) }>
   | <{ X@e }> => <{ X@({k<~x}e) }>
   | <{ s𝔹 e }> => <{ s𝔹 ({k<~x}e) }>
-  | <{ if{l} e0 then e1 else e2 }> => <{ if{l} {k<~x}e0 then {k<~x}e1 else {k<~x}e2 }>
+  | <{ if e0 then e1 else e2 }> => <{ if {k<~x}e0 then {k<~x}e1 else {k<~x}e2 }>
   | <{ τ1 *{l} τ2 }> => <{ ({k<~x}τ1) *{l} ({k<~x}τ2) }>
   | <{ (e1, e2){l} }> => <{ ({k<~x}e1, {k<~x}e2){l} }>
   | <{ π{l}@b e }> => <{ π{l}@b ({k<~x}e) }>
@@ -39,7 +39,6 @@ Fixpoint close_ (k : nat) (x : atom) (e : expr) : expr :=
   | <{ fold<X> e }> => <{ fold<X> ({k<~x}e) }>
   | <{ unfold<X> e }> => <{ unfold<X> ({k<~x}e) }>
   | <{ mux e0 e1 e2 }> => <{ mux ({k<~x}e0) ({k<~x}e1) ({k<~x}e2) }>
-  | <{ tape e }> => <{ tape ({k<~x}e) }>
   | _ => e
   end
 
@@ -54,25 +53,24 @@ Fixpoint fv (e : expr) : aset :=
   match e with
   | <{ fvar x }> => {[x]}
   (* Congruence rules *)
-  | <{ \:{_}τ => e }> | <{ inj{_}@_<τ> e }> | <{ [inj@_<τ> e] }> =>
+  | <{ \:τ => e }> | <{ inj{_}@_<τ> e }> | <{ [inj@_<τ> e] }> =>
     fv τ ∪ fv e
-  | <{ Π:{_}τ1, τ2 }> | <{ τ1 *{_} τ2 }> | <{ τ1 +{_} τ2 }> =>
+  | <{ Π:τ1, τ2 }> | <{ τ1 *{_} τ2 }> | <{ τ1 +{_} τ2 }> =>
     fv τ1 ∪ fv τ2
   | <{ let e1 in e2 }> | <{ (e1, e2){_} }> | <{ e1 e2 }> =>
     fv e1 ∪ fv e2
-  | <{ case{_} e0 of e1 | e2 }> | <{ if{_} e0 then e1 else e2 }>
+  | <{ case{_} e0 of e1 | e2 }> | <{ if e0 then e1 else e2 }>
   | <{ mux e0 e1 e2 }> =>
     fv e0 ∪ fv e1 ∪ fv e2
   | <{ _@e }> | <{ s𝔹 e }> | <{ π{_}@_ e }>
-  | <{ fold<_> e }> | <{ unfold<_> e }>
-  | <{ tape e }> =>
+  | <{ fold<_> e }> | <{ unfold<_> e }> =>
     fv e
   | _ => ∅
   end.
 
 (** Free variables in the range of [tctx]. *)
 Definition tctx_fv : tctx -> aset :=
-  map_fold (fun x T S => fv T ∪ S) ∅.
+  map_fold (fun x τ S => fv τ ∪ S) ∅.
 
 Definition closed e := fv e ≡ ∅.
 
@@ -87,10 +85,6 @@ Arguments aset_stale /.
 #[global]
 Instance expr_stale : Stale expr := fv.
 Arguments expr_stale /.
-
-#[global]
-Instance lexpr_stale : Stale lexpr := (fun T => fv T.2).
-Arguments lexpr_stale /.
 
 #[global]
 Instance tctx_stale : Stale tctx := fun Γ => dom Γ ∪ tctx_fv Γ.
@@ -123,7 +117,6 @@ Ltac case_ite_expr :=
 Ltac case_label :=
   let go l := (is_var l; destruct l) in
   match goal with
-  | |- context [<{ if{?l} _ then _ else _ }>] => go l
   | |- context [<{ inj{?l}@_<_> _ }>] => go l
   | |- context [<{ case{?l} _ of _ | _ }>] => go l
   | |- context [<{ (_, _){?l} }>] => go l
@@ -152,16 +145,11 @@ Ltac val_inv := safe_inv1 val.
 
 Ltac otval_inv := safe_inv1 otval.
 
-Ltac wval_inv := safe_inv1 wval.
-
-Ltac woval_inv := safe_inv1 woval.
-
 Ltac ovalty_inv := safe_inv2 ovalty.
 
 Ltac ectx_inv :=
   lazymatch goal with
   | H : ectx _ |- _ => sinvert H
-  | H : lectx _ |- _ => sinvert H
   end; simplify_eq.
 
 Ltac step_inv :=
@@ -170,13 +158,7 @@ Ltac step_inv :=
     head_constructor e; sinvert H; repeat ectx_inv; simplify_eq
   end.
 
-Ltac destruct_lexpr :=
-  select! (lexpr) (fun H => let l := fresh "l" in
-                          let τ := fresh "τ" in
-                          destruct H as [l τ]).
-
 Ltac apply_gctx_wf :=
-  try destruct_lexpr;
   match goal with
   | Hwf : gctx_wf ?Σ, H : ?Σ !! _ = Some ?D |- _ =>
     dup_hyp H (fun H => apply Hwf in H; try simp_hyp H)
@@ -184,8 +166,8 @@ Ltac apply_gctx_wf :=
 
 Ltac relax_typing_type :=
   match goal with
-  | |- ?Σ; ?Γ ⊢ ?e :{?l} _ =>
-    refine (eq_ind _ (fun τ => Σ; Γ ⊢ e :{l} τ) _ _ _)
+  | |- ?Σ; ?Γ ⊢ ?e : _ =>
+    refine (eq_ind _ (fun τ => Σ; Γ ⊢ e : τ) _ _ _)
   end.
 
 (** This lemma is equivalent to the corresponding constructor, but more
@@ -212,20 +194,6 @@ Ltac solve_ectx :=
      | H : _ ⊨ _ -->! _ |- _ ⊨ _ -->! _ => go H
      | H : context [ _ -> _ ⊨ _ -->! _ ] |- _ ⊨ _ -->! _ => go H
      end.
-
-Ltac apply_SOIte :=
-  match goal with
-  | |- _ ⊨ ?e -->! _ =>
-    match e with
-    | context E [<{ ~if ?b then ?v1 else ?v2 }>] =>
-      let ℇ' := constr:(fun t : expr =>
-                 ltac:(let t := context E [t] in exact t)) in
-      apply SOIte with (ℇ := ℇ')
-    end
-  end.
-
-Ltac solve_lctx := apply_SOIte; eauto using lectx.
-Ltac solve_ctx := solve [ solve_lctx | solve_ectx ].
 
 #[export]
 Hint Extern 1 (_ ⊢ _ ≡ _) => equiv_naive_solver : equiv_naive_solver.
@@ -350,14 +318,7 @@ Lemma subst_tctx_id (Γ : tctx) x :
 Proof.
   rewrite <- map_fmap_id.
   apply map_fmap_ext.
-  unfold lexpr_subst.
   scongruence use: subst_id, surjective_pairing.
-Qed.
-
-Lemma lexpr_subst_distr (l : llabel) x s τ :
-  (l, <{ {x↦s}τ }>) = {x↦s}(l, τ).
-Proof.
-  reflexivity.
 Qed.
 
 (** We may prove this one using [subst_open_distr] and [subst_fresh], but a
@@ -385,7 +346,7 @@ Qed.
 
 Lemma ovalty_elim v ω:
   ovalty v ω ->
-  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v :{⊥} ω.
+  oval v /\ otval ω /\ forall Σ Γ, Σ; Γ ⊢ v : ω.
 Proof.
   induction 1; hauto lq: on ctrs: oval, ovalty, otval, typing use: otval_well_kinded.
 Qed.
@@ -409,15 +370,6 @@ Proof.
 Qed.
 #[export]
 Hint Resolve oval_lc : lc.
-
-Lemma woval_lc v :
-  woval v ->
-  lc v.
-Proof.
-  induction 1; eauto with lc.
-Qed.
-#[export]
-Hint Resolve woval_lc : lc.
 
 Lemma ovalty_lc v ω :
   ovalty v ω ->
@@ -447,8 +399,8 @@ Qed.
 Hint Resolve ovalty_lc2 : lc.
 
 (** Well-typed and well-kinded expressions are locally closed. *)
-Lemma typing_lc Σ Γ e l τ :
-  Σ; Γ ⊢ e :{l} τ ->
+Lemma typing_lc Σ Γ e τ :
+  Σ; Γ ⊢ e : τ ->
   lc e
 with kinding_lc  Σ Γ τ κ :
   Σ; Γ ⊢ τ :: κ ->
@@ -460,8 +412,8 @@ Qed.
 #[export]
 Hint Resolve typing_lc kinding_lc : lc.
 
-Lemma typing_body Σ Γ e l τ T L :
-  (forall x, x ∉ L -> Σ; <[x:=T]>Γ ⊢ e^x :{l} τ) ->
+Lemma typing_body Σ Γ e τ T L :
+  (forall x, x ∉ L -> Σ; <[x:=T]>Γ ⊢ e^x : τ) ->
   body e.
 Proof.
   intros. eexists. simpl_cofin.
@@ -535,9 +487,9 @@ Qed.
 Hint Resolve lc_rename | 8 : lc.
 
 (** The type of well-typed expression is also locally closed. *)
-Lemma typing_type_lc Σ Γ e l τ :
+Lemma typing_type_lc Σ Γ e τ :
   gctx_wf Σ ->
-  Σ; Γ ⊢ e :{l} τ ->
+  Σ; Γ ⊢ e : τ ->
   lc τ.
 Proof.
   intros Hwf.
@@ -646,7 +598,7 @@ Ltac induction_map_fold :=
   apply map_fold_ind.
 
 Lemma tctx_fv_consistent Γ x :
-  x ∉ tctx_fv Γ <-> map_Forall (fun _ T => x # T) Γ.
+  x ∉ tctx_fv Γ <-> map_Forall (fun _ τ => x # τ) Γ.
 Proof.
   unfold tctx_fv.
   split; induction_map_fold;
@@ -654,9 +606,9 @@ Proof.
     qauto use: map_Forall_insert solve: fast_set_solver.
 Qed.
 
-Lemma tctx_fv_subseteq Γ T x :
-  Γ !! x = Some T ->
-  fv T ⊆ tctx_fv Γ.
+Lemma tctx_fv_subseteq Γ τ x :
+  Γ !! x = Some τ ->
+  fv τ ⊆ tctx_fv Γ.
 Proof.
   intros. set_unfold. intros.
   (* Prove by contradiction; alternatively we can prove by [map_fold_ind]. *)
@@ -664,8 +616,8 @@ Proof.
   hauto use: tctx_fv_consistent.
 Qed.
 
-Lemma tctx_fv_insert_subseteq Γ x T :
-  tctx_fv (<[x:=T]>Γ) ⊆ fv T ∪ tctx_fv Γ.
+Lemma tctx_fv_insert_subseteq Γ x τ :
+  tctx_fv (<[x:=τ]>Γ) ⊆ fv τ ∪ tctx_fv Γ.
 Proof.
   intros ? H.
   apply dec_stable. contradict H.
@@ -673,9 +625,9 @@ Proof.
   qauto l: on use: tctx_fv_consistent, map_Forall_insert_2.
 Qed.
 
-Lemma tctx_fv_insert Γ x T :
+Lemma tctx_fv_insert Γ x τ :
   x ∉ dom Γ ->
-  tctx_fv (<[x:=T]>Γ) ≡ fv T ∪ tctx_fv Γ.
+  tctx_fv (<[x:=τ]>Γ) ≡ fv τ ∪ tctx_fv Γ.
 Proof.
   split; intros; try qauto use: tctx_fv_insert_subseteq.
   apply dec_stable.
@@ -684,7 +636,7 @@ Proof.
 Qed.
 
 Lemma tctx_stale_inv Γ x :
-  x # Γ -> x ∉ dom Γ /\ map_Forall (fun _ T => x # T) Γ.
+  x # Γ -> x ∉ dom Γ /\ map_Forall (fun _ τ => x # τ) Γ.
 Proof.
   hauto use: tctx_fv_consistent solve: fast_set_solver.
 Qed.
@@ -697,7 +649,6 @@ Proof.
   rewrite <- map_fmap_id.
   apply map_fmap_ext.
   intros; simpl.
-  unfold lexpr_subst.
   rewrite subst_fresh; eauto.
   eauto using surjective_pairing.
   hauto use: tctx_fv_consistent solve: fast_set_solver.
@@ -715,13 +666,6 @@ Lemma oval_closed v :
   closed v.
 Proof.
   induction 1; qauto use: otval_closed solve: fast_set_solver*.
-Qed.
-
-Lemma woval_closed v :
-  woval v ->
-  closed v.
-Proof.
-  induction 1; qauto use: oval_closed, otval_closed solve: fast_set_solver*.
 Qed.
 
 Lemma ovalty_closed v ω :
@@ -897,8 +841,6 @@ Ltac simpl_fv_core :=
     apply ovalty_closed in H; unfold closed in H; destruct H
   | H : oval _ |- _ =>
     apply oval_closed in H; unfold closed in H
-  | H : woval _ |- _ =>
-    apply woval_closed in H; unfold closed in H
   | H : otval _ |- _ =>
     apply otval_closed in H; unfold closed in H
   | H : ?Σ !! _ = Some ?D, Hwf : gctx_wf ?Σ |- _ =>
@@ -918,8 +860,8 @@ Smpl Add simpl_fv_core : fv.
 
 (** Well-typed and well-kinded terms are closed under typing context. *)
 Lemma typing_kinding_fv Σ :
-  (forall Γ e l τ,
-      Σ; Γ ⊢ e :{l} τ ->
+  (forall Γ e τ,
+      Σ; Γ ⊢ e : τ ->
       fv e ⊆ dom Γ) /\
   (forall Γ τ κ,
       Σ; Γ ⊢ τ :: κ ->
@@ -929,8 +871,8 @@ Proof.
     simpl_cofin?; simpl_fv; fast_set_solver*!.
 Qed.
 
-Lemma typing_fv Σ Γ e l τ :
-  Σ; Γ ⊢ e :{l} τ ->
+Lemma typing_fv Σ Γ e τ :
+  Σ; Γ ⊢ e : τ ->
   fv e ⊆ dom Γ.
 Proof.
   qauto use: typing_kinding_fv.
@@ -959,7 +901,7 @@ Lemma gctx_wf_closed Σ :
                 match D with
                 | DADT τ =>
                   closed τ
-                | DOADT τ e | DFun (_, τ) e =>
+                | DOADT τ e | DFun τ e =>
                   closed τ /\ closed e
                 end) Σ.
 Proof.
@@ -980,9 +922,9 @@ Smpl Add simpl_wf_fv : fv.
 
 (** Free variables in the type of a well-typed term are bounded in typing
 context. *)
-Lemma typing_type_fv Σ Γ e l τ :
+Lemma typing_type_fv Σ Γ e τ :
   gctx_wf Σ ->
-  Σ; Γ ⊢ e :{l} τ ->
+  Σ; Γ ⊢ e : τ ->
   fv τ ⊆ dom Γ.
 Proof.
   intros Hwf.
