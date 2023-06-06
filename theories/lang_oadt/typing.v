@@ -42,6 +42,10 @@ Inductive pared : expr -> expr -> Prop :=
   e1 ⇛ e1' ->
   e2 ⇛ e2' ->
   <{ π{l}@b (e1, e2){l} }> ⇛ <{ ite b e1' e2' }>
+| RPsiProj b e1 e2 e1' e2' :
+  e1 ⇛ e1' ->
+  e2 ⇛ e2' ->
+  <{ #π@b #(e1, e2) }> ⇛ <{ ite b e1' e2' }>
 | RUnfold X X' e e' :
   e ⇛ e' ->
   <{ unfold<X> (fold<X'> e) }> ⇛ e'
@@ -111,6 +115,13 @@ not needed because they are not involved in type-level computation. *)
 | RCgrProj l b e e' :
   e ⇛ e' ->
   <{ π{l}@b e }> ⇛ <{ π{l}@b e' }>
+| RCgrPsiPair e1 e2 e1' e2' :
+  e1 ⇛ e1' ->
+  e2 ⇛ e2' ->
+  <{ #(e1, e2) }> ⇛ <{ #(e1', e2') }>
+| RCgrPsiProj b e e' :
+  e ⇛ e' ->
+  <{ #π@b e }> ⇛ <{ #π@b e' }>
 | RCgrSum l τ1 τ2 τ1' τ2' :
   τ1 ⇛ τ1' ->
   τ2 ⇛ τ2' ->
@@ -245,6 +256,19 @@ Inductive typing : tctx -> expr -> expr -> Prop :=
 | TOProj Γ b e τ1 τ2 :
   Γ ⊢ e : τ1 ~* τ2 ->
   Γ ⊢ ~π@b e : ite b τ1 τ2
+| TPsiPair Γ X τ e' e1 e2:
+  Σ !! X = Some (DOADT τ e') ->
+  Γ ⊢ e1 : τ ->
+  Γ ⊢ e2 : X@e1 ->
+  Γ ⊢ #(e1, e2) : Ψ X
+| TPsiProj1 Γ X τ e' e :
+  Σ !! X = Some (DOADT τ e') ->
+  Γ ⊢ e : Ψ X ->
+  Γ ⊢ #π1 e : τ
+| TPsiProj2 Γ X τ e' e :
+  Σ !! X = Some (DOADT τ e') ->
+  Γ ⊢ e : Ψ X ->
+  Γ ⊢ #π2 e : X@(#π1 e)
 | TFold Γ X e τ :
   Σ !! X = Some (DADT τ) ->
   Γ ⊢ e : τ ->
@@ -288,6 +312,9 @@ with kinding : tctx -> expr -> kind -> Prop :=
   Σ !! X = Some (DOADT τ e') ->
   Γ ⊢ e : τ ->
   Γ ⊢ X@e :: *@O
+| KPsi Γ e' τ X :
+  Σ !! X = Some (DOADT τ e') ->
+  Γ ⊢ Ψ X :: *@M
 | KProd Γ τ1 τ2 κ :
   Γ ⊢ τ1 :: κ ->
   Γ ⊢ τ2 :: κ ->

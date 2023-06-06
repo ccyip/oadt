@@ -64,9 +64,8 @@ Qed.
 
 (** * Canonical forms *)
 Ltac canonical_form_solver :=
-  inversion 1; intros; subst;
+  inversion 1; intros; subst; eauto;
   try select (oval _) (fun H => sinvert H);
-  eauto;
   type_inv;
   kind_inv;
   try simpl_whnf_equiv;
@@ -121,6 +120,14 @@ Proof.
   canonical_form_solver.
 Qed.
 
+Lemma canonical_form_psi Γ e X :
+  val e ->
+  Γ ⊢ e : Ψ X ->
+  exists v1 v2, val v1 /\ oval v2 /\ e = <{ #(v1, v2) }>.
+Proof.
+  canonical_form_solver.
+Qed.
+
 Lemma canonical_form_sum Γ e τ1 τ2 :
   val e ->
   Γ ⊢ e : τ1 + τ2 ->
@@ -161,6 +168,7 @@ Ltac apply_canonical_form_lem τ :=
   | <{ ~𝔹 }> => canonical_form_obool
   | <{ _ * _ }> => canonical_form_prod
   | <{ _ ~* _ }> => canonical_form_oprod
+  | <{ Ψ _ }> => canonical_form_psi
   | <{ _ + _ }> => canonical_form_sum
   | <{ _ ~+ _ }> => canonical_form_osum
   | <{ Π:_, _ }> => canonical_form_abs
@@ -239,11 +247,14 @@ Proof.
   (* Oblivious pair. *)
   left. eauto 10 using val, oval, val_oval.
 
+  (* Psi pair. *)
+  left. eauto using val, val_oval, kinding.
+
   (* Boxed injection. *)
   left. qauto use: ovalty_elim ctrs: val.
 
   (* Public product and sum. These case are impossible. *)
-  1-2:  enough (<{ *@P }> ⊑ <{ *@O }>) by easy; scongruence use: join_ub_r.
+  1-2: enough (<{ *@P }> ⊑ <{ *@O }>) by easy; scongruence use: join_ub_r.
 
   (* Kinding subsumption *)
   select kind (fun κ => destruct κ); sintuition use: any_kind_otval.

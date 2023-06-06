@@ -259,6 +259,16 @@ Proof.
   inv_solver.
 Qed.
 
+Lemma pared_inv_psipair e1 e2 t :
+  <{ #(e1, e2) }> ⇛ t ->
+  exists e1' e2',
+    t = <{ #(e1', e2') }> /\
+    e1 ⇛ e1' /\
+    e2 ⇛ e2'.
+Proof.
+  inv_solver.
+Qed.
+
 Lemma pared_inv_fold X e t :
   <{ fold<X> e }> ⇛ t ->
   exists e',
@@ -301,6 +311,7 @@ Ltac pared_inv_ e H :=
   match e with
   | <{ \:_ => _ }> => apply pared_inv_abs in H; try simp_hyp H
   | <{ (_, _){_} }> => apply pared_inv_pair in H; try simp_hyp H
+  | <{ #(_, _) }> => apply pared_inv_psipair in H; try simp_hyp H
   | <{ fold<_> _ }> => apply pared_inv_fold in H; try simp_hyp H
   | <{ inj@_<_> _ }> => apply pared_inv_inj in H; try simp_hyp H
   | _ => head_constructor e; sinvert H
@@ -529,6 +540,7 @@ Inductive whnf : expr -> Prop :=
 | WBool{l} : whnf <{ 𝔹{l} }>
 | WPi τ1 τ2 : whnf <{ Π:τ1, τ2 }>
 | WProd l τ1 τ2 : whnf <{ τ1 *{l} τ2 }>
+| WPsi X : whnf <{ Ψ X }>
 | WSum l τ1 τ2 : whnf <{ τ1 +{l} τ2 }>
 | WADT X τ :
     Σ !! X = Some (DADT τ) ->
@@ -548,6 +560,7 @@ Inductive whnf_equiv : expr -> expr -> Prop :=
     τ1 ≡ τ1' ->
     τ2 ≡ τ2' ->
     whnf_equiv <{ τ1 *{l} τ2 }> <{ τ1' *{l} τ2' }>
+| WQPsi X : whnf_equiv <{ Ψ X }> <{ Ψ X }>
 | WQSum l τ1 τ2 τ1' τ2' :
     τ1 ≡ τ1' ->
     τ2 ≡ τ2' ->
@@ -734,7 +747,14 @@ Qed.
 
 (* Another proof strategy is to reduce them to [pared_equiv_subst]. *)
 
-Ltac congr_solver :=
+Ltac congr_solver1 :=
+  intros H; intros;
+    induction H;
+    econstructor;
+    solve [ eauto; econstructor; eauto;
+            simpl_cofin?; lcrefl by eauto using lc_rename ].
+
+Ltac congr_solver2 :=
   intros H1 H2; intros;
     induction H1;
     solve [ hauto ctrs: pared_equiv, pared use: pared_lc
@@ -748,7 +768,7 @@ Lemma pared_equiv_congr_prod τ1 τ1' τ2 τ2' l :
   lc τ2' ->
   <{ τ1 *{l} τ2 }> ≡ <{ τ1' *{l} τ2' }>.
 Proof.
-  congr_solver.
+  congr_solver2.
 Qed.
 
 Lemma pared_equiv_congr_sum τ1 τ1' τ2 τ2' l :
@@ -759,7 +779,7 @@ Lemma pared_equiv_congr_sum τ1 τ1' τ2 τ2' l :
   lc τ2' ->
   <{ τ1 +{l} τ2 }> ≡ <{ τ1' +{l} τ2' }>.
 Proof.
-  congr_solver.
+  congr_solver2.
 Qed.
 
 Lemma pared_equiv_congr_inj τ τ' e e' l b :
@@ -770,7 +790,7 @@ Lemma pared_equiv_congr_inj τ τ' e e' l b :
   lc e' ->
   <{ inj{l}@b<τ> e }> ≡ <{ inj{l}@b<τ'> e' }>.
 Proof.
-  congr_solver.
+  congr_solver2.
 Qed.
 
 (** This is good enough for our purposes though it is weaker than it could be. *)
@@ -779,11 +799,21 @@ Lemma pared_equiv_congr_pi τ1 τ1' τ2 x :
   lc <{ τ2^x }> ->
   <{ Π:τ1, τ2 }> ≡ <{ Π:τ1', τ2 }>.
 Proof.
-  intros H; intros.
-  induction H;
-    econstructor;
-    solve [ eauto; econstructor; eauto;
-            simpl_cofin?; lcrefl by eauto using lc_rename ].
+  congr_solver1.
+Qed.
+
+Lemma pared_equiv_congr_TApp X e e' :
+  e ≡ e' ->
+  <{ X@e }> ≡ <{ X@e' }>.
+Proof.
+  congr_solver1.
+Qed.
+
+Lemma pared_equiv_congr_psiproj b e e' :
+  e ≡ e' ->
+  <{ #π@b e }> ≡ <{ #π@b e' }>.
+Proof.
+  congr_solver1.
 Qed.
 
 End equivalence.
@@ -813,4 +843,6 @@ Ltac apply_pared_equiv_congr :=
   | |- _ ⊢ _ *{_} _ ≡ _ *{_} _ => eapply pared_equiv_congr_prod
   | |- _ ⊢ _ +{_} _ ≡ _ +{_} _ => eapply pared_equiv_congr_sum
   | |- _ ⊢ inj{_}@_<_> _ ≡ inj{_}@_<_> _ => eapply pared_equiv_congr_inj
+  | |- _ ⊢ _@_ ≡ _@_ => eapply pared_equiv_congr_TApp
+  | |- _ ⊢ #π@_ _ ≡ #π@_ _ => eapply pared_equiv_congr_psiproj
   end.

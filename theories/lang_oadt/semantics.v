@@ -42,6 +42,9 @@ Variant ectx : (expr -> expr) -> Prop :=
 | CtxPair1 l e2 : ectx (fun e1 => <{ (e1, e2){l} }>)
 | CtxPair2 l v1 : val v1 -> ectx (fun e2 => <{ (v1, e2){l} }>)
 | CtxProj l b : ectx (fun e => <{ π{l}@b e }>)
+| CtxPsiPair1 e2 : ectx (fun e1 => <{ #(e1, e2) }>)
+| CtxPsiPair2 v1 : val v1 -> ectx (fun e2 => <{ #(v1, e2) }>)
+| CtxPsiProj b : ectx (fun e => <{ #π@b e }>)
 | CtxInj b τ : ectx (fun e => <{ inj@b<τ> e }>)
 | CtxOInj1 b e : ectx (fun τ => <{ ~inj@b<τ> e }>)
 | CtxOInj2 b ω : otval ω -> ectx (fun e => <{ ~inj@b<ω> e }>)
@@ -82,6 +85,9 @@ Inductive step : expr -> expr -> Prop :=
 | SProj l b v1 v2 :
   val v1 -> val v2 ->
   <{ π{l}@b (v1, v2){l} }> -->! <{ ite b v1 v2 }>
+| SPsiProj b v1 v2 :
+  val v1 -> val v2 ->
+  <{ #π@b #(v1, v2) }> -->! <{ ite b v1 v2 }>
 | SOInj b ω v :
   otval ω -> oval v ->
   <{ ~inj@b<ω> v }> -->! <{ [inj@b<ω> v] }>

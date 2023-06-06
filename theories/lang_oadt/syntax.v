@@ -49,6 +49,10 @@ and elaborated, so the surface language needs not distinguish them. *)
 | EProd (l : olabel) (τ1 τ2 : expr)
 | EPair (l : olabel) (e1 e2 : expr)
 | EProj (l : olabel) (b : bool) (e : expr)
+(* Psi type, which is essentially a restricted dependent pair. *)
+| EPsi (X : atom)
+| EPsiPair (e1 e2 : expr)
+| EPsiProj (b : bool) (e : expr)
 (* Public and oblivious sum, injection and case analysis. *)
 | ESum (l : olabel) (τ1 τ2 : expr)
 | EInj (l : olabel) (b : bool) (τ e : expr)
@@ -187,6 +191,17 @@ Notation "'π1' e" := (EProj LPub true e) (in custom oadt at level 2).
 Notation "'π2' e" := (EProj LPub false e) (in custom oadt at level 2).
 Notation "'~π1' e" := (EProj LObliv true e) (in custom oadt at level 2).
 Notation "'~π2' e" := (EProj LObliv false e) (in custom oadt at level 2).
+Notation "'Ψ' X" := (EPsi X) (in custom oadt at level 2).
+Notation "'#(' x , y ')'" := (EPsiPair x y)
+                               (in custom oadt at level 0,
+                                   x custom oadt at level 99,
+                                   y custom oadt at level 99,
+                                   format "#( x ,  y )").
+Notation "'#π@' b e" := (EPsiProj b e) (in custom oadt at level 2,
+                              b constr at level 0,
+                              format "#π@ b  e").
+Notation "'#π1' e" := (EPsiProj true e) (in custom oadt at level 2).
+Notation "'#π2' e" := (EPsiProj false e) (in custom oadt at level 2).
 Notation "'s𝔹' e" := (ESec e) (in custom oadt at level 2).
 Notation "'if' e0 'then' e1 'else' e2" := (EIte e0 e1 e2)
                                             (in custom oadt at level 89,
@@ -313,6 +328,8 @@ Fixpoint open_ (k : nat) (s : expr) (e : expr) : expr :=
   | <{ τ1 *{l} τ2 }> => <{ ({k~>s}τ1) *{l} ({k~>s}τ2) }>
   | <{ (e1, e2){l} }> => <{ ({k~>s}e1, {k~>s}e2){l} }>
   | <{ π{l}@b e }> => <{ π{l}@b ({k~>s}e) }>
+  | <{ #(e1, e2) }> => <{ #({k~>s}e1, {k~>s}e2) }>
+  | <{ #π@b e }> => <{ #π@b ({k~>s}e) }>
   | <{ τ1 +{l} τ2 }> => <{ ({k~>s}τ1) +{l} ({k~>s}τ2) }>
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({k~>s}τ)> ({k~>s}e) }>
   | <{ fold<X> e }> => <{ fold<X> ({k~>s}e) }>
@@ -343,6 +360,8 @@ Fixpoint subst (x : atom) (s : expr) (e : expr) : expr :=
   | <{ τ1 *{l} τ2 }> => <{ ({x↦s}τ1) *{l} ({x↦s}τ2) }>
   | <{ (e1, e2){l} }> => <{ ({x↦s}e1, {x↦s}e2){l} }>
   | <{ π{l}@b e }> => <{ π{l}@b ({x↦s}e) }>
+  | <{ #(e1, e2) }> => <{ #({x↦s}e1, {x↦s}e2) }>
+  | <{ #π@b e }> => <{ #π@b ({x↦s}e) }>
   | <{ τ1 +{l} τ2 }> => <{ ({x↦s}τ1) +{l} ({x↦s}τ2) }>
   | <{ inj{l}@b<τ> e }> => <{ inj{l}@b<({x↦s}τ)> ({x↦s}e) }>
   | <{ case{l} e0 of e1 | e2 }> => <{ case{l} {x↦s}e0 of {x↦s}e1 | {x↦s}e2 }>
@@ -376,6 +395,7 @@ Inductive val : expr -> Prop :=
 | VPair v1 v2 : val v1 -> val v2 -> val <{ (v1, v2) }>
 | VAbs τ e : val <{ \:τ => e }>
 | VInj b τ v : val v -> val <{ inj@b<τ> v }>
+| VPsiPair v1 v2 : val v1 -> oval v2 -> val <{ #(v1, v2) }>
 | VFold X v : val v -> val <{ fold<X> v }>
 | VOVal v : oval v -> val v
 .
@@ -409,6 +429,9 @@ Inductive lc : expr -> Prop :=
 | LCProd l τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 *{l} τ2 }>
 | LCPair l e1 e2 : lc e1 -> lc e2 -> lc <{ (e1, e2){l} }>
 | LCProj l b e : lc e -> lc <{ π{l}@b e }>
+| LCPsi X : lc <{ Ψ X }>
+| LCPsiPair e1 e2 : lc e1 -> lc e2 -> lc <{ #(e1, e2) }>
+| LCPsiProj b e : lc e -> lc <{ #π@b e }>
 | LCSum l τ1 τ2 : lc τ1 -> lc τ2 -> lc <{ τ1 +{l} τ2 }>
 | LCInj l b τ e : lc τ -> lc e -> lc <{ inj{l}@b<τ> e }>
 | LCFold X e : lc e -> lc <{ fold<X> e }>
