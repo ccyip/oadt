@@ -12,7 +12,7 @@ Class FinMapPack K M := {
   pack_finmap_partial_alter :> ∀ A, PartialAlter K A (M A) | 0;
   pack_finmap_omap :> OMap M | 0;
   pack_finmap_merge :> Merge M | 0;
-  pack_finmap_to_list :> ∀ A, FinMapToList K A (M A) | 0;
+  pack_finmap_map_fold :> ∀ A, MapFold K A (M A) | 0;
 
   pack_finmap :> FinMap K M | 0;
 }.

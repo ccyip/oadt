@@ -305,7 +305,7 @@ Proof.
     repeat
       match goal with
       | H : forall _ _, _ -> _ -> _ -> _ |- _ =>
-        efeed specialize H;
+        ospecialize* H;
           [ try reflexivity; rewrite insert_commute by shelve; reflexivity
           | fast_set_solver!!
           | eauto using kinding_weakening_insert
@@ -417,7 +417,7 @@ Proof.
     repeat
       match goal with
       | H : forall _, _ ⇛ _ -> _ |- _ =>
-        efeed specialize H; [
+        ospecialize* H; [
           solve [ repeat
                     (eauto;
                      lazymatch goal with

@@ -17,7 +17,7 @@ Class Atom A M D := {
   atom_finmap_partial_alter :> ∀ C, PartialAlter A C (M C) | 0;
   atom_finmap_omap :> OMap M | 0;
   atom_finmap_merge :> Merge M | 0;
-  atom_finmap_to_list :> ∀ C, FinMapToList A C (M C) | 0;
+  atom_finmap_map_fold :> ∀ C, MapFold A C (M C) | 0;
   atom_finset_elem_of :> ElemOf A D | 0;
   atom_finset_empty :> Empty D | 0;
   atom_finset_singleton :> Singleton A D | 0;

@@ -83,7 +83,8 @@ Proof.
 
   1-2: split; eauto;
   eapply subst_preservation;
-  eauto using gdefs_typing_wf; fast_set_solver!!.
+  eauto using gdefs_typing_wf;
+  unfold tctx_fv; rewrite map_fold_empty; fast_set_solver!!.
 
   apply indistinguishable_subst; try reflexivity; eauto.
 Qed.
