@@ -1,5 +1,5 @@
-From oadt.lang_oadt Require Import base syntax semantics.
-From oadt.lang_oadt Require Export kind.
+From taypsi.lang_taypsi Require Import base syntax semantics.
+From taypsi.lang_taypsi Require Export kind.
 Import syntax.notations semantics.notations kind.notations.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).

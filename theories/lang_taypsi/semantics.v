@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import base syntax.
+From taypsi.lang_taypsi Require Import base syntax.
 Import syntax.notations.
 
 Implicit Types (b : bool).

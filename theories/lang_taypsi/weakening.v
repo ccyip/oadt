@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import base syntax semantics typing.
+From taypsi.lang_taypsi Require Import base syntax semantics typing.
 Import syntax.notations typing.notations.
 
 (** * Weakening lemmas  *)

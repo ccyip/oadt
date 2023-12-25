@@ -1,4 +1,4 @@
-From oadt Require Import base tactics.
+From taypsi Require Import base tactics.
 From stdpp Require Import stringmap.
 
 (** This file contains common definitions for locally nameless representation

@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import
+From taypsi.lang_taypsi Require Import
      base syntax semantics typing infrastructure
      equivalence admissible inversion values weakening.
 Import syntax.notations semantics.notations typing.notations equivalence.notations.

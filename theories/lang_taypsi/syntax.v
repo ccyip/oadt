@@ -1,4 +1,4 @@
-From oadt.lang_oadt Require Import base.
+From taypsi.lang_taypsi Require Import base.
 
 Implicit Types (b : bool) (x X y Y : atom) (L : aset).
 

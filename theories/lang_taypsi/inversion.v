@@ -1,6 +1,6 @@
 (** Typing and kinding inversion lemmas. *)
 From idt Require Import all.
-From oadt.lang_oadt Require Import
+From taypsi.lang_taypsi Require Import
      base syntax semantics typing infrastructure
      equivalence.
 Import syntax.notations typing.notations equivalence.notations.

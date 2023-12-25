@@ -1,6 +1,6 @@
 (** Common tactics and lemmas, and definitions related to locally nameless
 representation and free variables. *)
-From oadt.lang_oadt Require Import base syntax semantics typing.
+From taypsi.lang_taypsi Require Import base syntax semantics typing.
 Import syntax.notations semantics.notations typing.notations.
 
 Implicit Types (b : bool) (x X y Y z : atom) (L : aset).
