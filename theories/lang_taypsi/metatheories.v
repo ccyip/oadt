@@ -104,3 +104,6 @@ Corollary obliviousness_open_obliv_val Σ x τ' e τ v1 v2 :
 Proof.
   eauto using obliviousness_open, indistinguishable_obliv_val, gdefs_typing_wf.
 Qed.
+
+Print Assumptions soundness.
+Print Assumptions obliviousness.
