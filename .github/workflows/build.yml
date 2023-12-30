@@ -21,8 +21,8 @@ jobs:
           - 'coqorg/coq:8.16-ocaml-4.14-flambda'
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           repository: ccyip/coqdocjs
           path: coqdocjs

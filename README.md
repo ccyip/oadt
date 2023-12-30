@@ -40,5 +40,15 @@ Run `make` in the top-level directory.
 
 ## References
 
-- Qianchuan Ye and Benjamin Delaware. 2022. Oblivious Algebraic Data Types. Proc. ACM Program. Lang. 6, POPL, Article 51 (January 2022), 29 pages. https://doi.org/10.1145/3498713
-- Qianchuan Ye and Benjamin Delaware. 2021. Oblivious Algebraic Data Types: POPL22 Artifact. Zenodo. https://doi.org/10.5281/zenodo.5652106
+- Qianchuan Ye and Benjamin Delaware. 2022. Oblivious Algebraic Data Types.
+  Proc. ACM Program. Lang. 6, POPL, Article 51 (January 2022), 29 pages.
+  https://doi.org/10.1145/3498713
+- Qianchuan Ye and Benjamin Delaware. 2021. Oblivious Algebraic Data Types:
+  POPL22 Artifact. Zenodo. https://doi.org/10.5281/zenodo.5652106
+- Qianchuan Ye and Benjamin Delaware. 2023. Taype: A Policy-Agnostic Language
+  for Oblivious Computation. Proc. ACM Program. Lang. 7, PLDI, Article 147 (June
+  2023), 25 pages. https://doi.org/10.1145/3591261
+- Qianchuan Ye and Benjamin Delaware. 2023. Taype: A Policy-Agnostic Language
+  for Oblivious Computation: PLDI23 Artifact. Zenodo.
+  https://doi.org/10.5281/zenodo.7806981
+
