@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<link href="custom/custom.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="custom/custom.js"></script>
+<script type="text/javascript" src="resources/config.js"></script>
+<script type="text/javascript" src="resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a id="project-page" href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">taypsi.lang_taypsi.values</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+Properties of various value definitions. 
+</div>
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">taypsi.lang_taypsi</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.base.html#"><span class="id" title="library">base</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#"><span class="id" title="library">syntax</span></a> <a class="idref" href="taypsi.lang_taypsi.semantics.html#"><span class="id" title="library">semantics</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#"><span class="id" title="library">typing</span></a> <a class="idref" href="taypsi.lang_taypsi.infrastructure.html#"><span class="id" title="library">infrastructure</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.equivalence.html#"><span class="id" title="library">equivalence</span></a> <a class="idref" href="taypsi.lang_taypsi.inversion.html#"><span class="id" title="library">inversion</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <a class="idref" href="taypsi.lang_taypsi.syntax.html#notations"><span class="id" title="module">syntax.notations</span></a> <a class="idref" href="taypsi.lang_taypsi.semantics.html#notations"><span class="id" title="module">semantics.notations</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#notations"><span class="id" title="module">typing.notations</span></a> <a class="idref" href="taypsi.lang_taypsi.equivalence.html#notations"><span class="id" title="module">equivalence.notations</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Implicit</span> <span class="id" title="keyword">Types</span> (<span class="id" title="var">b</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) (<span class="id" title="var">x</span> <span class="id" title="var">X</span> <span class="id" title="var">y</span> <span class="id" title="var">Y</span> : <a class="idref" href="taypsi.ln.html#atom_instance.atom"><span class="id" title="definition">atom</span></a>) (<span class="id" title="var">L</span> : <a class="idref" href="taypsi.ln.html#atom_instance.aset"><span class="id" title="definition">aset</span></a>).<br/>
+
+<br/>
+#[<span class="id" title="var">local</span>]<br/>
+<a class="idref" href="taypsi.lang_taypsi.syntax.html#EFVar"><span class="id" title="constructor">Coercion</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#EFVar"><span class="id" title="constructor">EFVar</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#EFVar"><span class="id" title="constructor">:</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#EFVar"><span class="id" title="constructor">atom</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#EFVar"><span class="id" title="constructor">&gt;-&gt;</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#EFVar"><span class="id" title="constructor">expr</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="oval_val" class="idref" href="#oval_val"><span class="id" title="lemma">oval_val</span></a> <a id="v:1" class="idref" href="#v:1"><span class="id" title="binder">v</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#oval"><span class="id" title="inductive">oval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:1"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:1"><span class="id" title="variable">v</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="taypsi.lang_taypsi.syntax.html#val"><span class="id" title="inductive">val</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="otval_uniq" class="idref" href="#otval_uniq"><span class="id" title="lemma">otval_uniq</span></a> <a id="ebf069dbc779b42a15c441a6d39d5f83" class="idref" href="#ebf069dbc779b42a15c441a6d39d5f83"><span class="id" title="binder">Σ</span></a> <a id="38c7be511ec9b88c8a42fff5a90d028f" class="idref" href="#38c7be511ec9b88c8a42fff5a90d028f"><span class="id" title="binder">ω1</span></a> <a id="9f2e6b68c793fc1399cc91cb88951683" class="idref" href="#9f2e6b68c793fc1399cc91cb88951683"><span class="id" title="binder">ω2</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#38c7be511ec9b88c8a42fff5a90d028f"><span class="id" title="variable">ω1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#9f2e6b68c793fc1399cc91cb88951683"><span class="id" title="variable">ω2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.values.html#ebf069dbc779b42a15c441a6d39d5f83"><span class="id" title="variable">Σ</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#2097a8fcd82b9c0f8c94e431f4611f2e"><span class="id" title="notation">⊢</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#38c7be511ec9b88c8a42fff5a90d028f"><span class="id" title="variable">ω1</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#2097a8fcd82b9c0f8c94e431f4611f2e"><span class="id" title="notation">≡</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#9f2e6b68c793fc1399cc91cb88951683"><span class="id" title="variable">ω2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.values.html#38c7be511ec9b88c8a42fff5a90d028f"><span class="id" title="variable">ω1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#9f2e6b68c793fc1399cc91cb88951683"><span class="id" title="variable">ω2</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> ω2.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">intros</span>; <span class="id" title="var">simpl_whnf_equiv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">qauto</span> <span class="id" title="var">l</span>:<span class="id" title="var">on</span> <span class="id" title="var">rew</span>:<span class="id" title="var">off</span> <span class="id" title="var">inv</span>: <span class="id" title="var">otval</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="ovalty_elim_alt" class="idref" href="#ovalty_elim_alt"><span class="id" title="lemma">ovalty_elim_alt</span></a> <a id="v:5" class="idref" href="#v:5"><span class="id" title="binder">v</span></a> <a id="a9968bec8fad1bf5c85df7412da2ff5a" class="idref" href="#a9968bec8fad1bf5c85df7412da2ff5a"><span class="id" title="binder">ω</span></a>:<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:5"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#a9968bec8fad1bf5c85df7412da2ff5a"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:5"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#a9968bec8fad1bf5c85df7412da2ff5a"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">/\</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="0f7fdea5e8c25e3e1a79edf27e9de540" class="idref" href="#0f7fdea5e8c25e3e1a79edf27e9de540"><span class="id" title="binder">Σ</span></a> <a id="d5be501d00a8c9c4c28302f544699b7d" class="idref" href="#d5be501d00a8c9c4c28302f544699b7d"><span class="id" title="binder">Γ</span></a><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#0f7fdea5e8c25e3e1a79edf27e9de540"><span class="id" title="variable">Σ</span></a><a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">;</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#d5be501d00a8c9c4c28302f544699b7d"><span class="id" title="variable">Γ</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">⊢</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:5"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">:</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#a9968bec8fad1bf5c85df7412da2ff5a"><span class="id" title="variable">ω</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">hauto</span> <span class="id" title="var">use</span>: <a class="idref" href="taypsi.lang_taypsi.infrastructure.html#ovalty_elim"><span class="id" title="lemma">ovalty_elim</span></a>, <a class="idref" href="taypsi.lang_taypsi.values.html#oval_val"><span class="id" title="lemma">oval_val</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="ovalty_intro" class="idref" href="#ovalty_intro"><span class="id" title="lemma">ovalty_intro</span></a> <a id="v:9" class="idref" href="#v:9"><span class="id" title="binder">v</span></a> <a id="d0b23ea306fcd36def43b57e5859d86f" class="idref" href="#d0b23ea306fcd36def43b57e5859d86f"><span class="id" title="binder">ω</span></a> <a id="0628ce849eb43988c0c2962e2467d294" class="idref" href="#0628ce849eb43988c0c2962e2467d294"><span class="id" title="binder">Σ</span></a> <a id="7adcac760179e19a0bb37c9e1720bc22" class="idref" href="#7adcac760179e19a0bb37c9e1720bc22"><span class="id" title="binder">Γ</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.typing.html#gctx_wf"><span class="id" title="definition">gctx_wf</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#0628ce849eb43988c0c2962e2467d294"><span class="id" title="variable">Σ</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#oval"><span class="id" title="inductive">oval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:9"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#d0b23ea306fcd36def43b57e5859d86f"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.values.html#0628ce849eb43988c0c2962e2467d294"><span class="id" title="variable">Σ</span></a><a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">;</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#7adcac760179e19a0bb37c9e1720bc22"><span class="id" title="variable">Γ</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">⊢</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:9"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">:</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#d0b23ea306fcd36def43b57e5859d86f"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:9"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#d0b23ea306fcd36def43b57e5859d86f"><span class="id" title="variable">ω</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">Hwf</span> <span class="id" title="var">H</span>. <span class="id" title="var">revert</span> ω.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>; <span class="id" title="tactic">inversion</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">subst</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">type_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simpl_whnf_equiv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="var">hauto</span> <span class="id" title="var">lq</span>: <span class="id" title="var">on</span> <span class="id" title="var">rew</span>: <span class="id" title="var">off</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">ctrs</span>: <span class="id" title="var">ovalty</span>, <span class="id" title="var">typing</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">use</span>: <a class="idref" href="taypsi.lang_taypsi.infrastructure.html#otval_well_kinded"><span class="id" title="lemma">otval_well_kinded</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">solve</span>: <span class="id" title="var">equiv_naive_solver</span>.<br/>
+
+<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;Case&nbsp;<span class="inlinecode"><span class="id" title="var">inj@_</span>&lt;<span class="id" title="var">_</span>&gt;</span> <span class="inlinecode"><span class="id" title="var">_</span></span>&nbsp;*)</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">select</span>! (<span class="id" title="var">_</span> <a class="idref" href="taypsi.lang_taypsi.equivalence.html#2c3fd99e8d7012272a30f3140a1e8e60"><span class="id" title="notation">≡</span></a> <span class="id" title="var">_</span>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">H</span> =&gt; <span class="id" title="tactic">apply</span> <a class="idref" href="taypsi.lang_taypsi.values.html#otval_uniq"><span class="id" title="lemma">otval_uniq</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>); <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="taypsi.lang_taypsi.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">qauto</span> <span class="id" title="var">l</span>: <span class="id" title="var">on</span> <span class="id" title="var">use</span>: <a class="idref" href="taypsi.lang_taypsi.infrastructure.html#ovalty_elim"><span class="id" title="lemma">ovalty_elim</span></a> <span class="id" title="var">inv</span>: <span class="id" title="var">otval</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="ovalty_intro_alt" class="idref" href="#ovalty_intro_alt"><span class="id" title="lemma">ovalty_intro_alt</span></a> <a id="v:13" class="idref" href="#v:13"><span class="id" title="binder">v</span></a> <a id="28568faf958b0f66b67fddc2969a12dd" class="idref" href="#28568faf958b0f66b67fddc2969a12dd"><span class="id" title="binder">ω</span></a> <a id="a06fd18444dea9fc8d4ced3112dfed65" class="idref" href="#a06fd18444dea9fc8d4ced3112dfed65"><span class="id" title="binder">Σ</span></a> <a id="a2b47ff948e41f039782f954507c588d" class="idref" href="#a2b47ff948e41f039782f954507c588d"><span class="id" title="binder">Γ</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.typing.html#gctx_wf"><span class="id" title="definition">gctx_wf</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#a06fd18444dea9fc8d4ced3112dfed65"><span class="id" title="variable">Σ</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:13"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#28568faf958b0f66b67fddc2969a12dd"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.values.html#a06fd18444dea9fc8d4ced3112dfed65"><span class="id" title="variable">Σ</span></a><a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">;</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#a2b47ff948e41f039782f954507c588d"><span class="id" title="variable">Γ</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">⊢</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:13"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#eeeece729c68481c0c195d7bedf7ebef"><span class="id" title="notation">:</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#28568faf958b0f66b67fddc2969a12dd"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:13"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#28568faf958b0f66b67fddc2969a12dd"><span class="id" title="variable">ω</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> 2; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="taypsi.lang_taypsi.values.html#ovalty_intro"><span class="id" title="lemma">ovalty_intro</span></a>; <span class="id" title="tactic">inversion</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">subst</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">type_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">simpl_whnf_equiv</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We can always find an inhabitant for any oblivious type value. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Lemma</span> <a id="ovalty_inhabited" class="idref" href="#ovalty_inhabited"><span class="id" title="lemma">ovalty_inhabited</span></a> <a id="ea2eb4fb80ca4a5d5fdf83a928d31eda" class="idref" href="#ea2eb4fb80ca4a5d5fdf83a928d31eda"><span class="id" title="binder">ω</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#ea2eb4fb80ca4a5d5fdf83a928d31eda"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">exists</span></a> <a id="v:18" class="idref" href="#v:18"><span class="id" title="binder">v</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="taypsi.lang_taypsi.semantics.html#ovalty"><span class="id" title="inductive">ovalty</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:18"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#ea2eb4fb80ca4a5d5fdf83a928d31eda"><span class="id" title="variable">ω</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">try</span> <span class="id" title="var">qauto</span> <span class="id" title="var">ctrs</span>: <span class="id" title="var">ovalty</span>.<br/>
+&nbsp;&nbsp;<span class="comment">(*&nbsp;Case&nbsp;<span class="inlinecode">~+</span>:&nbsp;we&nbsp;choose&nbsp;left&nbsp;injection&nbsp;as&nbsp;inhabitant.&nbsp;*)</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">sfirstorder</span> <span class="id" title="var">use</span>: (<a class="idref" href="taypsi.lang_taypsi.semantics.html#OTOSum"><span class="id" title="constructor">OTOSum</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>).<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="any_kind_otval" class="idref" href="#any_kind_otval"><span class="id" title="lemma">any_kind_otval</span></a> <a id="957e39afe9f7f3b3133a35f49f47db88" class="idref" href="#957e39afe9f7f3b3133a35f49f47db88"><span class="id" title="binder">Σ</span></a> <a id="5072e11836a76219245d89c98ca72259" class="idref" href="#5072e11836a76219245d89c98ca72259"><span class="id" title="binder">Γ</span></a> <a id="b41575182aafdf1b24372763b9cfe753" class="idref" href="#b41575182aafdf1b24372763b9cfe753"><span class="id" title="binder">τ</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.values.html#957e39afe9f7f3b3133a35f49f47db88"><span class="id" title="variable">Σ</span></a><a class="idref" href="taypsi.lang_taypsi.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">;</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#5072e11836a76219245d89c98ca72259"><span class="id" title="variable">Γ</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">⊢</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#b41575182aafdf1b24372763b9cfe753"><span class="id" title="variable">τ</span></a> <a class="idref" href="taypsi.lang_taypsi.typing.html#07d59b71514866feafd5b4e37451b7c9"><span class="id" title="notation">::</span></a> <a class="idref" href="taypsi.lang_taypsi.kind.html#027d58a0f4a92ccab57433c8bc59a6f3"><span class="id" title="notation">*@</span></a><a class="idref" href="taypsi.lang_taypsi.kind.html#027d58a0f4a92ccab57433c8bc59a6f3"><span class="id" title="notation">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#b41575182aafdf1b24372763b9cfe753"><span class="id" title="variable">τ</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">remember</span> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="taypsi.lang_taypsi.kind.html#027d58a0f4a92ccab57433c8bc59a6f3"><span class="id" title="notation">*@</span></a><a class="idref" href="taypsi.lang_taypsi.kind.html#027d58a0f4a92ccab57433c8bc59a6f3"><span class="id" title="notation">A</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">subst</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">hauto</span> <span class="id" title="var">ctrs</span>: <span class="id" title="var">otval</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">srewrite</span> <a class="idref" href="taypsi.semilattice.html#join_bot_iff"><span class="id" title="lemma">join_bot_iff</span></a>. <span class="id" title="var">easy</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="var">srewrite</span> <a class="idref" href="taypsi.semilattice.html#join_bot_iff"><span class="id" title="lemma">join_bot_iff</span></a>. <span class="id" title="var">easy</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="taypsi.semilattice.html#bot_inv"><span class="id" title="lemma">bot_inv</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="val_otval" class="idref" href="#val_otval"><span class="id" title="lemma">val_otval</span></a> <a id="v:22" class="idref" href="#v:22"><span class="id" title="binder">v</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:22"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:22"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 2; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">val_inv</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">oval_inv</span>; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Section</span> <a id="fix_gctx" class="idref" href="#fix_gctx"><span class="id" title="section">fix_gctx</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Context</span> (<a id="3eadb2a0aeaeef49bd6cd27b7316c266" class="idref" href="#3eadb2a0aeaeef49bd6cd27b7316c266"><span class="id" title="binder">Σ</span></a> : <a class="idref" href="taypsi.lang_taypsi.syntax.html#gctx"><span class="id" title="class">gctx</span></a>).<br/>
+<span class="id" title="keyword">Set</span> <span class="id" title="var">Default</span> <span class="id" title="keyword">Proof</span> <span class="id" title="var">Using</span> "Type".<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="val_step" class="idref" href="#val_step"><span class="id" title="lemma">val_step</span></a> <a id="v:24" class="idref" href="#v:24"><span class="id" title="binder">v</span></a> <a id="e:25" class="idref" href="#e:25"><span class="id" title="binder">e</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.values.html#v:24"><span class="id" title="variable">v</span></a> <a class="idref" href="taypsi.lang_taypsi.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#e:25"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:24"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">ectx_inv</span>;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> <span class="id" title="var">val_inv</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">oval_inv</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">step_inv</span>; <span class="id" title="tactic">eauto</span> <span class="id" title="keyword">using</span> <a class="idref" href="taypsi.lang_taypsi.values.html#oval_val"><span class="id" title="lemma">oval_val</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="otval_step" class="idref" href="#otval_step"><span class="id" title="lemma">otval_step</span></a> <a id="0e92317f85df845f451c2b66cc5e1ad7" class="idref" href="#0e92317f85df845f451c2b66cc5e1ad7"><span class="id" title="binder">ω</span></a> <a id="e:27" class="idref" href="#e:27"><span class="id" title="binder">e</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.values.html#0e92317f85df845f451c2b66cc5e1ad7"><span class="id" title="variable">ω</span></a> <a class="idref" href="taypsi.lang_taypsi.semantics.html#b0d633f35da965a294b26690a5b7356c"><span class="id" title="notation">--&gt;!</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#e:27"><span class="id" title="variable">e</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#0e92317f85df845f451c2b66cc5e1ad7"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#::type_scope:'False'"><span class="id" title="notation">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> 1; <span class="id" title="tactic">intros</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">ectx_inv</span>; <span class="id" title="tactic">repeat</span> <span class="id" title="var">otval_inv</span>; <span class="id" title="tactic">try</span> <span class="id" title="var">step_inv</span>; <span class="id" title="tactic">eauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="val_is_nf" class="idref" href="#val_is_nf"><span class="id" title="lemma">val_is_nf</span></a> <a id="v:28" class="idref" href="#v:28"><span class="id" title="binder">v</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#val"><span class="id" title="inductive">val</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#v:28"><span class="id" title="variable">v</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#nf"><span class="id" title="definition">nf</span></a> (<a class="idref" href="taypsi.lang_taypsi.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#fdb50c6d1a0896d31bbd0e5c9028ba49"><span class="id" title="variable">Σ</span></a>) <a class="idref" href="taypsi.lang_taypsi.values.html#v:28"><span class="id" title="variable">v</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">sfirstorder</span> <span class="id" title="var">use</span>: <a class="idref" href="taypsi.lang_taypsi.values.html#val_step"><span class="id" title="lemma">val_step</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a id="otval_is_nf" class="idref" href="#otval_is_nf"><span class="id" title="lemma">otval_is_nf</span></a> <a id="312232130992810db299e44d9e1caf6b" class="idref" href="#312232130992810db299e44d9e1caf6b"><span class="id" title="binder">ω</span></a> :<br/>
+&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#otval"><span class="id" title="inductive">otval</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#312232130992810db299e44d9e1caf6b"><span class="id" title="variable">ω</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.relations.html#nf"><span class="id" title="definition">nf</span></a> (<a class="idref" href="taypsi.lang_taypsi.semantics.html#step"><span class="id" title="inductive">step</span></a> <a class="idref" href="taypsi.lang_taypsi.values.html#fdb50c6d1a0896d31bbd0e5c9028ba49"><span class="id" title="variable">Σ</span></a>) <a class="idref" href="taypsi.lang_taypsi.values.html#312232130992810db299e44d9e1caf6b"><span class="id" title="variable">ω</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">sfirstorder</span> <span class="id" title="var">use</span>: <a class="idref" href="taypsi.lang_taypsi.values.html#otval_step"><span class="id" title="lemma">otval_step</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="taypsi.lang_taypsi.values.html#fix_gctx"><span class="id" title="section">fix_gctx</span></a>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

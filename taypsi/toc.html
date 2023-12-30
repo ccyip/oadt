@@ -1,0 +1,398 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<link href="custom/custom.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="custom/custom.js"></script>
+<script type="text/javascript" src="resources/config.js"></script>
+<script type="text/javascript" src="resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a id="project-page" href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<div id="toc">
+<h2><a href="taypsi.base.html">taypsi.base</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.base.html#lab1">Classes</a>
+
+</li>
+<li><a href="taypsi.base.html#lab2">Lemmas</a>
+
+</li>
+<li><a href="taypsi.base.html#lab3">More setoid rewriting for sets</a>
+
+</li>
+<li><a href="taypsi.base.html#lab4">Notations</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.tactics.html">taypsi.tactics</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.tactics.html#lab5">Fold over hypotheses</a>
+
+</li>
+<li><a href="taypsi.tactics.html#lab6">General purpose tactics</a>
+<ul class="doclist">
+<li><a href="taypsi.tactics.html#lab7">Set solving</a>
+
+</li>
+<li><a href="taypsi.tactics.html#lab8">Forward reasoning</a>
+
+</li>
+<li><a href="taypsi.tactics.html#lab9">Hypothesis application</a>
+
+</li>
+<li><a href="taypsi.tactics.html#lab10">General solvers</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<h2><a href="taypsi.ln.html">taypsi.ln</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.ln.html#lab11">Atom</a>
+
+</li>
+<li><a href="taypsi.ln.html#lab12">Tactics for cofinite quantifiers</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.semilattice.html">taypsi.semilattice</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.semilattice.html#lab13">Semi-lattice</a>
+
+</li>
+<li><a href="taypsi.semilattice.html#lab14">Theorems</a>
+
+</li>
+<li><a href="taypsi.semilattice.html#lab15">Instances</a>
+
+</li>
+<li><a href="taypsi.semilattice.html#lab16">Tactics</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.prelude.html">taypsi.prelude</a></h2>
+<h2><a href="taypsi.lang_taypsi.base.html">taypsi.lang_taypsi.base</a></h2>
+<h2><a href="taypsi.lang_taypsi.syntax.html">taypsi.lang_taypsi.syntax</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.syntax.html#lab17">Definitions</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.syntax.html#lab18">Obliviousness label</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab19">Expressions (e, τ)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab20">Global definitions (D)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab21">Global context (Σ)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab22">Programs (P)</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab23">Notations for expressions</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab24">More Definitions</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.syntax.html#lab25">Variable opening</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab26">Substitution</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab27">Oblivious type values (ω)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab28">Oblivious values (v)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab29">Values (v)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab30">Local closure and well-formedness of expressions</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.syntax.html#lab31">Notations</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.semantics.html">taypsi.lang_taypsi.semantics</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.semantics.html#lab32">Definitions</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.semantics.html#lab33">OADT value typing</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.semantics.html#lab34">Evaluation context (ℇ)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.semantics.html#lab35">Small-step relation</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.semantics.html#lab36">Notations</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.kind.html">taypsi.lang_taypsi.kind</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.kind.html#lab37">Definitions</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.kind.html#lab38">Kinds (κ)</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.kind.html#lab39">Properties</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.kind.html#lab40">Notations</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.typing.html">taypsi.lang_taypsi.typing</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.typing.html#lab41">Definitions</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.typing.html#lab42">Typing context (Γ)</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.typing.html#lab43">Parallel reduction</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.typing.html#lab44">Expression equivalence</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.typing.html#lab45">Typing and kinding</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.typing.html#lab46">Global definitions typing</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.typing.html#lab47">Program typing</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.typing.html#lab48">Well-formedness of global context</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.typing.html#lab49">Notations</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.indistinguishable.html">taypsi.lang_taypsi.indistinguishable</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.indistinguishable.html#lab50">Indistinguishability</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.indistinguishable.html#lab51">Notations</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.infrastructure.html">taypsi.lang_taypsi.infrastructure</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab52">Definitions</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab53">Body of local closure</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab54">Variable closing</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab55">Free variables</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab56">Tactics</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab57">Lemmas</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab58">Properties of opening</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab59">Properties of substitution</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab60">Properties of values</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab61">Properties of local closure</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab62">Properties of <span class="inlinecode"><span class="id" title="var">body</span></span></a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab63">Properties of free variables</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab64">Properties of closing</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.infrastructure.html#lab65">Properties of parallel reduction and local closure</a>
+
+</li>
+</ul>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.equivalence.html">taypsi.lang_taypsi.equivalence</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab66">Lemmas about parallel reduction</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab67">Properties of oblivious values</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab68">Substitution lemmas</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab69">Admissible introduction rules</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab70">Inversion lemmas</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab71">Confluence theorem</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab72">Lemmas about expression equivalence</a>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab73">Weak head normal form</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab74">Relation to operational semantics</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab75">Substitution lemmas</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab76">Congruence lemmas</a>
+
+</li>
+</ul>
+
+</li>
+<li><a href="taypsi.lang_taypsi.equivalence.html#lab77">Tactics</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.admissible.html">taypsi.lang_taypsi.admissible</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.admissible.html#lab78">Admissible step introduction rules</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.admissible.html#lab79">Renaming lemmas</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.admissible.html#lab80">Admissible typing and kinding introduction rules</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.admissible.html#lab81">Tactics</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.inversion.html">taypsi.lang_taypsi.inversion</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.inversion.html#lab82">Kind inversion</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.inversion.html#lab83">Type inversion</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.values.html">taypsi.lang_taypsi.values</a></h2>
+<h2><a href="taypsi.lang_taypsi.weakening.html">taypsi.lang_taypsi.weakening</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.weakening.html#lab84">Weakening lemmas</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.preservation.html">taypsi.lang_taypsi.preservation</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.preservation.html#lab85">Substitution lemmas</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.preservation.html#lab86">Other lemmas</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.preservation.html#lab87">Preservation</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.progress.html">taypsi.lang_taypsi.progress</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.progress.html#lab88">Lemmas about obliviousness</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.progress.html#lab89">Canonical forms</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.progress.html#lab90">Progress</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.obliviousness.html">taypsi.lang_taypsi.obliviousness</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.obliviousness.html#lab91">Properties of indistinguishability</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.obliviousness.html#lab92">Obliviousness theorem</a>
+
+</li>
+</ul>
+<h2><a href="taypsi.lang_taypsi.metatheories.html">taypsi.lang_taypsi.metatheories</a></h2>
+<ul class="doclist">
+<li><a href="taypsi.lang_taypsi.metatheories.html#lab93">Soundness</a>
+
+</li>
+<li><a href="taypsi.lang_taypsi.metatheories.html#lab94">Obliviousness</a>
+
+</li>
+</ul>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<link href="resources/coqdoc.css" rel="stylesheet" type="text/css" />
+<link href="resources/coqdocjs.css" rel="stylesheet" type="text/css"/>
+<link href="custom/custom.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="custom/custom.js"></script>
+<script type="text/javascript" src="resources/config.js"></script>
+<script type="text/javascript" src="resources/coqdocjs.js"></script>
+</head>
+
+<body onload="document.getElementById('content').focus()">
+  <div id="header">
+    <span class="left">
+      <span class="modulename"> <script> document.write(document.title) </script> </span>
+    </span>
+
+    <span class="button" id="toggle-proofs"></span>
+
+    <span class="right">
+      <a id="project-page" href="../">Project Page</a>
+      <a href="./indexpage.html"> Index </a>
+      <a href="./toc.html"> Table of Contents </a>
+    </span>
+</div>
+    <div id="content" tabindex="-1" onblur="document.getElementById('content').focus()">
+    <div id="main">
+<h1 class="libtitle">taypsi.lang_taypsi.indistinguishable</h1>
+
+<div class="code">
+<span class="id" title="keyword">From</span> <span class="id" title="var">idt</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">all</span>.<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">taypsi.lang_taypsi</span> <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="taypsi.lang_taypsi.base.html#"><span class="id" title="library">base</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#"><span class="id" title="library">syntax</span></a>.<br/>
+<span class="id" title="keyword">Import</span> <a class="idref" href="taypsi.lang_taypsi.syntax.html#notations"><span class="id" title="module">syntax.notations</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab50"></a><h1 class="section">Indistinguishability</h1>
+
+<div class="paragraph"> </div>
+
+ Instead of formalizing an observe function and considering two expressions
+indistinguishable if they are observed the same, we directly formalize the
+indistinguishability relation as the equivalence induced by the observe
+function.
+
+<div class="paragraph"> </div>
+
+All rules but the rules for boxed expressions are just congruence rules. Some
+rules are not necessary if the expressions are well-typed, but we include them
+anyway. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <a id="kernel" class="idref" href="#kernel"><span class="id" title="module">kernel</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Reserved Notation</span> &quot;e '≈' e'" (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a id="kernel.indistinguishable" class="idref" href="#kernel.indistinguishable"><span class="id" title="inductive">indistinguishable</span></a> : <a class="idref" href="taypsi.lang_taypsi.syntax.html#expr"><span class="id" title="inductive">expr</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#expr"><span class="id" title="inductive">expr</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span> :=<br/>
+| <a id="kernel.IBoxedLit" class="idref" href="#kernel.IBoxedLit"><span class="id" title="constructor">IBoxedLit</span></a> <a id="b:3" class="idref" href="#b:3"><span class="id" title="binder">b</span></a> <a id="b':4" class="idref" href="#b':4"><span class="id" title="binder">b'</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;We&nbsp;can&nbsp;not&nbsp;distinguish&nbsp;between&nbsp;two&nbsp;encrypted&nbsp;boolean&nbsp;values.&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#39c55b2bac9d83ea98d5f63691c21d0a"><span class="id" title="notation">[</span></a><a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#b:3"><span class="id" title="variable">b</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#39c55b2bac9d83ea98d5f63691c21d0a"><span class="id" title="notation">]</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#7e769a3da61f9949286cf6969e496009"><span class="id" title="notation">≈</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#39c55b2bac9d83ea98d5f63691c21d0a"><span class="id" title="notation">[</span></a><a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#b':4"><span class="id" title="variable">b'</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#39c55b2bac9d83ea98d5f63691c21d0a"><span class="id" title="notation">]</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a><br/>
+| <a id="kernel.IBoxedInj" class="idref" href="#kernel.IBoxedInj"><span class="id" title="constructor">IBoxedInj</span></a> <a id="b:5" class="idref" href="#b:5"><span class="id" title="binder">b</span></a> <a id="b':6" class="idref" href="#b':6"><span class="id" title="binder">b'</span></a> <a id="d9994f383cd17b449c0ea4abe4a8d84e" class="idref" href="#d9994f383cd17b449c0ea4abe4a8d84e"><span class="id" title="binder">τ</span></a> <a id="e:8" class="idref" href="#e:8"><span class="id" title="binder">e</span></a> <a id="e':9" class="idref" href="#e':9"><span class="id" title="binder">e'</span></a> :<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">(*&nbsp;We&nbsp;can&nbsp;not&nbsp;tell&nbsp;which&nbsp;branch&nbsp;an&nbsp;encrypted&nbsp;sum&nbsp;injects&nbsp;to&nbsp;nor&nbsp;what&nbsp;the<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;encrypted&nbsp;value&nbsp;is.&nbsp;But&nbsp;the&nbsp;type&nbsp;information&nbsp;is&nbsp;public&nbsp;so&nbsp;we&nbsp;need&nbsp;to&nbsp;make<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;sure&nbsp;nothing&nbsp;leaked&nbsp;from&nbsp;this&nbsp;type&nbsp;information.&nbsp;Technically&nbsp;we&nbsp;only&nbsp;need&nbsp;the<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;two&nbsp;types&nbsp;to&nbsp;be&nbsp;indistinguishable,&nbsp;but&nbsp;the&nbsp;stronger&nbsp;notion&nbsp;of&nbsp;equality&nbsp;also<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;works.&nbsp;*)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">[</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">inj@b</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&lt;</span></a><a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#d9994f383cd17b449c0ea4abe4a8d84e"><span class="id" title="variable">τ</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&gt;</span></a> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#e:8"><span class="id" title="variable">e</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">]</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#7e769a3da61f9949286cf6969e496009"><span class="id" title="notation">≈</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">&lt;{</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">[</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">inj@b'</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&lt;</span></a><a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#d9994f383cd17b449c0ea4abe4a8d84e"><span class="id" title="variable">τ</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">&gt;</span></a> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#e':9"><span class="id" title="variable">e'</span></a><a class="idref" href="taypsi.lang_taypsi.syntax.html#5860b585bf477c64d30227ef3bb6e9d1"><span class="id" title="notation">]</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#402c68ecf71e81a927fd902d1877dbf0"><span class="id" title="notation">}&gt;</span></a><br/>
+<br/>
+<span class="id" title="keyword">where</span> <a id="7e769a3da61f9949286cf6969e496009" class="idref" href="#7e769a3da61f9949286cf6969e496009"><span class="id" title="notation">&quot;</span></a>e '≈' e'" := (<a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#indistinguishable:2"><span class="id" title="inductive">indistinguishable</span></a> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#kernel"><span class="id" title="module">kernel</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Generate other congruence rules. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Ltac</span> <span class="id" title="var">tsf_indistinguishable_congr</span> <span class="id" title="var">ctor</span> <span class="id" title="var">R</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">ctor</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="taypsi.lang_taypsi.syntax.html#EBoxedLit"><span class="id" title="constructor">EBoxedLit</span></a> =&gt; <span class="id" title="var">tsf_skip</span><br/>
+&nbsp;&nbsp;| <a class="idref" href="taypsi.lang_taypsi.syntax.html#EBoxedInj"><span class="id" title="constructor">EBoxedInj</span></a> =&gt; <span class="id" title="var">tsf_skip</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="keyword">rec</span> <span class="id" title="var">go</span> <span class="id" title="var">T</span> <span class="id" title="var">c</span> <span class="id" title="var">c'</span> :=<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">T</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="a:11" class="idref" href="#a:11"><span class="id" title="binder">a</span></a> : ?<span class="id" title="var">T</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> ?<span class="id" title="var">T'</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">lazymatch</span> <span class="id" title="var">T</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="taypsi.lang_taypsi.syntax.html#expr"><span class="id" title="inductive">expr</span></a> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">a'</span> := <span class="id" title="tactic">fresh</span> <span class="id" title="var">a</span> "'" <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">refine</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">(</span></a><a id="a:13" class="idref" href="#a:13"><span class="id" title="binder">a</span></a> <a id="a':14" class="idref" href="#a':14"><span class="id" title="binder">a'</span></a> : <span class="id" title="var">T</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">),</span></a> <span class="id" title="var">R</span> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#a:13"><span class="id" title="variable">a</span></a> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#a':14"><span class="id" title="variable">a'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="var">_</span> : <span class="id" title="keyword">Prop</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">go</span> <span class="id" title="var">T'</span> <span class="id" title="keyword">constr</span>:(<span class="id" title="var">c</span> <span class="id" title="var">a</span>) <span class="id" title="keyword">constr</span>:(<span class="id" title="var">c'</span> <span class="id" title="var">a'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">refine</span> (<a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">forall</span></a> <a id="a:12" class="idref" href="#a:12"><span class="id" title="binder">a</span></a> : <span class="id" title="var">T</span><a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#a46514f7419edb3d22453078cf7c9fb7"><span class="id" title="notation">,</span></a> <span class="id" title="var">_</span> : <span class="id" title="keyword">Prop</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">go</span> <span class="id" title="var">T'</span> <span class="id" title="keyword">constr</span>:(<span class="id" title="var">c</span> <span class="id" title="var">a</span>) <span class="id" title="keyword">constr</span>:(<span class="id" title="var">c'</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="tactic">exact</span> (<span class="id" title="var">R</span> <span class="id" title="var">c</span> <span class="id" title="var">c'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">in</span> <span class="id" title="keyword">let</span> <span class="id" title="var">T</span> := <span class="id" title="keyword">type</span> <span class="id" title="keyword">of</span> <span class="id" title="var">ctor</span> <span class="id" title="tactic">in</span> <span class="id" title="var">go</span> <span class="id" title="var">T</span> <span class="id" title="var">ctor</span> <span class="id" title="var">ctor</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="var">MetaCoq</span> <span class="id" title="var">Run</span> (<span class="id" title="definition">tsf_ind_gen</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="idref" href="taypsi.lang_taypsi.syntax.html#expr"><span class="id" title="inductive">expr</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <a class="idref" href="taypsi.lang_taypsi.syntax.html#expr"><span class="id" title="inductive">expr</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">-&gt;</span></a> <span class="id" title="keyword">Prop</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"indistinguishable"<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">ltac</span>:(<span class="id" title="var">tsf_ctors</span> <a class="idref" href="taypsi.lang_taypsi.syntax.html#expr"><span class="id" title="inductive">expr</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Strings.String.html#append"><span class="id" title="definition">append</span></a> "I" <a class="idref" href="https://plv.mpi-sws.org/coqdoc/stdpp/stdpp.base.html#e19728dcbe978af1a3e38759f2e5a8cc"><span class="id" title="notation">∘</span></a> <span class="id" title="definition">string_drop</span> 1) <span class="id" title="var">tsf_indistinguishable_congr</span>) <a class="idref" href="http://coq.inria.fr/distrib/V8.16.1/stdlib//Coq.Init.Datatypes.html#bc347c51eaf667706ae54503b26d52c6"><span class="id" title="notation">++</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">ltac</span>:(<span class="id" title="var">tsf_ctors_id</span> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#indistinguishable"><span class="id" title="inductive">kernel.indistinguishable</span></a>))).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab51"></a><h1 class="section">Notations</h1>
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Module</span> <a id="notations" class="idref" href="#notations"><span class="id" title="module">notations</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a id="f5a4ef2532a9ef22fada34c7bab4a51a" class="idref" href="#f5a4ef2532a9ef22fada34c7bab4a51a"><span class="id" title="notation">&quot;</span></a>e '≈' e'" := (<a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#indistinguishable"><span class="id" title="inductive">indistinguishable</span></a> <span class="id" title="var">e</span> <span class="id" title="var">e'</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 40).<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="taypsi.lang_taypsi.indistinguishable.html#notations"><span class="id" title="module">notations</span></a>.<br/>
+</div>
+</div>
+<div id="footer">
+  Generated by <a href="http://coq.inria.fr/">coqdoc</a> and improved with <a href="https://github.com/tebbi/coqdocjs">CoqdocJS</a>
+</div>
+</div>
+</body>
+
+</html>
