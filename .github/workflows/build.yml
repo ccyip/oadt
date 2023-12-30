@@ -30,7 +30,7 @@ jobs:
 
       - uses: coq-community/docker-coq-action@v1
         with:
-          opam_file: 'coq-oadt.opam'
+          opam_file: 'coq-taypsi.opam'
           custom_image: ${{ matrix.image }}
           before_script: |
             startGroup "Workaround permission issue"
