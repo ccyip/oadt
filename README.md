@@ -1,16 +1,18 @@
 # Oblivious Algebraic Data Types (adapted to Taypsi)
 
-This is the Coq formalization of the core calculus of Taypsi, an extension of
-oblivious algebraic data types with Ψ-types. For simplicity, this calculus
-differs slightly from the one presented in the Taypsi paper. First, similar to
-Ye and Delaware 2022 (POPL), the mechanization includes `fold` and `unfold`
-operators for recursive ADTs, instead of the ML-style ADTs. The equivalence
-between these two styles is well-known. Second, similar to Ye and Delaware 2023
-(PLDI), the mechanization distinguishes between oblivious product (whose
-components must be oblivious) and normal product (whose components can be any
-types), while the product type in the Taypsi paper can connect any types
-(including oblivious types) for presentation purposes. The style in the Taypsi
-paper is closer to the mechanization of Ye and Delaware 2022 (POPL).
+[![Build status][action-badge]][action-link]
+[![coqdoc][doc-badge]][doc-link]
+
+[action-badge]: https://github.com/ccyip/oadt/actions/workflows/build.yml/badge.svg?branch=taypsi
+[action-link]: https://github.com/ccyip/oadt/actions?query=branch%3Ataypsi++
+
+[doc-badge]: https://img.shields.io/badge/docs-coqdoc-blue.svg
+[doc-link]: https://ccyip.github.io/oadt/taypsi
+
+This is the Coq formalization of the core calculus of Taypsi (λOADTΨ), an
+extension of oblivious algebraic data types with Ψ-types.
+
+[The coqdoc documentation](https://ccyip.github.io/oadt/taypsi)
 
 ## Requirements
 
