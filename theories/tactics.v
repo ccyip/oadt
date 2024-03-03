@@ -94,27 +94,18 @@ Ltac head_constructor T :=
   let C := get_head T in
   is_constructor C.
 
-(** A convoluted way to get the head of the conclusion of a type [T]. If [T] is
-[forall a, forall b, ..., h x y z], then [concl_head T] returns [h]. There may be a better
-approach. *)
+(** Get the conclusion head of a type [T]. If [T] is [forall a, forall b, ..., h x y z],
+then [concl_head T] returns [h]. *)
 Ltac concl_head T :=
-  let H := fresh in
-  let _ := match goal with
-           | _ =>
-               eassert (_ -> False -> T) as H;
-               [ lazymatch goal with
-                 | |- ?T' -> _ -> _ =>
-                     let H := fresh in
-                     intros ? H; intros;
-                     lazymatch goal with
-                     | |- ?T => let h := get_head T in unify T' (block (fun _ => True) h)
-                     end; elim H
-                 end
-               | ]
-           end in
-  lazymatch type of H with
-  | _ ?h -> _ => h
-  end.
+  let rec go T :=
+    lazymatch T with
+    | forall X, @?T X =>
+        let T := open_constr:(T _) in
+        let T := eval hnf in T in
+        go T
+    | _ => get_head T
+    end
+  in go T.
 
 (** Substitute [s] for subterm [t] in term [T]. *)
 Ltac subst_pattern T t s :=
