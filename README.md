@@ -16,9 +16,9 @@ types.
 
 ## Requirements
 
-- [coq](https://coq.inria.fr) (8.16)
+- [coq](https://coq.inria.fr) (8.18)
 - [coq-stdpp](https://gitlab.mpi-sws.org/iris/stdpp) (>= 1.9.0)
-- [coq-smpl](https://github.com/uds-psl/smpl) (>= 8.16)
+- [coq-smpl](https://github.com/uds-psl/smpl) (>= 8.18)
 - [coq-hammer-tactics](https://coqhammer.github.io) (>= 1.3.2)
 - [coq-idt](https://github.com/ccyip/coq-idt) (>= 1.1)
 

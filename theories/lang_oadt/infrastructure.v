@@ -454,7 +454,7 @@ Lemma subst_respect_lc x s t e :
   lc <{ {x↦t}e }>.
 Proof.
   intros H. intros Hs Ht. remember <{ {x↦s}e }>.
-  revert dependent e.
+  generalize dependent e.
   induction H;
     intros []; simpl; inversion 1; subst; simp_hyps;
       try (case_decide; subst); try scongruence;

@@ -55,7 +55,7 @@ Theorem obliviousness Σ e1 e2 τ1 τ2 :
 Proof.
   unfold trace_indistinguishable.
   intros [Hd Ht1] [_ Ht1']. apply gdefs_typing_wf in Hd.
-  intros ??? H. revert dependent e2.
+  intros ??? H. generalize dependent e2.
   induction H; intros.
   - hauto ctrs: nsteps inv: nsteps.
   - edestruct obliviousness_step as [[??] ?]; eauto.
