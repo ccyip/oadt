@@ -5,11 +5,11 @@ From oadt Require Import base tactics.
 (** Technically this definition is more than just a semilattice. It is a bounded
 join-semilattice with a top element. *)
 Class SemiLattice A `{Join A, Top A, Bottom A, SqSubsetEq A} := {
-  join_comm :> Comm (=@{A}) (⊔);
-  join_assoc :> Assoc (=@{A}) (⊔);
-  join_idemp :> IdemP (=@{A}) (⊔);
-  join_left_id :> LeftId (=@{A}) (⊥) (⊔);
-  join_left_absorb :> LeftAbsorb (=@{A}) (⊤) (⊔);
+  join_comm :: Comm (=@{A}) (⊔);
+  join_assoc :: Assoc (=@{A}) (⊔);
+  join_idemp :: IdemP (=@{A}) (⊔);
+  join_left_id :: LeftId (=@{A}) (⊥) (⊔);
+  join_left_absorb :: LeftAbsorb (=@{A}) (⊤) (⊔);
 
   join_consistent (x y : A) : x ⊑ y <-> y = x ⊔ y
 }.
